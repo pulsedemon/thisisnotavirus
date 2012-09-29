@@ -11,17 +11,16 @@ $(document).ready(function(){
 		'top': ($('html').height()/2)-(62/2)+'px'
 	});
 
+	var dot = document.createDocumentFragment();
+
 	setInterval(function(){
 		x = Math.random()*screen_width;
 		y = Math.random()*screen_height;
 
 	  var html = '<div style="top:'+y+'px; left:'+x+'px;"></div>';
 
-	  var dot = document.createDocumentFragment();
 		dot.innerHTML = html;
 		$body.append(html);
-
-		// $body.append($dot);
 
 		document.title = x*y*538531294576739;
 
