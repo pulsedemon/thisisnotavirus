@@ -61,7 +61,7 @@ function render() {
 
 
   if(!window.texture2_image) {
-    var radius2 = 50, segments2 = Math.random() * 64, rings2 = Math.random() * 32;
+    var radius2 = 50, segments2 = 20, rings2 = 2;
     var geometry2 = new THREE.SphereGeometry( radius2, segments2, rings2 );
     console.log(geometry2);
     window.texture2_image = createImage();
