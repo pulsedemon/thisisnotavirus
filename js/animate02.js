@@ -3,8 +3,6 @@ var WIDTH = window.innerWidth,
 
 var renderer, scene, camera, mesh, geometry;
 var sphere, uniforms, attributes;
-var $container = $('#container');
-var vc1;
 
 init();
 animate();

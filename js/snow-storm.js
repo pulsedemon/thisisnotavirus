@@ -1,33 +1,51 @@
-var $logo = $('<h1>THISISNOTAVIRUS</h1>');
+var WIDTH = window.innerWidth,
+    HEIGHT = window.innerHeight;
 
-$(document).ready(function(){
-	$logo.appendTo('body');
+var $dot = $('<div class="snowflake" style="top:10px; left:10px;"></div>');
+var $logo = $('<h1>THIS IS NOT A VIRUS</h1>');
 
-	screen_width = screen.width;
-	screen_height = screen.height;
+$(function(){
+	$logo.appendTo($container);
 	$body = $('body');
 	$logo = $('h1');
 
 	bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
-	$logo.css({
-		'left': ($('html').width()/2)-(747/2)+'px',
-		'top': ($('html').height()/2)-(62/2)+'px'
+	$container.css({
+		'width': WIDTH + 'px',
+		'height': HEIGHT + 'px',
 	});
 
-	var dot = document.createDocumentFragment();
+	$logo.css({
+		'top': (HEIGHT/2) - ($logo.outerHeight() / 2) + 'px',
+	});
+
+	$(window).resize(function(){
+		WIDTH = window.innerWidth;
+    HEIGHT = window.innerHeight;
+    $container.css({
+			'width': WIDTH + 'px',
+			'height': HEIGHT + 'px',
+		});
+
+		$logo.css({
+		'top': (HEIGHT/2) - ($logo.outerHeight() / 2) + 'px',
+	});
+	});
 
 	setInterval(function(){
-		x = Math.random()*screen_width;
-		y = Math.random()*screen_height;
+		x = Math.random()*WIDTH;
+		y = Math.random()*HEIGHT;
 
-	  var html = '<div style="top:'+y+'px; left:'+x+'px;"></div>';
-
-		dot.innerHTML = html;
-		$body.append(html);
+		var $new_dot = $dot.clone();
+		$new_dot.css({
+			'left': x + 'px',
+			'top': y + 'px',
+		});
+		$container.append($new_dot);
 
 		rand = Math.floor(Math.random()*6);
 
-		$logo.css('background-color', bgs[rand]);
+		$logo.css('color', bgs[rand]);
 	}, 5);
 });

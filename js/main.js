@@ -1,3 +1,5 @@
+var $container = $('#container');
+
 function load_css(url) {
     var link = document.createElement("link");
     link.type = "text/css";
