@@ -16,16 +16,12 @@
   font-weight:bold;
 }
 
-h1 {
+#logo {
   font-family: 'Josefin Sans Bold';
-  font-size:90px;
+  font-size:160px;
+  line-height:160px;
   word-spacing:-0.3em;
   display:inline-block;
-  text-shadow:
-   -1px -1px 0 #000,
-    1px -1px 0 #000,
-   -1px  1px 0 #000,
-    5px  1px 0 #000;
   color:#fff;
   position:relative;
   z-index:1000;

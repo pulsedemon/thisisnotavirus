@@ -2,12 +2,11 @@ var WIDTH = window.innerWidth,
     HEIGHT = window.innerHeight;
 
 var $dot = $('<div class="snowflake" style="top:10px; left:10px;"></div>');
-var $logo = $('<h1>THIS IS NOT A VIRUS</h1>');
+var $logo = $('<strong id="logo">THIS IS NOT A VIRUS</strong>');
 
 $(function(){
 	$logo.appendTo($container);
 	$body = $('body');
-	$logo = $('h1');
 
 	bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
