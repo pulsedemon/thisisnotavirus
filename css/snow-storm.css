@@ -16,15 +16,22 @@
   font-weight:bold;
 }
 
+canvas {
+  position:absolute;
+  top:0;
+  left:0;
+}
+
 #logo {
   font-family: 'Josefin Sans Bold';
   font-size:160px;
   line-height:160px;
   word-spacing:-0.3em;
-  display:inline-block;
-  color:#fff;
-  position:relative;
-  z-index:1000;
+  display:block;
+  width:100%;
+  text-align:center;
+  color:#000;
+  position:absolute;
 }
 
 .snowflake { width:2px; height:2px; background-color:#000; position:absolute; display:block; overflow:none; z-index:10; }

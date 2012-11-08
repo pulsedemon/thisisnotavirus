@@ -81,16 +81,14 @@ function render() {
 }
 
 function createImage() {
+  var canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
 
-        var canvas = document.createElement( 'canvas' );
-        canvas.width = 256;
-        canvas.height = 256;
+  var context = canvas.getContext( '2d' );
+  context.fillStyle = 'rgb(' + Math.floor( Math.random() * 256 ) + ',' + Math.floor( Math.random() * 256 ) + ',' + Math.floor( Math.random() * 256 ) + ')';
+  context.fillRect(0, 0, canvas.width, canvas.height);
 
-        var context = canvas.getContext( '2d' );
-        context.fillStyle = 'rgb(' + Math.floor( Math.random() * 256 ) + ',' + Math.floor( Math.random() * 256 ) + ',' + Math.floor( Math.random() * 256 ) + ')';
-        context.fillRect( 0, 0, 256, 256 );
-
-        return canvas;
-
-      }
+  return canvas;
+}
 

@@ -1,47 +1,56 @@
-var $dot = $('<div class="snowflake" style="top:10px; left:10px;"></div>');
 var $logo = $('<strong id="logo">THIS IS NOT A VIRUS</strong>');
+$logo.appendTo($container);
+var bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
 $(function(){
-	$logo.appendTo($container);
+
+	$container.append(create_canvas());
 	$body = $('body');
 
-	bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
+	center_everything();
 
+	$(window).resize(function(){
+		WIDTH = window.innerWidth;
+    HEIGHT = window.innerHeight;
+    center_everything();
+	});
+
+	change_text_color();
+});
+
+function center_everything(){
 	$container.css({
 		'width': WIDTH + 'px',
 		'height': HEIGHT + 'px',
 	});
 
 	$logo.css({
-		'top': (HEIGHT/2) - ($logo.outerHeight() / 2) + 'px',
+		'top': (HEIGHT/2) - ($logo.height() / 2) + 'px',
+		'left': (WIDTH/2) - ($logo.width() / 2) + 'px',
 	});
+}
 
-	$(window).resize(function(){
-		WIDTH = window.innerWidth;
-    HEIGHT = window.innerHeight;
-    $container.css({
-			'width': WIDTH + 'px',
-			'height': HEIGHT + 'px',
-		});
+function change_text_color() {
+	var rand = Math.floor(Math.random()*6);
 
-		$logo.css({
-		'top': (HEIGHT/2) - ($logo.outerHeight() / 2) + 'px',
-	});
-	});
+	$logo.css('color', bgs[rand]);
 
-	setInterval(function(){
-		x = Math.random()*WIDTH;
-		y = Math.random()*HEIGHT;
+	requestAnimationFrame(change_text_color);
+}
 
-		var $new_dot = $dot.clone();
-		$new_dot.css({
-			'left': x + 'px',
-			'top': y + 'px',
-		});
-		$container.append($new_dot);
+function create_canvas() {
+  window.canvas = document.createElement('canvas');
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
+  window.context = canvas.getContext('2d');
+  render();
 
-		rand = Math.floor(Math.random()*6);
+  return canvas;
+}
 
-		$logo.css('color', bgs[rand]);
-	}, 5);
-});
+function render() {
+	var x = Math.random()*WIDTH;
+	var y = Math.random()*HEIGHT;
+  window.context.fillRect(x,y,2,2);
+  requestAnimationFrame(render);
+}
