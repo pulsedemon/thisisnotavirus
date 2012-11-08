@@ -98,3 +98,4 @@ function createImage() {
         return canvas;
 
       }
+
