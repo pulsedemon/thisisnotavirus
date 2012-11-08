@@ -10,7 +10,7 @@ function load_css(url) {
 
 var viruses = [
   'snow-storm.js',
-  // 'animate02.js'
+  'animate02.js'
 ];
 
 var load_this = Math.floor((Math.random() * viruses.length));
