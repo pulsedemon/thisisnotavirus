@@ -1,6 +1,3 @@
-var WIDTH = window.innerWidth,
-    HEIGHT = window.innerHeight;
-
 var $dot = $('<div class="snowflake" style="top:10px; left:10px;"></div>');
 var $logo = $('<strong id="logo">THIS IS NOT A VIRUS</strong>');
 

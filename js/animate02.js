@@ -1,6 +1,3 @@
-var WIDTH = window.innerWidth,
-    HEIGHT = window.innerHeight;
-
 var renderer, scene, camera, mesh, geometry;
 var sphere, uniforms, attributes;
 

@@ -1,3 +1,5 @@
+var WIDTH = window.innerWidth,
+    HEIGHT = window.innerHeight;
 var $container = $('#container');
 
 function load_css(url) {
