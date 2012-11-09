@@ -53,8 +53,8 @@ function load_shit(){
   return false;
 }
 
-// var reload = setInterval(function(){
-//   console.log('test');
-//   location.reload(true);
-// }, 5000);
+var reload = setInterval(function(){
+  console.log('test');
+  location.reload(true);
+}, 5000);
 
