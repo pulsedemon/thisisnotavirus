@@ -19,7 +19,7 @@
 <body>
   <div id="container"></div>
   <div id="menu">
-    <a href="#"id="icon">T</a>
+    <a href="#"id="icon">V</a>
   </div>
 </body>
 </html>

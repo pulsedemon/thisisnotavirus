@@ -14,12 +14,17 @@ body {
   right:0;
   cursor:pointer;
 }
+#menu:hover {
+  border-left:1px dashed #fff;
+  border-bottom:1px dashed #fff;
+}
 #icon {
   color:#fff;
   text-decoration:none;
 }
 #icon:hover {
   font-size:35px;
+  font-weight:bold;
   text-decoration:none;
   text-shadow: 1px 0px 12px #00FF3D;
 }
