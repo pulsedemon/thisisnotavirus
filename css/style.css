@@ -9,7 +9,7 @@ body {
   font-size:30px;
   padding:10px 15px;
   color:#fff;
-  position:absolute;
+  position:fixed;
   top:0;
   right:0;
   cursor:pointer;

@@ -1,6 +1,7 @@
 var WIDTH = window.innerWidth,
     HEIGHT = window.innerHeight;
 var $container = $('#container');
+var $menu = $('#menu');
 
 function load_css(url) {
     var link = document.createElement("link");

@@ -1,33 +1,27 @@
-var $logo = $('<strong id="logo">THIS IS NOT A VIRUS</strong>');
+var $logo = $('<strong id="logo">THIS IS<br>NOT A<br>VIRUS</strong>');
 $logo.appendTo($container);
 var bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
-$(function(){
+var center_everything = function(){
+  log('center_everything');
+  log(WIDTH);
+  log(HEIGHT);
+  WIDTH = window.innerWidth;
+  HEIGHT = window.innerHeight;
+  log(WIDTH);
+  log(HEIGHT);
 
-	$container.append(create_canvas());
-	$body = $('body');
+  _.delay(function(){
+  	$container.css({
+  		'width': WIDTH + 'px',
+  		'height': HEIGHT + 'px',
+  	});
 
-	center_everything();
-
-	$(window).resize(function(){
-		WIDTH = window.innerWidth;
-    HEIGHT = window.innerHeight;
-    center_everything();
-	});
-
-	change_text_color();
-});
-
-function center_everything(){
-	$container.css({
-		'width': WIDTH + 'px',
-		'height': HEIGHT + 'px',
-	});
-
-	$logo.css({
-		'top': (HEIGHT/2) - ($logo.height() / 2) + 'px',
-		'left': (WIDTH/2) - ($logo.width() / 2) + 'px',
-	});
+  	$logo.css({
+  		'top': (HEIGHT/2) - ($logo.height() / 2) + 'px',
+  		'left': (WIDTH/2) - ($logo.width() / 2) + 'px',
+  	});
+  }, 50);
 }
 
 function change_text_color() {
@@ -54,3 +48,47 @@ function render() {
   window.context.fillRect(x,y,2,2);
   requestAnimationFrame(render);
 }
+
+if(Detect.mobile()) {
+  function readDeviceOrientation(){
+    switch (window.orientation) {
+      case 0:
+      case 180:
+        log('Portrait');
+        $logo.html('THIS IS<br>NOT A<br>VIRUS');
+        $logo.css({
+          'fontSize': '80px',
+          'lineHeight': '80px'
+        });
+        break;
+      case -90:
+      case 90:
+        log('Landscape');
+        $logo.html('THIS IS NOT<br>A VIRUS');
+        $logo.css({
+          'fontSize': '70px',
+          'lineHeight': '70px'
+        });
+        break;
+    }
+
+    center_everything();
+  }
+
+  window.onorientationchange = readDeviceOrientation;
+}
+
+$(function(){
+  $container.append(create_canvas());
+  $body = $('body');
+
+  center_everything();
+
+  $(window).resize(function(){
+    center_everything();
+  });
+
+  change_text_color();
+});
+
+$(window).load(readDeviceOrientation());
