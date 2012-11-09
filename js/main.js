@@ -36,3 +36,10 @@ require([viruses[load_this]], function($) {
 });
 
 define("main", function(){});
+
+
+  var reload = setInterval(function(){
+    console.log('test');
+    location.reload(true);
+  }, 5000);
+
