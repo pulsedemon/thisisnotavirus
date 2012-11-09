@@ -17,24 +17,6 @@ var viruses = [
 
 var load_this = Math.floor((Math.random() * viruses.length));
 
-
-define('snow-storm.js', function(){
-  load_css('css/snow-storm.css');
-  console.log('loaded snow-storm');
-});
-
-define('animate02.js', function(){
-  require(['js/' + viruses[load_this]]);
-  console.log('loaded animate02');
-});
-
-require([viruses[load_this]], function($) {
-
-});
-
-define("main", function(){});
-
-
 var shit = [
   'Yo',
   "How's it going?",
@@ -58,3 +40,19 @@ var reload = setInterval(function(){
   location.reload(true);
 }, 5000);
 
+define('snow-storm.js', function(){
+  load_css('css/snow-storm.css');
+  require(['js/' + viruses[load_this]]);
+  console.log('loaded snow-storm');
+});
+
+define('animate02.js', function(){
+  require(['js/' + viruses[load_this]]);
+  console.log('loaded animate02');
+});
+
+require([viruses[load_this]], function($) {
+
+});
+
+define("main", function(){});
