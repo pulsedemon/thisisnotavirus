@@ -4,12 +4,8 @@ var bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
 var center_everything = function(){
   log('center_everything');
-  log(WIDTH);
-  log(HEIGHT);
   WIDTH = window.innerWidth;
   HEIGHT = window.innerHeight;
-  log(WIDTH);
-  log(HEIGHT);
 
   _.delay(function(){
   	$container.css({
@@ -20,6 +16,7 @@ var center_everything = function(){
   	$logo.css({
   		'top': (HEIGHT/2) - ($logo.height() / 2) + 'px',
   		'left': (WIDTH/2) - ($logo.width() / 2) + 'px',
+      'visibility': 'visible'
   	});
   }, 50);
 }
@@ -51,6 +48,7 @@ function render() {
 
 if(Detect.mobile()) {
   function readDeviceOrientation(){
+    center_everything();
     switch (window.orientation) {
       case 0:
       case 180:
@@ -71,18 +69,15 @@ if(Detect.mobile()) {
         });
         break;
     }
-
-    center_everything();
   }
 
   window.onorientationchange = readDeviceOrientation;
 }
+center_everything();
 
 $(function(){
   $container.append(create_canvas());
   $body = $('body');
-
-  center_everything();
 
   $(window).resize(function(){
     center_everything();

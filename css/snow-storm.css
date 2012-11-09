@@ -23,6 +23,7 @@ canvas {
 }
 
 #logo {
+  visibility:hidden;
   font-family: 'Josefin Sans Bold';
   font-size:200px;
   line-height:200px;
