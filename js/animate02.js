@@ -58,15 +58,15 @@ function render() {
   if(!window.texture2_image) {
     var radius2 = 50, segments2 = 20, rings2 = 2;
     var geometry2 = new THREE.SphereGeometry( radius2, segments2, rings2 );
-    console.log(geometry2);
+    log(geometry2);
     window.texture2_image = createImage();
     var texture2 = new THREE.Texture( texture2_image );
-    console.log(texture2);
+    log(texture2);
     texture2.needsUpdate = true;
     window.material2 = new THREE.MeshBasicMaterial( { map: texture2, wireframe: true, needsUpdate: true } )
     var mesh2 = new THREE.Mesh( geometry2, material2);
 
-    console.log(material2);
+    log(material2);
     scene.add( mesh2 );
   }
 

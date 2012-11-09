@@ -31,26 +31,26 @@ $('#menu').on('click', load_shit);
 
 function load_shit(){
   var load_shit = Math.floor((Math.random() * shit.length));
-  console.log(shit[load_shit]);
+  log(shit[load_shit]);
   return false;
 }
 
 var random_times = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000];
 var this_time = Math.floor((Math.random() * random_times.length));
 var reload = setInterval(function(){
-  console.log('test');
+  log('test');
   location.reload(true);
 }, random_times[this_time]);
 
 define('snow-storm.js', function(){
   load_css('css/snow-storm.css');
   require(['js/' + viruses[load_this]]);
-  console.log('loaded snow-storm');
+  log('loaded snow-storm');
 });
 
 define('animate02.js', function(){
   require(['js/' + viruses[load_this]]);
-  console.log('loaded animate02');
+  log('loaded animate02');
 });
 
 require([viruses[load_this]], function($) {
