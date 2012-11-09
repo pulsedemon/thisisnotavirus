@@ -20,15 +20,12 @@ var load_this = Math.floor((Math.random() * viruses.length));
 
 define('snow-storm.js', function(){
   load_css('css/snow-storm.css');
-  require(['js/' + viruses[load_this]]);
-  console.log('try to load snow-storm');
+  console.log('loaded snow-storm');
 });
 
 define('animate02.js', function(){
   require(['js/' + viruses[load_this]]);
-  console.log(viruses[load_this]);
-
-  console.log('try to load animate02');
+  console.log('loaded animate02');
 });
 
 require([viruses[load_this]], function($) {
@@ -38,8 +35,26 @@ require([viruses[load_this]], function($) {
 define("main", function(){});
 
 
-  var reload = setInterval(function(){
-    console.log('test');
-    location.reload(true);
-  }, 5000);
+var shit = [
+  'Yo',
+  "How's it going?",
+  'THISISNOTAVIRUS',
+  'Radical'
+];
+
+$(document).ready(function(){
+  load_shit();
+});
+$('#menu').on('click', load_shit);
+
+function load_shit(){
+  var load_shit = Math.floor((Math.random() * shit.length));
+  console.log(shit[load_shit]);
+  return false;
+}
+
+// var reload = setInterval(function(){
+//   console.log('test');
+//   location.reload(true);
+// }, 5000);
 

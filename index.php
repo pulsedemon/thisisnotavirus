@@ -17,5 +17,8 @@
 </head>
 <body>
   <div id="container"></div>
+  <div id="menu">
+    <a href="#"id="icon">T</a>
+  </div>
 </body>
 </html>
