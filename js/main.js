@@ -22,7 +22,8 @@ var shit = [
   'Yo',
   "How's it going?",
   'THISISNOTAVIRUS',
-  'Radical'
+  'Radical',
+  "I don't care"
 ];
 
 $(document).ready(function(){
