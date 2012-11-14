@@ -13,7 +13,7 @@ function load_css(url) {
 
 var viruses = [
   'snow-storm.js',
-  'animate02.js'
+  'uzumaki.js'
 ];
 
 var load_this = Math.floor((Math.random() * viruses.length));
@@ -23,7 +23,8 @@ var shit = [
   "How's it going?",
   'THISISNOTAVIRUS',
   'Radical',
-  "I don't care"
+  "I don't care",
+  "Uzumaki"
 ];
 
 Detect.device();
@@ -50,12 +51,12 @@ var reload = setInterval(function(){
 define('snow-storm.js', function(){
   load_css('css/snow-storm.css');
   require(['js/' + viruses[load_this]]);
-  log('loaded snow-storm');
+  log('loaded snow storm');
 });
 
-define('animate02.js', function(){
+define('uzumaki.js', function(){
   require(['js/' + viruses[load_this]]);
-  log('loaded animate02');
+  log('loaded uzumaki');
 });
 
 require([viruses[load_this]], function($) {
