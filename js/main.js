@@ -26,6 +26,8 @@ var shit = [
   "I don't care"
 ];
 
+Detect.device();
+
 $(document).ready(function(){
   load_shit();
 });
@@ -39,6 +41,7 @@ function load_shit(){
 
 var random_times = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000];
 var this_time = Math.floor((Math.random() * random_times.length));
+
 var reload = setInterval(function(){
   log('test');
   location.reload(true);

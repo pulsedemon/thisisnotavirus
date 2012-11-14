@@ -46,7 +46,7 @@ function render() {
   requestAnimationFrame(render);
 }
 
-if(Detect.mobile()) {
+if(Detect.type == 'mobile') {
   function readDeviceOrientation(){
     center_everything();
     switch (window.orientation) {
@@ -73,7 +73,6 @@ if(Detect.mobile()) {
 
   window.onorientationchange = readDeviceOrientation;
 }
-center_everything();
 
 $(function(){
   $container.append(create_canvas());

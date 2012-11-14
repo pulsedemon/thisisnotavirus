@@ -1,8 +1,11 @@
-var renderer, scene, camera, mesh, geometry;
-var sphere, uniforms, attributes;
+"use strict";
 
-init();
-animate();
+$('body').css('background', 'black');
+
+var renderer, scene, camera, vortex, diamond;
+var $diamond_color;
+var projector;
+var sphere, uniforms, attributes;
 
 function init(){
   var VIEW_ANGLE = 45,
@@ -20,20 +23,25 @@ function init(){
 
   scene = new THREE.Scene();
 
-  renderer = new THREE.WebGLRenderer( { clearColor: 0x000000, clearAlpha: 1 } );
+
+  var radius = 100, segments = 35, rings = 18;
+  var geometry = new THREE.SphereGeometry( radius, segments, rings, 0, Math.PI*2, 0, Math.PI * 2);
+  var random_color = Math.random() * 0xffffff;
+  var material = new THREE.MeshBasicMaterial({
+    color: random_color,
+    wireframe: true
+  });
+  vortex = new THREE.Mesh(geometry, material);
+  scene.add(vortex);
+
+  projector = new THREE.Projector();
+
+  renderer = new THREE.CanvasRenderer();
   renderer.setSize(WIDTH, HEIGHT);
 
   $('#container').append(renderer.domElement);
 
-  var radius1 = 100, segments1 = 34.9151935428381, rings1 = 8.867045894265175;
-  var geometry1 = new THREE.SphereGeometry( radius1, segments1, rings1 );
-  var texture1 = new THREE.Texture( createImage() );
-  texture1.needsUpdate = true;
-  var material1 = new THREE.MeshBasicMaterial( { map: texture1, wireframe: true } )
-  mesh1 = new THREE.Mesh( geometry1, material1);
-  scene.add( mesh1 );
-
-  window.addEventListener( 'resize', onWindowResize, false );
+  window.addEventListener('resize', onWindowResize, false);
 }
 
 function onWindowResize() {
@@ -43,52 +51,37 @@ function onWindowResize() {
   renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
-function animate() {
-  requestAnimationFrame( animate );
-  render();
-}
-
 function render() {
   var time = Date.now() * 0.005;
 
-  mesh1.rotation.y = 0.02 * time;
-  mesh1.rotation.z = 0.02 * time;
+  vortex.rotation.y = 0.02 * time;
+  vortex.rotation.z = 0.02 * time;
 
-
-  if(!window.texture2_image) {
-    var radius2 = 50, segments2 = 20, rings2 = 2;
-    var geometry2 = new THREE.SphereGeometry( radius2, segments2, rings2 );
-    log(geometry2);
-    window.texture2_image = createImage();
-    var texture2 = new THREE.Texture( texture2_image );
-    log(texture2);
-    texture2.needsUpdate = true;
-    window.material2 = new THREE.MeshBasicMaterial( { map: texture2, wireframe: true, needsUpdate: true } )
-    var mesh2 = new THREE.Mesh( geometry2, material2);
-
-    log(material2);
-    scene.add( mesh2 );
+  if(!diamond) {
+    log('create diamond');
+    var radius = 50, segments = 20, rings = 2;
+    var geometry = new THREE.SphereGeometry(radius, segments, rings);
+    diamond = new THREE.Mesh(geometry);
+    $diamond_color = diamond.material.color;
+    scene.add(diamond);
   }
 
-  var rand = Math.ceil((Math.random()*20)+1);
+  renderer.render(scene, camera);
+  requestAnimationFrame(render);
+}
 
-  if(rand < 5) {
-    window.material2.color.setRGB((Math.random() * 256 ), (Math.random() * 256 ), (Math.random() * 256 ));
+function diamond_color(){
+  if(!diamond) return;
+
+  var rand = Math.ceil(Math.random()*50);
+
+  if(rand % 2 === 0) {
+    $diamond_color.setRGB((Math.random() * 256 ), (Math.random() * 256 ), (Math.random() * 256 ));
   }
 
-  renderer.render( scene, camera );
-
+  requestAnimationFrame(diamond_color);
 }
 
-function createImage() {
-  var canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
-
-  var context = canvas.getContext( '2d' );
-  context.fillStyle = 'rgb(' + Math.floor( Math.random() * 256 ) + ',' + Math.floor( Math.random() * 256 ) + ',' + Math.floor( Math.random() * 256 ) + ')';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  return canvas;
-}
-
+init();
+requestAnimationFrame(render);
+requestAnimationFrame(diamond_color);
