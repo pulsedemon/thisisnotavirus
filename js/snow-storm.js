@@ -49,6 +49,8 @@ function render() {
 if(Detect.type == 'mobile') {
   function readDeviceOrientation(){
     center_everything();
+
+    if(WIDTH > 800) return;
     switch (window.orientation) {
       case 0:
       case 180:
