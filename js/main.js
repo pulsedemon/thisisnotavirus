@@ -13,10 +13,12 @@ function load_css(url) {
 
 var viruses = [
   'snow-storm.js',
-  'uzumaki.js'
+  'uzumaki.js',
+  'random-blocks.js',
 ];
 
 var load_this = Math.floor((Math.random() * viruses.length));
+console.log(load_this);
 
 var shit = [
   'Yo',
@@ -57,6 +59,12 @@ define('snow-storm.js', function(){
 define('uzumaki.js', function(){
   require(['js/' + viruses[load_this]]);
   log('loaded uzumaki');
+});
+
+define('random-blocks.js', function(){
+  load_css('css/random-blocks.css');
+  require(['js/' + viruses[load_this]]);
+  log('loaded random blocks');
 });
 
 require([viruses[load_this]], function($) {

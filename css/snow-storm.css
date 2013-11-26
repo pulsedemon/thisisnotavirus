@@ -25,8 +25,8 @@ canvas {
 #logo {
   visibility:hidden;
   font-family: 'Josefin Sans Bold';
-  font-size:200px;
-  line-height:200px;
+  font-size: 30vh;
+  line-height:30vh;
   word-spacing:-0.3em;
   display:block;
   width:100%;

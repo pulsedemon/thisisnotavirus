@@ -1,4 +1,5 @@
 var $logo = $('<strong id="logo">THIS IS<br>NOT A<br>VIRUS</strong>');
+
 $logo.appendTo($container);
 var bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
