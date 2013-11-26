@@ -57,6 +57,7 @@ define('snow-storm.js', function(){
 });
 
 define('uzumaki.js', function(){
+  load_css('css/uzumaki.css');
   require(['js/' + viruses[load_this]]);
   log('loaded uzumaki');
 });

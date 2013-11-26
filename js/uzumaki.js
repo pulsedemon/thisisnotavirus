@@ -8,6 +8,11 @@ var projector;
 var sphere, uniforms, attributes;
 
 function init(){
+
+  if (HEIGHT > WIDTH) {
+    HEIGHT = WIDTH;
+  }
+
   var VIEW_ANGLE = 45,
       ASPECT = WIDTH / HEIGHT,
       NEAR = 1,
@@ -19,10 +24,12 @@ function init(){
     NEAR,
     FAR
   );
-  camera.position.z = 300;
 
+  camera.position.z = 300;
   scene = new THREE.Scene();
 
+  WIDTH = WIDTH * 2;
+  HEIGHT = HEIGHT * 2;
 
   var radius = 100, segments = 35, rings = 18;
   var geometry = new THREE.SphereGeometry( radius, segments, rings, 0, Math.PI*2, 0, Math.PI * 2);
@@ -39,16 +46,35 @@ function init(){
   renderer = new THREE.CanvasRenderer();
   renderer.setSize(WIDTH, HEIGHT);
 
+
   $('#container').append(renderer.domElement);
+
+  $('canvas').css({
+    'top': ((window.innerHeight - HEIGHT/2))+ 'px'
+  });
 
   window.addEventListener('resize', onWindowResize, false);
 }
 
 function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  var WIDTH = window.innerWidth,
+    HEIGHT = window.innerHeight;
+
+  if (HEIGHT > WIDTH) {
+    HEIGHT = WIDTH;
+  }
+
+  camera.aspect = WIDTH / HEIGHT;
   camera.updateProjectionMatrix();
 
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  WIDTH = WIDTH * 2;
+  HEIGHT = HEIGHT * 2;
+
+  $('canvas').css({
+    'top': ((window.innerHeight - HEIGHT/2))+ 'px'
+  });
+
+  renderer.setSize( WIDTH, HEIGHT );
 }
 
 function render() {
