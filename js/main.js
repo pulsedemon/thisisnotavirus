@@ -14,39 +14,37 @@ function load_css(url) {
 var viruses = [
   'snow-storm.js',
   'uzumaki.js',
-  'random-blocks.js',
+  'random-blocks.js'
 ];
+
+function setLastVirus(virus) {
+  document.cookie="lastVirus=" + virus;
+}
+
+function getLastVirus() {
+  var name = "lastVirus=";
+  var ca = document.cookie.split(';');
+  for(var i=0; i<ca.length; i++) {
+    var c = ca[i].trim();
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
 
 var load_this = Math.floor((Math.random() * viruses.length));
+while (getLastVirus() == viruses[load_this]) {
+  load_this = Math.floor((Math.random() * viruses.length));
+}
 console.log(load_this);
 
-var shit = [
-  'Yo',
-  "How's it going?",
-  'THISISNOTAVIRUS',
-  'Radical',
-  "I don't care",
-  "Uzumaki"
-];
-
 Detect.device();
-
-$(document).ready(function(){
-  load_shit();
-});
-$('#menu').on('click', load_shit);
-
-function load_shit(){
-  var load_shit = Math.floor((Math.random() * shit.length));
-  log(shit[load_shit]);
-  return false;
-}
 
 var random_times = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000];
 var this_time = Math.floor((Math.random() * random_times.length));
 
 var reload = setInterval(function(){
-  log('test');
   location.reload(true);
 }, random_times[this_time]);
 
@@ -69,7 +67,7 @@ define('random-blocks.js', function(){
 });
 
 require([viruses[load_this]], function($) {
-
+  setLastVirus(viruses[load_this]);
 });
 
 define("main", function(){});

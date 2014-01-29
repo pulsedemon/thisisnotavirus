@@ -19,6 +19,9 @@
     , start = new Date().getTime()
     , end
     , executionTime
+    , canvas = $("<canvas id='stage'>")
+    , canvasCtx
+    , blockSize = 5
   ;
 
   /**
@@ -30,25 +33,25 @@
     console.log('screenWidth:', screenWidth);
     console.log('screenHeight:', screenHeight);
 
+    canvas = canvas.appendTo('#container')[0]
+    canvas.width = screenWidth;
+    canvas.height = screenHeight;
+    canvasCtx = canvas.getContext('2d')
+
     numberOfBlocks = RandomBlocks.calculateNumberOfBlocks();
 
     console.log('Blocks needed to fill screen: ', numberOfBlocks);
 
-    // Keep adding blocks until the screen is full
-    var addBlocksInterval = setInterval(function(){
-      RandomBlocks.add();
-
-      if (count == numberOfBlocks) {
-        clearInterval(addBlocksInterval);
-        console.log('fin');
-        console.log(locations);
-
-        executionTime = RandomBlocks.calculateExecutionTime();
-
-        console.log('Execution time: ', executionTime);
-      }
-    }, 1);
+    function update() {
+      console.time('update time')
+      for (var i=0; i<100; i++)
+        RandomBlocks.add(blockSize);
+      window.requestAnimationFrame(update);
+    }
+    update();
   };
+
+
 
   RandomBlocks.calculateExecutionTime = function() {
     end = new Date().getTime();
@@ -66,67 +69,72 @@
    * @return {int} numberOfBlocks
    */
   RandomBlocks.calculateNumberOfBlocks = function() {
-    var numBlocksAcross = screenWidth / 10;
-    var numBlocksDown = screenHeight / 10;
+    var numBlocksAcross = screenWidth / blockSize;
+    var numBlocksDown = screenHeight / blockSize;
 
     return Math.ceil(numBlocksAcross * numBlocksDown);
   };
 
   /* todo */
   RandomBlocks.calculateScreenCoordinates = function() {
-    var numBlocksAcross = screenWidth / 10;
-    var numBlocksDown = screenHeight / 10;
+    var numBlocksAcross = screenWidth / blockSize;
+    var numBlocksDown = screenHeight / blockSize;
   };
 
   /**
    * Add a random block
    * @return nothing
    */
-  RandomBlocks.add = function(){
+  RandomBlocks.add = function(size){
     var position;
-    var randomXNumber = RandomBlocks.randomXAxis();
-    var randomYNumber = RandomBlocks.randomYAxis();
+    var randomXNumber = RandomBlocks.randomXAxis(size);
+    var randomYNumber = RandomBlocks.randomYAxis(size);
 
-    var position = '' + randomXNumber + 'x' + randomYNumber;
-    if (!~locations.indexOf(position)) {
+    var position = [randomXNumber, randomYNumber];
+    if (!~locations.indexOf(position.join(''))) {
       var randomColor = RandomBlocks.randomColor();
-      var xPosition = position.split('x')[0];
-      var yPosition = position.split('x')[1];
+      var xPosition = position[0];
+      var yPosition = position[1];
 
-      $block.clone().css({
-        'background': 'rgb(' + randomColor + ')',
-        'left': xPosition + 'px',
-        'top': yPosition + 'px',
-      })
-      .appendTo('#container');
+      // $block.clone().css({
+      //   'background': 'rgb(' + randomColor + ')',
+      //   'left': xPosition + 'px',
+      //   'top': yPosition + 'px',
+      // })
+      // .appendTo('#container');
+
+      canvasCtx.fillStyle = 'rgb(' + randomColor + ')';
+      canvasCtx.fillRect(xPosition, yPosition,size,size);
 
       blocksAppended++;
 
-      if (blocksAppended % 500 === 0) console.log('Blocks appended: ', blocksAppended);
+      // if (blocksAppended % 500 === 0) console.log('Blocks appended: ', blocksAppended);
 
       locations.push(position);
       count++;
+    } else {
+      console.log('EXCEPT!');
     }
   };
 
   /**
-   * Random X axis that is divisible by 10
+   * Random X axis that is divisible by blockSize
    * @return {int} Random X axis
    */
-  RandomBlocks.randomXAxis = function(){
+  RandomBlocks.randomXAxis = function(size){
     return Math.round(
-      (Math.random() * screenWidth) / 10
-    ) * 10;
+      (Math.random() * screenWidth) / size
+    ) * size;
   };
 
   /**
-   * Random Y axis that is divisible by 10
+   * Random Y axis that is divisible by blockSize
    * @return {int} Random Y axis
    */
-  RandomBlocks.randomYAxis = function(){
+  RandomBlocks.randomYAxis = function(size){
     return Math.round(
-        (Math.random() * screenHeight) / 10
-    ) * 10;
+        (Math.random() * screenHeight) / size
+    ) * size;
   };
 
   /**
