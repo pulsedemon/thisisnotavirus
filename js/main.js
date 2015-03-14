@@ -14,7 +14,8 @@ function load_css(url) {
 var viruses = [
   'snow-storm.js',
   'uzumaki.js',
-  'random-blocks.js'
+  'random-blocks.js',
+  'flash.js',
 ];
 
 function setLastVirus(virus) {
@@ -64,6 +65,12 @@ define('random-blocks.js', function(){
   load_css('css/random-blocks.css');
   require(['js/' + viruses[load_this]]);
   log('loaded random blocks');
+});
+
+define('flash.js', function(){
+  load_css('css/flash.css');
+  require(['js/' + viruses[load_this]]);
+  log('loaded flash');
 });
 
 require([viruses[load_this]], function($) {
