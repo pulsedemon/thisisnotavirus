@@ -30,7 +30,6 @@
 
   Flash.update = function () {
     var randomColor = Flash.randomColor();
-    console.log(randomColor);
     canvasCtx.fillStyle = 'rgb(' + randomColor + ')';
     canvasCtx.fillRect(0, 0 , screenWidth, screenHeight);
     window.requestAnimationFrame(Flash.update);
