@@ -47,37 +47,35 @@ function render() {
   requestAnimationFrame(render);
 }
 
-if(Detect.type == 'mobile') {
-  function readDeviceOrientation(){
-    center_everything();
+function readDeviceOrientation(){
+  center_everything();
 
-    if(WIDTH >= 600) return;
-    switch (window.orientation) {
-      case 0:
-      case 180:
-        log('Portrait');
-        $logo.html('THIS IS<br>NOT A<br>VIRUS');
-        $logo.css({
-          'fontSize': '80px',
-          'lineHeight': '80px'
-        });
-        break;
-      case -90:
-      case 90:
-        log('Landscape');
-        $logo.html('THIS IS NOT<br>A VIRUS');
-        $logo.css({
-          'fontSize': '70px',
-          'lineHeight': '70px'
-        });
-        break;
-    }
+  if(WIDTH >= 600) return;
+  switch (window.orientation) {
+    case 0:
+    case 180:
+      log('Portrait');
+      $logo.html('THIS IS<br>NOT A<br>VIRUS');
+      $logo.css({
+        'fontSize': '80px',
+        'lineHeight': '80px'
+      });
+      break;
+    case -90:
+    case 90:
+      log('Landscape');
+      $logo.html('THIS IS NOT<br>A VIRUS');
+      $logo.css({
+        'fontSize': '70px',
+        'lineHeight': '70px'
+      });
+      break;
   }
-
-  window.onorientationchange = readDeviceOrientation;
 }
 
 $(function(){
+  window.onorientationchange = readDeviceOrientation;
+  
   $container.append(create_canvas());
   $body = $('body');
 
