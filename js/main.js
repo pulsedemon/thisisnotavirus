@@ -37,7 +37,6 @@ let load_this = Math.floor((Math.random() * viruses.length));
 while (getLastVirus() === viruses[load_this]) {
   load_this = Math.floor((Math.random() * viruses.length));
 }
-console.log(load_this);
 
 Detect.device();
 

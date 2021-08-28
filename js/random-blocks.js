@@ -7,8 +7,7 @@
   /**
    * define some variables
    */
-  var $block = $('<div class="block"></div>')
-    , screenWidth = null
+  var screenWidth = null
     , screenHeight = null
     , locations = []
     , screenCoordinates = []
@@ -43,8 +42,7 @@
     console.log('Blocks needed to fill screen: ', numberOfBlocks);
 
     function update() {
-      console.time('update time')
-      for (var i=0; i<100; i++)
+      for (let i=0; i<100; i++)
         RandomBlocks.add(blockSize);
       window.requestAnimationFrame(update);
     }
@@ -96,19 +94,10 @@
       var xPosition = position[0];
       var yPosition = position[1];
 
-      // $block.clone().css({
-      //   'background': 'rgb(' + randomColor + ')',
-      //   'left': xPosition + 'px',
-      //   'top': yPosition + 'px',
-      // })
-      // .appendTo('#container');
-
       canvasCtx.fillStyle = 'rgb(' + randomColor + ')';
       canvasCtx.fillRect(xPosition, yPosition,size,size);
 
       blocksAppended++;
-
-      // if (blocksAppended % 500 === 0) console.log('Blocks appended: ', blocksAppended);
 
       locations.push(position);
       count++;
