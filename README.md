@@ -1,5 +1,5 @@
-#thisisnotavirus.com
+# thisisnotavirus.com
 
-###todo:
+### todo:
 1. create function to turn setInterval on and off
-- whatever
+2. whatever

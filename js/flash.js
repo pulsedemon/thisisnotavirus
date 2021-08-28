@@ -1,4 +1,4 @@
-(function(root){ // module wrapper
+(function(root){
   var $container = $('#container');
 
   var Flash = root.Flash = {};

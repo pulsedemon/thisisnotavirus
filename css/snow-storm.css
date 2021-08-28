@@ -24,7 +24,7 @@ canvas {
 
 #logo {
   visibility:hidden;
-  font-family: 'Josefin Sans Bold';
+  font-family: 'Josefin Sans Bold', sans-serif;
   font-size: 60px;
   line-height: 60px;
   word-spacing:-0.3vh;
@@ -40,7 +40,7 @@ canvas {
   animation-timing-function: linear;
 }
 
-.snowflake { width:2px; height:2px; background-color:#000; position:absolute; display:block; overflow:none; z-index:10; }
+.snowflake { width:2px; height:2px; background-color:#000; position:absolute; display:block; overflow:unset; z-index:10; }
 
 @keyframes spin {
     from {

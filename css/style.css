@@ -5,7 +5,7 @@ body {
 #menu {
   display:inline-block;
   background-color:#000;
-  font-family:Serif;
+  font-family: serif;
   font-size:30px;
   padding:10px 15px;
   color:#fff;
@@ -23,8 +23,9 @@ body {
 }
 
 #container {
-  width:100%;
-  height:100%;
+  width:100vw;
+  height:100vh;
   text-align:center;
   position:relative;
+  overflow: hidden;
 }

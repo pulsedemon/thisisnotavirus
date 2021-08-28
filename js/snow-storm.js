@@ -1,9 +1,9 @@
-var $logo = $('<strong id="logo">THIS IS<br>NOT A<br>VIRUS</strong>');
+const $logo = $('<strong id="logo">THIS IS<br>NOT A<br>VIRUS</strong>');
 
 $logo.appendTo($container);
-var bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
+const bgs = ['#000000', '#00ffbd', '#ffff00', '#bege76'];
 
-var center_everything = function(){
+const center_everything = function(){
   log('center_everything');
   WIDTH = window.innerWidth;
   HEIGHT = window.innerHeight;
@@ -23,7 +23,7 @@ var center_everything = function(){
 }
 
 function change_text_color() {
-	var rand = Math.floor(Math.random()*6);
+  const rand = Math.floor(Math.random()*6);
 
 	$logo.css('color', bgs[rand]);
 
@@ -41,8 +41,8 @@ function create_canvas() {
 }
 
 function render() {
-	var x = Math.random()*WIDTH;
-	var y = Math.random()*HEIGHT;
+  const x = Math.random()*WIDTH;
+  const y = Math.random()*HEIGHT;
   window.context.fillRect(x,y,2,2);
   requestAnimationFrame(render);
 }
@@ -74,7 +74,7 @@ function readDeviceOrientation(){
 }
 
 $(function(){
-  window.onorientationchange = readDeviceOrientation;
+  screen.orientation.onchange = readDeviceOrientation;
   
   $container.append(create_canvas());
   $body = $('body');
