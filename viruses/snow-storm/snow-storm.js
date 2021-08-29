@@ -1,11 +1,10 @@
 $(function () {
   const $logo = $('<strong id="logo">THIS IS<br>NOT A<br>VIRUS</strong>');
-  var $container = $("#container");
+  const $container = $("#container");
   $logo.appendTo($container);
-  const bgs = ["#000000", "#00ffbd", "#ffff00", "#bege76"];
+  const bgs = ["#000000", "#00ffbd", "#ffff00"];
 
   const center_everything = function () {
-    console.log("center_everything");
     WIDTH = window.innerWidth;
     HEIGHT = window.innerHeight;
 
@@ -52,7 +51,7 @@ $(function () {
     center_everything();
 
     if (WIDTH >= 600) return;
-    switch (window.orientation) {
+    switch (window.screen.orientation) {
       case 0:
       case 180:
         console.log("Portrait");
@@ -74,11 +73,10 @@ $(function () {
     }
   }
 
-  $(window).load(readDeviceOrientation());
+  readDeviceOrientation();
   screen.orientation.onchange = readDeviceOrientation;
 
   $container.append(create_canvas());
-  $body = $("body");
 
   $(window).resize(function () {
     center_everything();
