@@ -1,21 +1,3 @@
-/* Fonts */
-@font-face {
-  font-family: 'Josefin Sans';
-  src: url('../fonts/Josefin_Sans/JosefinSans-Regular.ttf');
-}
-
-@font-face {
-  font-family: 'Josefin Sans Bold';
-  src: url('../fonts/Josefin_Sans/JosefinSans-Bold.ttf');
-  font-weight:bold;
-}
-
-@font-face {
-  font-family: 'Josefin Sans SemiBold';
-  src: url('../fonts/Josefin_Sans/JosefinSans-SemiBold.ttf');
-  font-weight:bold;
-}
-
 canvas {
   position:absolute;
   top:0;
@@ -24,7 +6,7 @@ canvas {
 
 #logo {
   visibility:hidden;
-  font-family: 'Josefin Sans Bold', sans-serif;
+  font-family: sans-serif;
   font-size: 60px;
   line-height: 60px;
   word-spacing:-0.3vh;

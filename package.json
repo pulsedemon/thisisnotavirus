@@ -1,0 +1,12 @@
+{
+  "name": "thisisnotavirus",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "prettier": "^2.3.2",
+    "serve": "^12.0.0"
+  },
+  "scripts": {
+    "start": "serve"
+  }
+}
