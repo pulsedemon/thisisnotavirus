@@ -1,9 +1,4 @@
-const viruses = [
-  "/viruses/random-blocks/index.html",
-  "/viruses/uzumaki/index.html",
-  "/viruses/snow-storm/index.html",
-  "/viruses/flash/index.html",
-];
+const viruses = ["random-blocks", "uzumaki", "snow-storm", "flash"];
 
 const random_times = [
   1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
@@ -12,8 +7,10 @@ const random_times = [
 
 let loadRandomInterval;
 const loadRandom = () => {
-  document.getElementById("container").src =
-    viruses[Math.floor(Math.random() * viruses.length)];
+  const randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
+  document.getElementById(
+    "container"
+  ).src = `/viruses/${randomVirus}/index.html`;
 
   clearInterval(loadRandomInterval);
 
