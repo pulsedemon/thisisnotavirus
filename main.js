@@ -6,18 +6,31 @@ const random_times = [
 ];
 
 let loadRandomInterval;
-const loadRandom = () => {
+const loadRandomVirus = () => {
   const randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
+
+  if (getLastVirusLoaded() === randomVirus) return loadRandomVirus();
+
   document.getElementById(
     "container"
   ).src = `/viruses/${randomVirus}/index.html`;
+
+  setLastVirusLoaded(randomVirus);
 
   clearInterval(loadRandomInterval);
 
   let this_time = Math.floor(Math.random() * random_times.length);
   loadRandomInterval = setInterval(function () {
-    loadRandom();
+    return loadRandomVirus();
   }, random_times[this_time]);
 };
 
-loadRandom();
+const getLastVirusLoaded = () => {
+  return localStorage.getItem("lastVirusLoaded");
+};
+
+const setLastVirusLoaded = (virus) => {
+  return localStorage.setItem("lastVirusLoaded", virus);
+};
+
+loadRandomVirus();
