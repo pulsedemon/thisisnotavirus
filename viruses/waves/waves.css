@@ -1,0 +1,26 @@
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    background: red;
+}
+
+#waves {
+    width: 50vw;
+    height: 100vh;
+}
+
+#waves2 {
+    width: 50vw;
+    height: 100vh;
+}
+
+#waves3 {
+    width: 100vw;
+    height:100vh;
+    position: absolute;
+    top: 0;
+}
