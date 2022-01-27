@@ -1,4 +1,4 @@
 body {
     background: black;
 }
-canvas { zoom: 50%; position:relative; }
+canvas { transform: scale(1); position:relative; width: 100vw; height: 100vh; }
