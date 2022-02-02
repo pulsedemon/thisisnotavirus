@@ -34,3 +34,7 @@ const setLastVirusLoaded = (virus) => {
 };
 
 loadRandomVirus();
+
+window.addEventListener("orientationchange", function(event) {
+  loadRandomVirus();
+});
