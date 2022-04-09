@@ -8,6 +8,7 @@ const random_times = [
 let loadRandomInterval;
 const loadRandomVirus = () => {
   const randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
+  console.log('randomVirus', randomVirus)
 
   if (getLastVirusLoaded() === randomVirus) return loadRandomVirus();
 
@@ -19,10 +20,18 @@ const loadRandomVirus = () => {
 
   clearInterval(loadRandomInterval);
 
-  let this_time = Math.floor(Math.random() * random_times.length);
+  let random_time;
+  let this_time;
+  if (randomVirus === 'flash') {
+    random_time = 400;
+  }
+  else {
+    this_time = Math.floor(Math.random() * random_times.length);
+    random_time = random_times[this_time]
+  }
   loadRandomInterval = setInterval(function () {
     return loadRandomVirus();
-  }, random_times[this_time]);
+  }, random_time);
 };
 
 const getLastVirusLoaded = () => {
