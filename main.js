@@ -1,8 +1,7 @@
 const viruses = ["random-blocks", "uzumaki", "snow-storm", "flash", "waves"];
 
 const random_times = [
-  1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
-  13000, 14000, 15000,
+  1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
 ];
 
 let loadRandomInterval;
