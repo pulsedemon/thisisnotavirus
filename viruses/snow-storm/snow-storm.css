@@ -22,6 +22,14 @@ canvas {
   animation-timing-function: linear;
 }
 
+#logo span {
+  display: inline-block;
+  animation-name: spin-counter;
+  animation-duration: 4000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
 .snowflake { width:2px; height:2px; background-color:#000; position:absolute; display:block; overflow:unset; z-index:10; }
 
 @keyframes spin {
@@ -32,3 +40,13 @@ canvas {
       transform:rotate(360deg) scale(5);
     }
 }
+
+@keyframes spin-counter {
+  from {
+    transform:rotate(0deg) scale(1);
+  }
+  to {
+    transform:rotate(-360deg) scale(5);
+  }
+}
+

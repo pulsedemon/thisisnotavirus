@@ -1,5 +1,6 @@
 $(function () {
-  const $logo = $('<strong id="logo">THIS IS<br>NOT A<br>VIRUS</strong>');
+  let fuck = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
+  const $logo = $(`<strong id="logo">${fuck}</strong>`);
   const $container = $("#container");
   $logo.appendTo($container);
   const bgs = ["#000000", "#00ffbd", "#ffff00"];
@@ -49,13 +50,14 @@ $(function () {
 
   function readDeviceOrientation() {
     center_everything();
-
+    let fuck = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
     if (WIDTH >= 600) return;
     switch (window.screen.orientation) {
       case 0:
       case 180:
         console.log("Portrait");
-        $logo.html("THIS IS<br>NOT A<br>VIRUS");
+        let fuck = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
+        $logo.html(fuck);
         $logo.css({
           fontSize: "80px",
           lineHeight: "80px",
@@ -64,7 +66,7 @@ $(function () {
       case -90:
       case 90:
         console.log("Landscape");
-        $logo.html("THIS IS NOT<br>A VIRUS");
+        $logo.html(fuck);
         $logo.css({
           fontSize: "70px",
           lineHeight: "70px",
