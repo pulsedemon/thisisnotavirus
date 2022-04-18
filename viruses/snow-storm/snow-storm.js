@@ -1,6 +1,6 @@
 $(function () {
-  let fuck = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
-  const $logo = $(`<strong id="logo">${fuck}</strong>`);
+  let text = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
+  const $logo = $(`<strong id="logo">${text}</strong>`);
   const $container = $("#container");
   $logo.appendTo($container);
   const bgs = ["#000000", "#00ffbd", "#ffff00"];
@@ -26,7 +26,8 @@ $(function () {
   function change_text_color() {
     const rand = Math.floor(Math.random() * 6);
 
-    $logo.css("color", bgs[rand]);
+    let bg = bgs[rand];
+    $logo.css("color", bg);
 
     requestAnimationFrame(change_text_color);
   }
@@ -50,14 +51,11 @@ $(function () {
 
   function readDeviceOrientation() {
     center_everything();
-    let fuck = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
     if (WIDTH >= 600) return;
     switch (window.screen.orientation) {
       case 0:
       case 180:
         console.log("Portrait");
-        let fuck = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
-        $logo.html(fuck);
         $logo.css({
           fontSize: "80px",
           lineHeight: "80px",
@@ -66,7 +64,6 @@ $(function () {
       case -90:
       case 90:
         console.log("Landscape");
-        $logo.html(fuck);
         $logo.css({
           fontSize: "70px",
           lineHeight: "70px",
@@ -76,7 +73,16 @@ $(function () {
   }
 
   readDeviceOrientation();
-  screen.orientation.onchange = readDeviceOrientation;
+
+  console.log("hello");
+
+  try {
+    screen.orientation.onchange = readDeviceOrientation;
+  } catch {
+    console.log("fuck you");
+  }
+  
+  change_text_color();
 
   $container.append(create_canvas());
 
@@ -84,5 +90,4 @@ $(function () {
     center_everything();
   });
 
-  change_text_color();
 });
