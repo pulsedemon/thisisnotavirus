@@ -1,5 +1,4 @@
-// const viruses = ["random-blocks", "uzumaki", "snow-storm", "flash", "waves"];
-const viruses = ["random-blocks", "uzumaki", "snow-storm", "flash"];
+const viruses = ["random-blocks", "sphere", "snow-storm", "flash", "uzumaki"];
 let last_virus;
 
 const random_times = [
