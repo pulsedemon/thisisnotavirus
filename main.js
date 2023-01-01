@@ -1,17 +1,15 @@
-const viruses = ["random-blocks", "sphere", "snow-storm", "flash", "uzumaki"];
+const viruses = ["random-blocks", "sphere", "snow-storm", "uzumaki"];
 preloadImage("/viruses/uzumaki/uzumaki.png");
-let last_virus;
 
-const random_times = [
-  1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
-];
+const random_times = [2000, 3000, 4000, 5000, 6000, 7000, 8000];
 
 let loadRandomInterval;
 const loadRandomVirus = () => {
-  const randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
-
-  if (randomVirus === last_virus) {
-    return;
+  let randomVirus;
+  if (getLastVirusLoaded() !== "flash") {
+    randomVirus = "flash";
+  } else {
+    randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
   }
 
   if (getLastVirusLoaded() === randomVirus) return loadRandomVirus();
