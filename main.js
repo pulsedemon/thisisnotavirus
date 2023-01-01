@@ -1,4 +1,5 @@
 const viruses = ["random-blocks", "sphere", "snow-storm", "flash", "uzumaki"];
+preloadImage("/viruses/uzumaki/uzumaki.png");
 let last_virus;
 
 const random_times = [
@@ -25,12 +26,11 @@ const loadRandomVirus = () => {
 
   let random_time;
   let this_time;
-  if (randomVirus === 'flash') {
+  if (randomVirus === "flash") {
     random_time = 400;
-  }
-  else {
+  } else {
     this_time = Math.floor(Math.random() * random_times.length);
-    random_time = random_times[this_time]
+    random_time = random_times[this_time];
   }
   loadRandomInterval = setInterval(function () {
     return loadRandomVirus();
@@ -47,6 +47,11 @@ const setLastVirusLoaded = (virus) => {
 
 loadRandomVirus();
 
-window.addEventListener("orientationchange", function(event) {
+window.addEventListener("orientationchange", function (event) {
   loadRandomVirus();
 });
+
+function preloadImage(url) {
+  var img = new Image();
+  img.src = url;
+}
