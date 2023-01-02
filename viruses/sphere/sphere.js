@@ -3,17 +3,17 @@
 let WIDTH = window.innerWidth,
   HEIGHT = window.innerHeight;
 
-var renderer, scene, camera, vortex, diamond;
-var $diamond_color;
-var projector;
-var sphere, uniforms, attributes;
+let renderer, scene, camera, vortex, diamond;
+let $diamond_color;
+let projector;
+let sphere, uniforms, attributes;
 
 function init() {
   if (HEIGHT > WIDTH) {
     HEIGHT = WIDTH;
   }
 
-  var VIEW_ANGLE = 45,
+  let VIEW_ANGLE = 45,
     ASPECT = WIDTH / HEIGHT,
     NEAR = 1,
     FAR = 10000;
@@ -26,10 +26,10 @@ function init() {
   WIDTH = WIDTH * 2;
   HEIGHT = HEIGHT * 2;
 
-  var radius = 100,
+  let radius = 100,
     segments = 35,
     rings = 18;
-  var geometry = new THREE.SphereGeometry(
+  let geometry = new THREE.SphereGeometry(
     radius,
     segments,
     rings,
@@ -38,8 +38,8 @@ function init() {
     0,
     Math.PI * 2
   );
-  var random_color = Math.random() * 0xffffff;
-  var material = new THREE.MeshBasicMaterial({
+  let random_color = Math.random() * 0xffffff;
+  let material = new THREE.MeshBasicMaterial({
     color: random_color,
     wireframe: true,
   });
@@ -61,7 +61,7 @@ function init() {
 }
 
 function onWindowResize() {
-  var WIDTH = window.innerWidth,
+  let WIDTH = window.innerWidth,
     HEIGHT = window.innerHeight;
 
   if (HEIGHT > WIDTH) {
@@ -82,17 +82,17 @@ function onWindowResize() {
 }
 
 function render() {
-  var time = Date.now() * 0.005;
+  let time = Date.now() * 0.005;
 
   vortex.rotation.y = 0.02 * time;
   vortex.rotation.z = 0.02 * time;
 
   if (!diamond) {
     console.log("create diamond");
-    var radius = 50,
+    let radius = 50,
       segments = 20,
       rings = 2;
-    var geometry = new THREE.SphereGeometry(radius, segments, rings);
+    let geometry = new THREE.SphereGeometry(radius, segments, rings);
     diamond = new THREE.Mesh(geometry);
     $diamond_color = diamond.material.color;
     scene.add(diamond);
@@ -105,7 +105,7 @@ function render() {
 function diamond_color() {
   if (!diamond) return;
 
-  var rand = Math.ceil(Math.random() * 50);
+  let rand = Math.ceil(Math.random() * 50);
 
   if (rand % 2 === 0) {
     $diamond_color.setRGB(
