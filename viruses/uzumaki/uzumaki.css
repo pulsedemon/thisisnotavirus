@@ -20,7 +20,7 @@ img {
 
 #container::before {
     content: "";
-    position: absolute;
+    position: fixed;
     width: 300%;
     height: 300%;
     left: -100%;
