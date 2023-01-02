@@ -1,4 +1,4 @@
-const viruses = ["random-blocks", "sphere", "snow-storm", "uzumaki"];
+const viruses = ["random-blocks", "sphere", "uzumaki"];
 preloadImage("/viruses/uzumaki/uzumaki.png");
 
 const random_times = [2000, 3000, 4000, 5000, 6000, 7000, 8000];
