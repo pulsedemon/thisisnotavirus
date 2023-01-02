@@ -1,7 +1,9 @@
 const viruses = ["random-blocks", "sphere", "uzumaki"];
 preloadImage("/viruses/uzumaki/uzumaki.png");
 
-const random_times = [2000, 3000, 4000, 5000, 6000, 7000, 8000];
+const random_times = [
+  2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
+];
 
 let loadRandomInterval;
 const loadRandomVirus = () => {
