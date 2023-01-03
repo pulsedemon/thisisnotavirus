@@ -4,11 +4,14 @@
         <meta charset="utf-8">
         <link rel="shortcut icon" href="/favicon.png">
         <link rel="stylesheet" href="/css/reset.css" type="text/css" media="screen">
-
         <link rel="stylesheet" href="/viruses/uzumaki/uzumaki.css" type="text/css" media="screen">
     </head>
     <body>
         <div id="container"></div>
-        <script src="/viruses/uzumaki/uzumaki.js"></script>
+        <script>
+          const colors = ["#ff0000", "#00ffff", "#ffffff"];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          document.body.style.backgroundColor = randomColor;
+        </script>
     </body>
 </html>
