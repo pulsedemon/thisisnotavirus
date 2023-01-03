@@ -14,7 +14,10 @@
           const colors = ["#ff0000", "#00ffff", "#ffffff"];
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
           document.body.style.backgroundColor = randomColor;
-          document.styleSheets[1].insertRule('#container::before { background-image: ' + `url(${imageUrl})` + '; }');
+          const css = "#container::before { background-image: " + `url(${imageUrl})` + "; }');";
+          let styleSheet = document.createElement("style");
+          styleSheet.innerText = css;
+          document.head.appendChild(styleSheet);
         </script>
     </body>
 </html>
