@@ -8,10 +8,13 @@
     </head>
     <body>
         <div id="container"></div>
-        <script>
+        <script type="module">
+          import {webpSupported} from "../../util.js";
+          const imageUrl = `/viruses/uzumaki/uzumaki.${webpSupported() ? 'webp' : 'png' }`;
           const colors = ["#ff0000", "#00ffff", "#ffffff"];
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
           document.body.style.backgroundColor = randomColor;
+          document.styleSheets[1].insertRule('#container::before { background-image: ' + `url(${imageUrl})` + '; }');
         </script>
     </body>
 </html>

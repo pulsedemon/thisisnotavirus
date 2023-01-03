@@ -1,5 +1,7 @@
 const viruses = ["random-blocks", "sphere", "uzumaki"];
-preloadImage("/viruses/uzumaki/uzumaki.png");
+import { preloadImage, webpSupported } from "./util.js";
+
+preloadImage(`/viruses/uzumaki/uzumaki.${webpSupported() ? "webp" : "png"}`);
 
 const random_times = [
   2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
@@ -50,8 +52,3 @@ loadRandomVirus();
 window.addEventListener("orientationchange", function (event) {
   loadRandomVirus();
 });
-
-function preloadImage(url) {
-  var img = new Image();
-  img.src = url;
-}
