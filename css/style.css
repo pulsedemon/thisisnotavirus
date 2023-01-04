@@ -7,19 +7,23 @@ body {
   background-color:#000;
   font-family: serif;
   font-size:30px;
-  padding:10px 15px;
+  padding:10px;
   color:#fff;
   position:fixed;
   top:0;
   right:0;
   cursor:pointer;
+  user-select: none;
 }
-#menu:hover a {
-  color:#000;
+
+#menu span {
+  padding: 0 5px;
 }
-#menu a {
-  color:#fff;
-  text-decoration:none;
+
+#menu .controls {
+  display: inline-block;
+  position: relative;
+  top: 2px;
 }
 
 #container {

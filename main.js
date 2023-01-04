@@ -37,6 +37,13 @@ const loadRandomVirus = () => {
   loadRandomInterval = setInterval(function () {
     return loadRandomVirus();
   }, random_time);
+
+  if (randomVirus !== "flash") {
+    let playPauseButton = document.getElementById("play-pause");
+    if (playPauseButton.innerText === "play_arrow") {
+      clearInterval(loadRandomInterval);
+    }
+  }
 };
 
 const getLastVirusLoaded = () => {
@@ -52,3 +59,18 @@ loadRandomVirus();
 window.addEventListener("orientationchange", function (event) {
   loadRandomVirus();
 });
+
+document.getElementById("play-pause").onclick = (e) => {
+  if (e.target.innerText === "pause") {
+    e.target.innerText = "play_arrow";
+    clearInterval(loadRandomInterval);
+  } else {
+    e.target.innerText = "pause";
+    loadRandomVirus();
+  }
+};
+
+document.getElementById("skip-next").onclick = (e) => {
+  clearInterval(loadRandomInterval);
+  loadRandomVirus();
+};
