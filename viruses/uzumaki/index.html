@@ -9,8 +9,7 @@
     <body>
         <div id="container"></div>
         <script type="module">
-          import {webpSupported} from "../../util.js";
-          const imageUrl = `/viruses/uzumaki/uzumaki.${webpSupported() ? 'webp' : 'png' }`;
+          const imageUrl = `/viruses/uzumaki/uzumaki.webp`;
           const colors = ["#ff0000", "#00ffff", "#ffffff"];
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
           document.body.style.backgroundColor = randomColor;
