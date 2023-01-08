@@ -1,6 +1,7 @@
 class RandomCharacters {
   text;
-  characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`";
+  characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`/\\|-_"';
   charactersLength = this.characters.length;
   constructor(canvas, ystart) {
     this.canvas = canvas;
