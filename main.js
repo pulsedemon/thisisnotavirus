@@ -16,7 +16,7 @@ const loadRandomVirus = () => {
     randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
   }
 
-  if (getLastVirusLoaded() === randomVirus) return loadRandomVirus();
+  if (getLastVirusLoadedNotFlash() === randomVirus) return loadRandomVirus();
 
   document.getElementById(
     "container"
@@ -33,6 +33,7 @@ const loadRandomVirus = () => {
   } else {
     this_time = Math.floor(Math.random() * random_times.length);
     random_time = random_times[this_time];
+    setLastVirusLoadedNotFlash(randomVirus);
   }
   loadRandomInterval = setInterval(function () {
     return loadRandomVirus();
@@ -50,8 +51,16 @@ const getLastVirusLoaded = () => {
   return localStorage.getItem("lastVirusLoaded");
 };
 
+const getLastVirusLoadedNotFlash = () => {
+  return localStorage.getItem("lastVirusLoadedNotFlash");
+};
+
 const setLastVirusLoaded = (virus) => {
   return localStorage.setItem("lastVirusLoaded", virus);
+};
+
+const setLastVirusLoadedNotFlash = (virus) => {
+  return localStorage.setItem("lastVirusLoadedNotFlash", virus);
 };
 
 loadRandomVirus();
