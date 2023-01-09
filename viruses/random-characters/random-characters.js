@@ -1,14 +1,14 @@
 class RandomCharacters {
   text;
+  xloc = 0;
   randomStringLength = 150;
   characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`/\\|-_"✖◕‿↼';
-  emojis = [..."🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥"];
-  charactersLength = this.characters.length;
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`/\\|-_"✖◕‿↼肉¿¡∞•ªº≠·■私';
+  emojis = [..."🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥🩸🩻"];
+
   constructor(canvas, ystart) {
     this.canvas = canvas;
     this.yloc = ystart;
-    this.xloc = 0;
   }
 
   randomString(length) {
@@ -16,7 +16,7 @@ class RandomCharacters {
 
     for (let i = 0; i < length; i++) {
       string += this.characters.charAt(
-        Math.floor(Math.random() * this.charactersLength)
+        Math.floor(Math.random() * this.characters.length)
       );
     }
 
@@ -40,6 +40,7 @@ class RandomCharacters {
     requestAnimationFrame(() => this.doAnimation());
     this.drawText();
   }
+
   drawText() {
     let context = this.canvas.getContext("2d");
     context.font = "25px monospace";
@@ -62,6 +63,6 @@ for (let i = 0; i < numCanvases; i++) {
   document.getElementById("container").appendChild(canvas);
   canvas.width = canvas.clientWidth;
 
-  let m = new RandomCharacters(canvas, 15);
-  m.doAnimation();
+  let rc = new RandomCharacters(canvas, 15);
+  rc.doAnimation();
 }
