@@ -7,24 +7,23 @@ const random_times = [
   2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
 ];
 
-const params = new Proxy(new URLSearchParams(window.location.search), {
-  get: (searchParams, prop) => searchParams.get(prop),
-});
+let params = new URLSearchParams(window.location.search);
 
 let loadRandomInterval;
 const loadRandomVirus = () => {
+  const vParam = params.get("v");
   let randomVirus;
   if (getLastVirusLoaded() !== "flash") {
     randomVirus = "flash";
   } else {
-    if (params.v !== null) {
-      randomVirus = params.v;
+    if (vParam !== null) {
+      randomVirus = vParam;
     } else {
       randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
     }
   }
 
-  if (params.v === null && getLastVirusLoadedNotFlash() === randomVirus) {
+  if (vParam === null && getLastVirusLoadedNotFlash() === randomVirus) {
     return loadRandomVirus();
   }
 
@@ -52,9 +51,10 @@ const loadRandomVirus = () => {
   if (randomVirus !== "flash") {
     let playPauseButton = document.getElementById("play-pause");
 
-    if (params.v !== null) {
+    if (vParam !== null) {
       playPauseButton.innerText = "play_arrow";
-      window.history.replaceState(null, window.location.title, "/");
+      window.history.replaceState({}, window.location.title, "/");
+      params.delete("v");
     }
 
     if (playPauseButton.innerText === "play_arrow") {
