@@ -1,4 +1,4 @@
 export function preloadImage(url) {
-  var img = new Image();
+  let img = new Image();
   img.src = url;
 }

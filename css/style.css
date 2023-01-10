@@ -14,6 +14,7 @@ body {
   right:0;
   cursor:pointer;
   user-select: none;
+  z-index: 2;
 }
 
 #menu span {
@@ -32,4 +33,51 @@ body {
   text-align:center;
   position:relative;
   overflow: hidden;
+}
+
+#info {
+  display: none;
+  background: rgba(0, 0, 0, 0.9);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+#info.show {
+  display: block;
+}
+
+#info-wrapper {
+  font-family: monospace;
+  color: white;
+  font-size: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 400px;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: justify;
+}
+
+#info-wrapper p {
+  margin-bottom: 20px;
+  line-height: 25px;
+}
+
+#info-wrapper p:last-child {
+  margin-bottom: 0;
+}
+
+#info-wrapper a {
+  color: #ff0000;
+}
+
+#info-wrapper a:hover {
+  color: #00ffff;
 }

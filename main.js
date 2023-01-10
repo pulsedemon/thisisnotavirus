@@ -104,3 +104,28 @@ document.getElementById("skip-next").onclick = (e) => {
   gtag("event", "skip_next");
   loadRandomVirus();
 };
+
+document.getElementById("info-btn").onclick = (e) => {
+  if (e.target.innerText === "info") {
+    displayInfo();
+  } else {
+    hideInfo();
+  }
+};
+
+function displayInfo() {
+  document.getElementById("info").classList.add("show");
+  document.getElementById("info-btn").innerText = "close";
+  gtag("event", "display_info");
+}
+
+function hideInfo() {
+  document.getElementById("info").classList.remove("show");
+  document.getElementById("info-btn").innerText = "info";
+}
+
+document.onkeyup = (e) => {
+  if (e.key === "Escape") {
+    hideInfo();
+  }
+};
