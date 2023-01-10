@@ -89,7 +89,9 @@ document.getElementById("play-pause").onclick = (e) => {
   if (e.target.innerText === "pause") {
     e.target.innerText = "play_arrow";
     clearInterval(loadRandomInterval);
-    gtag("event", "pause");
+    gtag("event", "pause", {
+      animation_name: getLastVirusLoaded(),
+    });
   } else {
     e.target.innerText = "pause";
     gtag("event", "play");
