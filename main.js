@@ -89,13 +89,16 @@ document.getElementById("play-pause").onclick = (e) => {
   if (e.target.innerText === "pause") {
     e.target.innerText = "play_arrow";
     clearInterval(loadRandomInterval);
+    gtag("event", "pause");
   } else {
     e.target.innerText = "pause";
+    gtag("event", "play");
     loadRandomVirus();
   }
 };
 
 document.getElementById("skip-next").onclick = (e) => {
   clearInterval(loadRandomInterval);
+  gtag("event", "skip_next");
   loadRandomVirus();
 };
