@@ -92,3 +92,14 @@ body {
   position: relative;
   top: 3px;
 }
+
+.link-icon {
+  width: 25px;
+  height: 25px;
+  display: inline-block;
+  background-size: cover;
+  text-indent: -9999px;
+}
+.link-icon.github-icon {
+  background-image: url("/github-mark-white.svg");
+}
