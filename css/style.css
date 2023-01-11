@@ -81,3 +81,14 @@ body {
 #info-wrapper a:hover {
   color: #00ffff;
 }
+
+#info-legend {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+#info-legend .material-symbols-outlined {
+  font-size: 12px;
+  position: relative;
+  top: 3px;
+}
