@@ -27,7 +27,7 @@ const loadRandomVirus = () => {
     return loadRandomVirus();
   }
 
-  document.getElementById("container").src = `/viruses/${randomVirus}`;
+  document.getElementById("container").src = `/viruses/${randomVirus}/`;
 
   setLastVirusLoaded(randomVirus);
 
