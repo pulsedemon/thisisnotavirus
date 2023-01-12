@@ -1,18 +1,18 @@
 body {
-  font-size:62.5%;
+  font-size: 62.5%;
 }
 
 #menu {
-  display:inline-block;
-  background-color:#000;
+  display: inline-block;
+  background-color: #000;
   font-family: serif;
-  font-size:30px;
-  padding:10px;
-  color:#fff;
-  position:fixed;
-  top:0;
-  right:0;
-  cursor:pointer;
+  font-size: 30px;
+  padding: 10px;
+  color: #fff;
+  position: fixed;
+  top: 0;
+  right: 0;
+  cursor: pointer;
   user-select: none;
   z-index: 2;
 }
@@ -28,10 +28,10 @@ body {
 }
 
 #container {
-  width:100vw;
-  height:100vh;
-  text-align:center;
-  position:relative;
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
+  position: relative;
   overflow: hidden;
 }
 

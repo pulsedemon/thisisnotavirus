@@ -1,30 +1,30 @@
 img {
-    position: relative;
+  position: relative;
 }
 
 @keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 #container {
-    width: 100vw;
-    height: 100vh;
-    text-align: center;
-    position: relative;
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
+  position: relative;
 }
 
 #container::before {
-    content: "";
-    position: fixed;
-    width: 300%;
-    height: 300%;
-    left: -100%;
-    top: -100%;
-    background-position: center center;
-    animation: spin 4s linear infinite;
+  content: "";
+  position: fixed;
+  width: 300%;
+  height: 300%;
+  left: -100%;
+  top: -100%;
+  background-position: center center;
+  animation: spin 4s linear infinite;
 }

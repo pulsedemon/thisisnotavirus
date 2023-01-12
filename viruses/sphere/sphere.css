@@ -1,11 +1,11 @@
 body {
-    background: black;
-    width: 100vw;
-    height: 100vh;
+  background: black;
+  width: 100vw;
+  height: 100vh;
 }
 canvas {
-    zoom: 50%;
-    position:relative;
-    width: 100%;
-    height: 100%;
+  zoom: 50%;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }

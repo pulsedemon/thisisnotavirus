@@ -1,5 +1,6 @@
 $(function () {
-  let text = "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
+  let text =
+    "<span>THIS</span> <span>IS</span><br><span>NOT</span> <span>A</span><br><span>VIRUS</span>";
   const $logo = $(`<strong id="logo">${text}</strong>`);
   const $container = $("#container");
   $logo.appendTo($container);
@@ -81,7 +82,7 @@ $(function () {
   } catch {
     console.log("fuck you");
   }
-  
+
   change_text_color();
 
   $container.append(create_canvas());
@@ -89,5 +90,4 @@ $(function () {
   $(window).resize(function () {
     center_everything();
   });
-
 });

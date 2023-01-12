@@ -1,20 +1,20 @@
 canvas {
-  position:absolute;
-  top:0;
-  left:0;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 #logo {
-  visibility:hidden;
+  visibility: hidden;
   font-family: sans-serif;
   font-size: 60px;
   line-height: 60px;
-  word-spacing:-0.3vh;
-  display:block;
-  width:100%;
-  text-align:center;
-  color:#000;
-  position:absolute;
+  word-spacing: -0.3vh;
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: #000;
+  position: absolute;
 
   animation-name: spin;
   animation-duration: 4000ms;
@@ -30,23 +30,30 @@ canvas {
   animation-timing-function: linear;
 }
 
-.snowflake { width:2px; height:2px; background-color:#000; position:absolute; display:block; overflow:unset; z-index:10; }
+.snowflake {
+  width: 2px;
+  height: 2px;
+  background-color: #000;
+  position: absolute;
+  display: block;
+  overflow: unset;
+  z-index: 10;
+}
 
 @keyframes spin {
-    from {
-      transform:rotate(0deg) scale(1);
-    }
-    to {
-      transform:rotate(360deg) scale(5);
-    }
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(5);
+  }
 }
 
 @keyframes spin-counter {
   from {
-    transform:rotate(0deg) scale(1);
+    transform: rotate(0deg) scale(1);
   }
   to {
-    transform:rotate(-360deg) scale(5);
+    transform: rotate(-360deg) scale(5);
   }
 }
-
