@@ -148,4 +148,4 @@ function shuffleTitle() {
 
 setTimeout(function () {
   shuffleTitle();
-}, 2000);
+}, 5000);
