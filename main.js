@@ -129,3 +129,25 @@ document.onkeyup = (e) => {
     hideInfo();
   }
 };
+
+function shuffleTitle() {
+  const originalTitle = document.title;
+  let intervalCounter = 0;
+  setInterval(function () {
+    intervalCounter++;
+    if (intervalCounter % 5 === 0) {
+      document.title = originalTitle;
+      return;
+    }
+    document.title = document.title
+      .split("")
+      .sort(function () {
+        return 0.5 - Math.random();
+      })
+      .join("");
+  }, 200);
+}
+
+setTimeout(function () {
+  shuffleTitle();
+}, 2000);
