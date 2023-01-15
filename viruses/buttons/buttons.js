@@ -5,6 +5,7 @@ class Buttons {
   width = container.clientWidth;
   height = container.clientHeight;
   buttonClasses = ["button-54", "button-74"];
+  imagesUsed = [];
 
   constructor() {
     fetch("/viruses/buttons/images.json")
@@ -31,7 +32,9 @@ class Buttons {
   addRandomImage() {
     let image = document.createElement("img");
     this.images = shuffle(this.images);
-    // image.src = this.images[Math.floor(Math.random() * this.images.length)];
+    console.log("this.imagesUsed", this.imagesUsed);
+    if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];
+    if (this.imagesUsed.includes(this.images[0])) return this.addRandomImage();
     image.src = this.images[0];
     let coords = b.getRandomCoords();
     image.style.top = `${coords.y}px`;
@@ -42,6 +45,7 @@ class Buttons {
     }
 
     this.container.appendChild(image);
+    this.imagesUsed.push(this.images[0]);
   }
 
   getRandomCoords() {
@@ -73,6 +77,17 @@ document.addEventListener("click", function (e) {
 });
 
 let b = new Buttons();
+
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
+b.addRandomButton();
 
 setInterval(() => {
   b.addRandomButton();
