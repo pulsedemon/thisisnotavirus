@@ -26,13 +26,11 @@ class Buttons {
       this.buttonClasses[Math.floor(Math.random() * this.buttonClasses.length)]
     );
     this.container.appendChild(button);
-    // button.classList.add('')
   }
 
   addRandomImage() {
     let image = document.createElement("img");
     this.images = shuffle(this.images);
-    console.log("this.imagesUsed", this.imagesUsed);
     if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];
     if (this.imagesUsed.includes(this.images[0])) return this.addRandomImage();
     image.src = this.images[0];
@@ -59,23 +57,6 @@ class Buttons {
   }
 }
 
-document.addEventListener("click", function (e) {
-  if (e.target.type === "button") {
-    console.log("button clicked");
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    e.target.parentNode.removeChild(e.target);
-  }
-});
-
 let b = new Buttons();
 
 b.addRandomButton();
@@ -92,3 +73,61 @@ b.addRandomButton();
 setInterval(() => {
   b.addRandomButton();
 }, 1000);
+
+let explosions = [
+  "/viruses/buttons/explosions/nukeexplosion1.gif",
+  "/viruses/buttons/explosions/explosion1.gif",
+  "/viruses/buttons/explosions/nukeexplosion2.gif",
+  "/viruses/buttons/explosions/explosion2.gif",
+  "/viruses/buttons/explosions/nukeexplosion3.gif",
+  "/viruses/buttons/explosions/explosion3.gif",
+  "/viruses/buttons/explosions/nukeexplosion4.gif",
+  "/viruses/buttons/explosions/explosion4.gif",
+  "/viruses/buttons/explosions/nukeexplosion5.gif",
+  "/viruses/buttons/explosions/explosion5.gif",
+];
+
+document.addEventListener("click", function (e) {
+  if (e.target.type === "button") {
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+    b.addRandomImage();
+
+    let explode = document.createElement("img");
+    explode.src = explosions[0];
+    explode.style.top = `${
+      parseInt(e.target.style.top.replace("px", "")) - 25
+    }px`;
+    explode.style.left = `${
+      parseInt(e.target.style.left.replace("px", "")) +
+      Math.floor(e.target.clientWidth / 2) -
+      78 / 2
+    }px`;
+
+    b.container.appendChild(explode);
+
+    explosions.push(explosions.shift());
+
+    var fadeEffect = setInterval(function () {
+      if (!e.target.style.opacity) {
+        e.target.style.opacity = 1;
+      }
+      if (e.target.style.opacity > 0) {
+        e.target.style.opacity -= 0.1;
+      } else {
+        clearInterval(fadeEffect);
+        e.target.parentNode.removeChild(e.target);
+        setTimeout(function () {
+          b.container.removeChild(explode);
+        }, 500);
+      }
+    }, 80);
+  }
+});
