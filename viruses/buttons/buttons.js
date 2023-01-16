@@ -38,9 +38,9 @@ class Buttons {
     image.style.top = `${coords.y}px`;
     image.style.left = `${coords.x}px`;
 
-    if (image.src.includes("troll-face")) {
-      image.classList.add("wobble");
-    }
+    let filename = image.src.split("/").slice(-1)[0].split(".")[0];
+
+    image.classList.add(filename);
 
     this.container.appendChild(image);
     this.imagesUsed.push(this.images[0]);
@@ -117,7 +117,10 @@ document.addEventListener("click", function (e) {
         e.target.style.opacity -= 0.1;
       } else {
         clearInterval(fadeEffect);
-        e.target.parentNode.removeChild(e.target);
+        try {
+          b.container.removeChild(e.target);
+        } catch {}
+
         setTimeout(function () {
           b.container.removeChild(explode);
         }, 500);

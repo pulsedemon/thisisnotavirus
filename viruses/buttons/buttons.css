@@ -107,3 +107,17 @@ img.wobble {
     transform: translate(0, -0px);
   }
 }
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+img.troll-face {
+  animation: wobble 1.5s ease-in-out forwards infinite;
+}
+
+img.zombie {
+  animation: spin 1.5s forwards infinite;
+}
