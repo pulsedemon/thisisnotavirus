@@ -121,3 +121,11 @@ img.troll-face {
 img.zombie {
   animation: spin 1.5s forwards infinite;
 }
+
+img.dedseceyeballs {
+  border-radius: 100%;
+}
+
+img.misatoanimatedbeer {
+  border-radius: 10px;
+}
