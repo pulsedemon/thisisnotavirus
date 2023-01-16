@@ -1,13 +1,17 @@
 import { shuffle } from "../../util.js";
 
 class Buttons {
-  container = document.getElementById("container");
-  width = container.clientWidth;
-  height = container.clientHeight;
+  container;
+  width;
+  height;
   buttonClasses = ["button-54", "button-74"];
   imagesUsed = [];
 
   constructor() {
+    this.container = document.getElementById("container");
+    this.width = this.container.clientWidth;
+    this.height = this.container.clientHeight;
+
     fetch("/viruses/buttons/images.json")
       .then((response) => response.json())
       .then((data) => {
