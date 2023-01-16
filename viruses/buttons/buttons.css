@@ -4,14 +4,6 @@
   position: relative;
 }
 
-/* #poof {
-  display: none;
-  position: absolute;
-  height: 32px;
-  width: 32px;
-  background: url(poof.png) no-repeat;
-} */
-
 button,
 img {
   position: absolute;
@@ -21,6 +13,7 @@ button {
   cursor: url("../../cursor.png") 15 0, pointer;
   animation: floating 1.5s ease-in-out infinite;
   white-space: nowrap;
+  z-index: 1;
 }
 
 .button-74 {
@@ -29,7 +22,6 @@ button {
   border-radius: 30px;
   box-shadow: #422800 4px 4px 0 0;
   color: #422800;
-  cursor: pointer;
   display: inline-block;
   font-weight: 200;
   font-size: 16px;
@@ -60,7 +52,6 @@ button {
   text-decoration: none;
   text-transform: uppercase;
   color: #000;
-  cursor: pointer;
   border: 3px solid;
   padding: 0.25em 0.5em;
   box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px,

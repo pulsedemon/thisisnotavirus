@@ -59,20 +59,21 @@ class Buttons {
 
 let b = new Buttons();
 
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
-b.addRandomButton();
+let numInitialButtons = 0;
+function initButtons() {
+  setTimeout(function () {
+    numInitialButtons++;
+    b.addRandomButton();
+    if (numInitialButtons < 10) {
+      initButtons();
+    }
+  }, 200);
+}
+initButtons();
 
 setInterval(() => {
   b.addRandomButton();
-}, 1000);
+}, 3000);
 
 let explosions = [
   "/viruses/buttons/explosions/nukeexplosion1.gif",
@@ -89,16 +90,9 @@ let explosions = [
 
 document.addEventListener("click", function (e) {
   if (e.target.type === "button") {
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
-    b.addRandomImage();
+    for (let x = 0; x < 10; x++) {
+      b.addRandomImage();
+    }
 
     let explode = document.createElement("img");
     explode.src = explosions[0];
@@ -115,7 +109,7 @@ document.addEventListener("click", function (e) {
 
     explosions.push(explosions.shift());
 
-    var fadeEffect = setInterval(function () {
+    let fadeEffect = setInterval(function () {
       if (!e.target.style.opacity) {
         e.target.style.opacity = 1;
       }
