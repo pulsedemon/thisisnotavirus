@@ -22,10 +22,6 @@ img {
   max-width: 150px;
 }
 
-img.wobble {
-  animation: wobble 1.5s ease-in-out forwards infinite;
-}
-
 @keyframes wobble {
   0% {
     transform: rotate(15deg);
@@ -35,6 +31,72 @@ img.wobble {
   }
   100% {
     transform: rotate(15deg);
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: rotate(-3deg);
+  }
+  5% {
+    transform: rotate(3deg);
+  }
+  10% {
+    transform: rotate(-3deg);
+  }
+  15% {
+    transform: rotate(3deg);
+  }
+  20% {
+    transform: rotate(-3deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  30% {
+    transform: rotate(-3deg);
+  }
+  35% {
+    transform: rotate(3deg);
+  }
+  40% {
+    transform: rotate(-3deg);
+  }
+  45% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+  55% {
+    transform: rotate(3deg);
+  }
+  60% {
+    transform: rotate(-3deg);
+  }
+  65% {
+    transform: rotate(3deg);
+  }
+  70% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+  80% {
+    transform: rotate(-3deg);
+  }
+  85% {
+    transform: rotate(3deg);
+  }
+  90% {
+    transform: rotate(-3deg);
+  }
+  95% {
+    transform: rotate(3deg);
+  }
+  100% {
+    transform: rotate(-3deg);
   }
 }
 
@@ -72,37 +134,13 @@ img.misatoanimatedbeer {
   border-radius: 10px;
 }
 
+img.fffffuuuuuuuu {
+  animation: shake 1.5s ease-in-out forwards infinite;
+}
+
 /* buttons */
-.button-74 {
-  background-color: #ffffff;
-  border: 2px solid #422800;
-  border-radius: 30px;
-  box-shadow: #422800 4px 4px 0 0;
-  color: #422800;
-  display: inline-block;
-  font-weight: 200;
-  font-size: 16px;
-  padding: 0 16px;
-  line-height: 30px;
-  text-align: center;
-  text-decoration: none;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  text-transform: uppercase;
-}
-
-.button-74:hover {
-  background-color: #ff0000;
-  color: white;
-}
-
-.button-74:active {
-  box-shadow: #422800 2px 2px 0 0;
-  transform: translate(2px, 2px);
-}
-
 .button-54 {
+  background-color: #fff;
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
   letter-spacing: 2px;
