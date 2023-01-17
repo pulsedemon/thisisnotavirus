@@ -1,4 +1,10 @@
-const viruses = ["random-blocks", "sphere", "uzumaki", "random-characters"];
+const viruses = [
+  "random-blocks",
+  "sphere",
+  "uzumaki",
+  "random-characters",
+  "buttons",
+];
 import { preloadImage } from "./util.js";
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
