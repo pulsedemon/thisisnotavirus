@@ -10,10 +10,12 @@ const random_times = [
 let params = new URLSearchParams(window.location.search);
 
 let loadRandomInterval;
-const loadRandomVirus = () => {
+const loadRandomVirus = (specificVirusOverride) => {
   const vParam = params.get("v");
   let randomVirus;
-  if (getLastVirusLoaded() !== "flash") {
+  if (specificVirusOverride) {
+    randomVirus = specificVirusOverride;
+  } else if (getLastVirusLoaded() !== "flash") {
     randomVirus = "flash";
   } else {
     if (vParam !== null) {
@@ -40,6 +42,15 @@ const loadRandomVirus = () => {
   } else {
     this_time = Math.floor(Math.random() * random_times.length);
     random_time = random_times[this_time];
+
+    let previousVirus = getLastVirusLoadedNotFlash();
+    if (specificVirusOverride) {
+      localStorage.removeItem("previousVirusLoadedNotFlash");
+      document.getElementById("skip-previous").classList.remove("show");
+    } else if (previousVirus) {
+      setPreviousVirusLoadedNotFlash(previousVirus);
+    }
+
     setLastVirusLoadedNotFlash(randomVirus);
   }
   loadRandomInterval = setInterval(function () {
@@ -77,6 +88,18 @@ const setLastVirusLoadedNotFlash = (virus) => {
   return localStorage.setItem("lastVirusLoadedNotFlash", virus);
 };
 
+const getPreviousVirusLoadedNotFlash = () => {
+  return localStorage.getItem("previousVirusLoadedNotFlash");
+};
+
+const setPreviousVirusLoadedNotFlash = (virus) => {
+  let prevButton = document.getElementById("skip-previous");
+  if (!prevButton.classList.contains("show")) {
+    prevButton.classList.add("show");
+  }
+  return localStorage.setItem("previousVirusLoadedNotFlash", virus);
+};
+
 loadRandomVirus();
 
 window.addEventListener("orientationchange", function (event) {
@@ -95,6 +118,12 @@ document.getElementById("play-pause").onclick = (e) => {
     gtag("event", "play");
     loadRandomVirus();
   }
+};
+
+document.getElementById("skip-previous").onclick = (e) => {
+  clearInterval(loadRandomInterval);
+  gtag("event", "skip_previous");
+  loadRandomVirus(getPreviousVirusLoadedNotFlash());
 };
 
 document.getElementById("skip-next").onclick = (e) => {

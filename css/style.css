@@ -27,6 +27,13 @@ body {
   top: 2px;
 }
 
+#skip-previous {
+  display: none;
+}
+#skip-previous.show {
+  display: inline-block;
+}
+
 #container {
   width: 100vw;
   height: 100vh;
