@@ -4,7 +4,7 @@ class Buttons {
   container;
   width;
   height;
-  buttonClasses = ["button-54", "button-74"];
+  buttonClasses = ["button-54", "button-49", "button-74"];
   imagesUsed = [];
 
   constructor() {
