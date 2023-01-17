@@ -1,7 +1,7 @@
 class RandomCharacters {
   text;
   xloc = 0;
-  randomStringLength = 150;
+  randomStringLength = 170;
   characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`/\\|-_"✖◕‿↼肉¿¡∞•ªº≠·■私';
   emojis = [..."🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥🩸🩻"];
