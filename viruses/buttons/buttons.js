@@ -123,7 +123,9 @@ document.addEventListener("click", function (e) {
         clearInterval(fadeEffect);
         try {
           b.container.removeChild(e.target);
-        } catch {}
+        } catch {
+          console.error("trouble removing button?");
+        }
 
         setTimeout(function () {
           b.container.removeChild(explode);
