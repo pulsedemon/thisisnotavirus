@@ -1,7 +1,7 @@
 const path = require("path");
 const glob = require("glob");
 
-const jsFiles = glob.sync("./viruses/*/*.js");
+const jsFiles = glob.sync("./viruses/*/*.[jt]s");
 let entries = {};
 jsFiles.forEach((filepath) => {
   const filename = filepath.split("/").slice(-1)[0].split(".")[0];
@@ -19,14 +19,9 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.m?js$/,
+        test: /\.m?[jt]sx?$/,
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
-          },
-        },
+        loader: "babel-loader",
       },
     ],
   },

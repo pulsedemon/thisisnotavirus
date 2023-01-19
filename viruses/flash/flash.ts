@@ -1,14 +1,16 @@
 class Flash {
   canvas;
-  screenWidth = null;
-  screenHeight = null;
+  screenWidth: number;
+  screenHeight: number;
   canvasCtx;
 
   constructor() {
     this.canvas = document.createElement("canvas");
     this.screenWidth = window.innerWidth;
     this.screenHeight = window.innerHeight;
-    document.getElementById("container").appendChild(this.canvas);
+
+    const container = document.getElementById("container");
+    container?.appendChild(this.canvas);
     this.canvas.width = this.screenWidth;
     this.canvas.height = this.screenHeight;
     this.canvasCtx = this.canvas.getContext("2d");
