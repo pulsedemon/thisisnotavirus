@@ -1,101 +1,75 @@
-(function (root) {
-  // module wrapper
-  "use strict";
+class RandomBlocks {
+  screenWidth = null;
+  screenHeight = null;
+  locations = [];
+  count = 0;
+  numberOfBlocks = 0;
+  blocksAppended = 0;
 
-  // expose `RandomBlocks` globally
-  let RandomBlocks = (root.RandomBlocks = {});
+  canvasCtx;
+  blockSize = 5;
 
-  /**
-   * define some variables
-   */
-  let screenWidth = null,
-    screenHeight = null,
-    locations = [],
-    count = 0,
-    numberOfBlocks = 0,
-    blocksAppended = 0,
-    canvas = $("<canvas id='stage'>"),
-    canvasCtx,
-    blockSize = 5;
-  /**
-   * start the colored block extravaganza
-   */
-  RandomBlocks.init = function () {
-    screenWidth = $(window).width();
-    screenHeight = $(window).height();
+  constructor() {
+    const container = document.getElementById("container");
+    this.canvas = document.createElement("canvas");
+    document.getElementById("container").appendChild(this.canvas);
+    this.canvas.width = container.clientWidth;
+    this.canvas.height = container.clientHeight;
 
-    canvas = canvas.appendTo("#container")[0];
-    canvas.width = screenWidth;
-    canvas.height = screenHeight;
-    canvasCtx = canvas.getContext("2d");
+    this.screenWidth = this.canvas.width;
+    this.screenHeight = this.canvas.height;
 
-    numberOfBlocks = RandomBlocks.calculateNumberOfBlocks();
+    this.canvas.height = this.screenHeight;
+    this.canvasCtx = this.canvas.getContext("2d");
 
-    console.log("Blocks needed to fill screen: ", numberOfBlocks);
+    this.numberOfBlocks = this.calculateNumberOfBlocks();
 
-    function update() {
-      for (let i = 0; i < 100; i++) RandomBlocks.add(blockSize);
-      window.requestAnimationFrame(update);
-    }
-    update();
-  };
+    console.log("Blocks needed to fill screen: ", this.numberOfBlocks);
 
-  /**
-   * The number of blocks required to fill the screen
-   * @return {int} numberOfBlocks
-   */
-  RandomBlocks.calculateNumberOfBlocks = function () {
-    let numBlocksAcross = screenWidth / blockSize;
-    let numBlocksDown = screenHeight / blockSize;
+    this.update();
+  }
+
+  update() {
+    for (let i = 0; i < 100; i++) this.add(this.blockSize);
+    window.requestAnimationFrame(() => this.update());
+  }
+
+  calculateNumberOfBlocks() {
+    let numBlocksAcross = this.screenWidth / this.blockSize;
+    let numBlocksDown = this.screenHeight / this.blockSize;
 
     return Math.ceil(numBlocksAcross * numBlocksDown);
-  };
+  }
 
-  /**
-   * Add a random block
-   * @return nothing
-   */
-  RandomBlocks.add = function (size) {
-    let randomXNumber = RandomBlocks.randomXAxis(size);
-    let randomYNumber = RandomBlocks.randomYAxis(size);
+  add(size) {
+    let randomXNumber = this.randomXAxis(size);
+    let randomYNumber = this.randomYAxis(size);
 
     let position = [randomXNumber, randomYNumber];
-    if (!~locations.indexOf(position.join(""))) {
-      let randomColor = RandomBlocks.randomColor();
+    if (!~this.locations.indexOf(position.join(""))) {
+      let randomColor = this.randomColor();
       let xPosition = position[0];
       let yPosition = position[1];
 
-      canvasCtx.fillStyle = "rgb(" + randomColor + ")";
-      canvasCtx.fillRect(xPosition, yPosition, size, size);
+      this.canvasCtx.fillStyle = "rgb(" + randomColor + ")";
+      this.canvasCtx.fillRect(xPosition, yPosition, size, size);
 
-      blocksAppended++;
+      this.blocksAppended++;
 
-      locations.push(position);
-      count++;
+      this.locations.push(position);
+      this.count++;
     }
-  };
+  }
 
-  /**
-   * Random X axis that is divisible by blockSize
-   * @return {int} Random X axis
-   */
-  RandomBlocks.randomXAxis = function (size) {
-    return Math.round((Math.random() * screenWidth) / size) * size;
-  };
+  randomXAxis(size) {
+    return Math.round((Math.random() * this.screenWidth) / size) * size;
+  }
 
-  /**
-   * Random Y axis that is divisible by blockSize
-   * @return {int} Random Y axis
-   */
-  RandomBlocks.randomYAxis = function (size) {
-    return Math.round((Math.random() * screenHeight) / size) * size;
-  };
+  randomYAxis(size) {
+    return Math.round((Math.random() * this.screenHeight) / size) * size;
+  }
 
-  /**
-   * Generate random RGB code
-   * @return {string} RGB code generated
-   */
-  RandomBlocks.randomColor = function () {
+  randomColor() {
     return (
       "" +
       (Math.round(Math.random() * 256) +
@@ -104,9 +78,7 @@
         "," +
         Math.round(Math.random() * 256))
     );
-  };
-})(this);
+  }
+}
 
-$(function () {
-  RandomBlocks.init(); // Run when doc ready
-});
+new RandomBlocks();
