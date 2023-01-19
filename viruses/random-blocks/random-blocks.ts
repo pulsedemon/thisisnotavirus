@@ -1,18 +1,20 @@
 class RandomBlocks {
-  screenWidth = null;
-  screenHeight = null;
-  locations = [];
-  count = 0;
-  numberOfBlocks = 0;
-  blocksAppended = 0;
+  screenWidth: number;
+  screenHeight: number;
+  locations: any = [];
+  count: number = 0;
+  numberOfBlocks: number = 0;
+  blocksAppended: number = 0;
+  canvas: HTMLCanvasElement;
 
-  canvasCtx;
+  canvasCtx: CanvasRenderingContext2D;
   blockSize = 5;
 
   constructor() {
     const container = document.getElementById("container");
+    if (!container) return;
     this.canvas = document.createElement("canvas");
-    document.getElementById("container").appendChild(this.canvas);
+    container.appendChild(this.canvas);
     this.canvas.width = container.clientWidth;
     this.canvas.height = container.clientHeight;
 
@@ -20,7 +22,7 @@ class RandomBlocks {
     this.screenHeight = this.canvas.height;
 
     this.canvas.height = this.screenHeight;
-    this.canvasCtx = this.canvas.getContext("2d");
+    this.canvasCtx = this.canvas.getContext("2d")!;
 
     this.numberOfBlocks = this.calculateNumberOfBlocks();
 
@@ -34,18 +36,18 @@ class RandomBlocks {
     window.requestAnimationFrame(() => this.update());
   }
 
-  calculateNumberOfBlocks() {
+  calculateNumberOfBlocks(): number {
     let numBlocksAcross = this.screenWidth / this.blockSize;
     let numBlocksDown = this.screenHeight / this.blockSize;
 
     return Math.ceil(numBlocksAcross * numBlocksDown);
   }
 
-  add(size) {
+  add(size: number) {
     let randomXNumber = this.randomXAxis(size);
     let randomYNumber = this.randomYAxis(size);
 
-    let position = [randomXNumber, randomYNumber];
+    const position: number[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
       let randomColor = this.randomColor();
       let xPosition = position[0];
@@ -61,15 +63,15 @@ class RandomBlocks {
     }
   }
 
-  randomXAxis(size) {
+  randomXAxis(size: number): number {
     return Math.round((Math.random() * this.screenWidth) / size) * size;
   }
 
-  randomYAxis(size) {
+  randomYAxis(size: number): number {
     return Math.round((Math.random() * this.screenHeight) / size) * size;
   }
 
-  randomColor() {
+  randomColor(): string {
     return (
       "" +
       (Math.round(Math.random() * 256) +
