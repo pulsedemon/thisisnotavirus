@@ -5,7 +5,8 @@ class Buttons {
   width;
   height;
   buttonClasses = ["button-54", "button-49"];
-  imagesUsed = [];
+  imagesUsed: Array<string> = [];
+  images: Array<string>;
 
   constructor() {
     this.container = document.getElementById("container");
@@ -79,7 +80,7 @@ setInterval(() => {
   b.addRandomButton();
 }, 3000);
 
-let explosions = [
+let explosions: Array<string> = [
   "/viruses/buttons/explosions/nukeexplosion1.gif",
   "/viruses/buttons/explosions/explosion1.gif",
   "/viruses/buttons/explosions/nukeexplosion2.gif",
@@ -92,7 +93,8 @@ let explosions = [
   "/viruses/buttons/explosions/explosion5.gif",
 ];
 
-document.addEventListener("click", function (e) {
+document.addEventListener("click", function (e: any) {
+  if (!e.target) return;
   if (e.target.type === "button") {
     for (let x = 0; x < 10; x++) {
       b.addRandomImage();
@@ -111,9 +113,9 @@ document.addEventListener("click", function (e) {
 
     b.container.appendChild(explode);
 
-    explosions.push(explosions.shift());
+    explosions.push(explosions.shift()!);
 
-    let fadeEffect = setInterval(function () {
+    let fadeEffect = setInterval(() => {
       if (!e.target.style.opacity) {
         e.target.style.opacity = 1;
       }
