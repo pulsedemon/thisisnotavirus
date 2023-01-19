@@ -9,8 +9,8 @@ class Buttons {
 
   constructor() {
     this.container = document.getElementById("container");
-    this.width = this.container.clientWidth;
-    this.height = this.container.clientHeight;
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
 
     fetch("/viruses/buttons/images.json")
       .then((response) => response.json())

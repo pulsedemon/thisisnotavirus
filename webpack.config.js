@@ -10,7 +10,7 @@ jsFiles.forEach((filepath) => {
 entries["main"] = "./main.js";
 
 module.exports = {
-  mode: "none",
+  mode: "development",
   entry: entries,
   output: {
     filename: "[name].js",
