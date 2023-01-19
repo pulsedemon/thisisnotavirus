@@ -1,7 +1,8 @@
 body {
   background: black;
-  width: 100vw;
-  height: 100vh;
+}
+#container {
+  height: auto;
 }
 canvas {
   zoom: 50%;

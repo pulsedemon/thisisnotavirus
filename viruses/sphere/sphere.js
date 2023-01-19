@@ -5,8 +5,6 @@ let WIDTH = window.innerWidth,
 
 let renderer, scene, camera, vortex, diamond;
 let $diamond_color;
-let projector;
-let sphere, uniforms, attributes;
 
 function init() {
   if (HEIGHT > WIDTH) {
@@ -46,16 +44,12 @@ function init() {
   vortex = new THREE.Mesh(geometry, material);
   scene.add(vortex);
 
-  projector = new THREE.Projector();
-
   renderer = new THREE.CanvasRenderer();
   renderer.setSize(WIDTH, HEIGHT);
 
-  $("#container").append(renderer.domElement);
+  document.getElementById("container").appendChild(renderer.domElement);
 
-  $("canvas").css({
-    top: window.innerHeight - HEIGHT / 2 + "px",
-  });
+  renderer.domElement.style.top = window.innerHeight - HEIGHT / 2 + "px";
 
   window.addEventListener("resize", onWindowResize, false);
 }
@@ -74,9 +68,7 @@ function onWindowResize() {
   WIDTH = WIDTH * 2;
   HEIGHT = HEIGHT * 2;
 
-  $("canvas").css({
-    top: window.innerHeight - HEIGHT / 2 + "px",
-  });
+  renderer.domElement.style.top = window.innerHeight - HEIGHT / 2 + "px";
 
   renderer.setSize(WIDTH, HEIGHT);
 }
@@ -88,7 +80,6 @@ function render() {
   vortex.rotation.z = 0.02 * time;
 
   if (!diamond) {
-    console.log("create diamond");
     let radius = 50,
       segments = 20,
       rings = 2;
@@ -118,8 +109,6 @@ function diamond_color() {
   requestAnimationFrame(diamond_color);
 }
 
-$(function () {
-  init();
-  requestAnimationFrame(render);
-  requestAnimationFrame(diamond_color);
-});
+init();
+requestAnimationFrame(render);
+requestAnimationFrame(diamond_color);
