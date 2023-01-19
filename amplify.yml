@@ -4,12 +4,10 @@ frontend:
     preBuild:
       commands:
         - yarn install
-        - yarn run build:prod
-    # IMPORTANT - Please verify your build commands
     build:
-      commands: []
+      commands:
+        - yarn run build:prod
   artifacts:
-    # IMPORTANT - Please verify your build output directory
     baseDirectory: /
     files:
       - "**/*"
