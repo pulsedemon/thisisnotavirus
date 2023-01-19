@@ -1,17 +1,19 @@
 class RandomCharacters {
-  text;
+  text: string;
   xloc = 0;
+  yloc: number;
   randomStringLength = 170;
   characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`/\\|-_"✖◕‿↼肉¿¡∞•ªº≠·■私';
   emojis = [..."🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥🩸🩻"];
+  canvas: HTMLCanvasElement;
 
-  constructor(canvas, ystart) {
+  constructor(canvas: HTMLCanvasElement, ystart: number) {
     this.canvas = canvas;
     this.yloc = ystart;
   }
 
-  randomString(length) {
+  randomString(length: number): string {
     let string = "";
 
     for (let i = 0; i < length; i++) {
@@ -27,7 +29,7 @@ class RandomCharacters {
     return string;
   }
 
-  insertRandomEmoji(string) {
+  insertRandomEmoji(string: string): string {
     let pos = Math.floor(Math.random() * string.length);
     string =
       string.slice(0, pos) +
@@ -42,7 +44,7 @@ class RandomCharacters {
   }
 
   drawText() {
-    let context = this.canvas.getContext("2d");
+    let context = this.canvas.getContext("2d")!;
     context.font = "25px monospace";
     context.fillStyle = "#000000";
     context.textBaseline = "middle";
@@ -54,13 +56,13 @@ class RandomCharacters {
 
 const canvasHeight = 28;
 let numCanvases = Math.ceil(
-  document.getElementById("container").clientHeight / canvasHeight
+  document.getElementById("container")!.clientHeight / canvasHeight
 );
 
 for (let i = 0; i < numCanvases; i++) {
   let canvas = document.createElement("canvas");
   canvas.height = canvasHeight;
-  document.getElementById("container").appendChild(canvas);
+  document.getElementById("container")!.appendChild(canvas);
   canvas.width = canvas.clientWidth;
 
   let rc = new RandomCharacters(canvas, 15);
