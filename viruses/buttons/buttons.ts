@@ -1,15 +1,15 @@
 import { shuffle } from "../../util.js";
 
 class Buttons {
-  container;
-  width;
-  height;
+  container: HTMLElement;
+  width: number;
+  height: number;
   buttonClasses = ["button-54", "button-49"];
   imagesUsed: Array<string> = [];
   images: Array<string>;
 
   constructor() {
-    this.container = document.getElementById("container");
+    this.container = document.getElementById("container")!;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
@@ -52,12 +52,12 @@ class Buttons {
   }
 
   getRandomCoords() {
-    const randomX = Math.floor(Math.random() * this.width);
-    const randomY = Math.floor(Math.random() * this.height);
+    const randomX = Math.floor(Math.random() * (this.width - 130));
+    const randomY = Math.floor(Math.random() * (this.height - 150)) + 100;
 
     return {
-      x: randomX - 15,
-      y: randomY - 15,
+      x: randomX,
+      y: randomY,
     };
   }
 }
