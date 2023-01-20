@@ -108,7 +108,7 @@ const setPreviousVirusLoadedNotFlash = (virus) => {
 
 loadRandomVirus();
 
-window.addEventListener("orientationchange", function (event) {
+window.addEventListener("orientationchange", function () {
   loadRandomVirus();
 });
 
@@ -126,13 +126,13 @@ document.getElementById("play-pause").onclick = (e) => {
   }
 };
 
-document.getElementById("skip-previous").onclick = (e) => {
+document.getElementById("skip-previous").onclick = () => {
   clearInterval(loadRandomInterval);
   gtag("event", "skip_previous");
   loadRandomVirus(getPreviousVirusLoadedNotFlash());
 };
 
-document.getElementById("skip-next").onclick = (e) => {
+document.getElementById("skip-next").onclick = () => {
   clearInterval(loadRandomInterval);
   gtag("event", "skip_next");
   loadRandomVirus();

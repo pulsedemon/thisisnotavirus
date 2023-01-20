@@ -1,5 +1,7 @@
 "use strict";
 
+import * as THREE from "three";
+
 let WIDTH = window.innerWidth,
   HEIGHT = window.innerHeight;
 
