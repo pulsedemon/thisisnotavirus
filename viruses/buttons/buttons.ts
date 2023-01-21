@@ -39,6 +39,7 @@ class Buttons {
     if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];
     if (this.imagesUsed.includes(this.images[0])) return this.addRandomImage();
     image.src = this.images[0];
+    console.log(image.width);
     let coords = b.getRandomCoords();
     image.style.top = `${coords.y}px`;
     image.style.left = `${coords.x}px`;
@@ -53,7 +54,7 @@ class Buttons {
 
   getRandomCoords() {
     const randomX = Math.floor(Math.random() * (this.width - 130));
-    const randomY = Math.floor(Math.random() * (this.height - 150)) + 100;
+    const randomY = Math.floor(Math.random() * (this.height - 150));
 
     return {
       x: randomX,
