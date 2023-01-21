@@ -32,9 +32,12 @@ class Sphere {
     this.WIDTH = this.WIDTH * 2;
     this.HEIGHT = this.HEIGHT * 2;
 
-    let radius = 100,
-      segments = 35,
-      rings = 18;
+    const segmentOptions = [7, 12, 20, 22];
+    const radius = 100;
+    const segment = Math.floor(Math.random() * segmentOptions.length);
+    const segments = segmentOptions[segment];
+    const rings = 18;
+
     let geometry = new THREE.SphereGeometry(
       radius,
       segments,
@@ -52,7 +55,7 @@ class Sphere {
     this.vortex = new THREE.Mesh(geometry, material);
     this.scene.add(this.vortex);
 
-    this.renderer = new THREE.CanvasRenderer();
+    this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(this.WIDTH, this.HEIGHT);
 
     document.getElementById("container").appendChild(this.renderer.domElement);
@@ -60,7 +63,7 @@ class Sphere {
     this.renderer.domElement.style.top =
       window.innerHeight - this.HEIGHT / 2 + "px";
 
-    window.addEventListener("resize", this.onWindowResize, false);
+    window.addEventListener("resize", () => this.onWindowResize(), false);
     this.randomizeSphereColor = Math.random() < 0.5;
     this.randomizeDiamondColor = Math.random() < 0.5;
 
@@ -98,7 +101,10 @@ class Sphere {
         segments = 20,
         rings = 2;
       let geometry = new THREE.SphereGeometry(radius, segments, rings);
-      this.diamond = new THREE.Mesh(geometry);
+      let material = new THREE.MeshBasicMaterial({
+        wireframe: true,
+      });
+      this.diamond = new THREE.Mesh(geometry, material);
       this.scene.add(this.diamond);
     }
 

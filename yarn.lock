@@ -3837,16 +3837,16 @@ __metadata:
     eslint: ^8.32.0
     prettier: ^2.8.3
     serve: ^14.1.2
-    three: 0.54.0
+    three: 0.71.0
     webpack: ^5.75.0
     webpack-cli: ^5.0.1
   languageName: unknown
   linkType: soft
 
-"three@npm:0.54.0":
-  version: 0.54.0
-  resolution: "three@npm:0.54.0"
-  checksum: ff61bb4df38cd52cd29a1a6c37e709b9d4849087680cd3b9c5ba9dea0e2e136535d3c775e20cf113765650a81b43b02b5582f83531d3d7dbaeb00a3b23cf3342
+"three@npm:0.71.0":
+  version: 0.71.0
+  resolution: "three@npm:0.71.0"
+  checksum: 993db77a8824eec1ab396b5382e1bf3d583b15a9a6d0171a191ed98742e47603a611887f2cd0380cf0957430bc9bec91768c7b503da95428681583723b6f8911
   languageName: node
   linkType: hard
 
