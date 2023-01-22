@@ -23,9 +23,19 @@ body {
     .eye {
       width: 300px;
       height: 300px;
-      background-image: url("x-eye.png");
+      background-image: url("eye-x.png");
       background-size: contain;
+
+      &.blink {
+        background-image: url("eye-blink.png");
+      }
     }
+
+    // #right-eye {
+    //   .eye {
+    //     background-image: url("eye-blink.png");
+    //   }
+    // }
   }
 
   #mouth {
