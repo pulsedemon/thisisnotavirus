@@ -4,7 +4,7 @@ class RandomCharacters {
   yloc: number;
   randomStringLength = 170;
   characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=~`/\\|-_"✖◕‿↼肉¿¡∞•ªº≠·■私';
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=≈~`/\\|-_"✖◕‿↼肉¿¡∞•ªº≠·■私';
   emojis = [..."🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥🩸🩻"];
   canvas: HTMLCanvasElement;
 

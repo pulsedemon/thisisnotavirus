@@ -1,0 +1,80 @@
+@use "../../sass/animations";
+
+body {
+  background-color: aqua;
+}
+
+#container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 800px;
+  height: auto;
+}
+
+#face {
+  animation: floating 1.5s ease-in-out infinite;
+
+  #eyes {
+    display: flex;
+    justify-content: space-between;
+    .eye {
+      width: 300px;
+      height: 300px;
+      background-image: url("x-eye.png");
+      background-size: contain;
+    }
+  }
+
+  #mouth {
+    background-image: url("mouth.png");
+    background-size: contain;
+    width: 100%;
+    height: 200px;
+  }
+}
+
+$scan-width: 2px;
+$scan-crt: true;
+$scan-fps: 60;
+$scan-color: rgba(#000, 0.3);
+$scan-z-index: 2147483648;
+
+@mixin scan-crt($scan-crt) {
+  @if $scan-crt == true {
+    animation: scanlines 1s steps($scan-fps) infinite;
+  } @else {
+    animation: none;
+  }
+}
+
+body {
+  overflow: hidden;
+
+  &:before,
+  &:after {
+    display: block;
+    pointer-events: none;
+    content: "";
+    position: absolute;
+  }
+
+  &:after {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: $scan-z-index;
+    background: linear-gradient(to bottom, transparent 50%, $scan-color 51%);
+    background-size: 100% $scan-width * 2;
+    @include scan-crt($scan-crt);
+  }
+}
+
+@keyframes scanlines {
+  0% {
+    background-position: 0 50%;
+  }
+}
