@@ -14,7 +14,12 @@ button {
   animation: floating 1.5s ease-in-out infinite;
   white-space: nowrap;
   z-index: 1;
+  opacity: 1;
   text-transform: uppercase;
+}
+button.fade-out {
+  opacity: 0;
+  transition: opacity 1s linear;
 }
 
 img {

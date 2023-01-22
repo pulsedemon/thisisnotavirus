@@ -39,7 +39,6 @@ class Buttons {
     if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];
     if (this.imagesUsed.includes(this.images[0])) return this.addRandomImage();
     image.src = this.images[0];
-    console.log(image.width);
     let coords = b.getRandomCoords();
     image.style.top = `${coords.y}px`;
     image.style.left = `${coords.x}px`;
@@ -53,12 +52,12 @@ class Buttons {
   }
 
   getRandomCoords() {
-    const randomX = Math.floor(Math.random() * (this.width - 130));
-    const randomY = Math.floor(Math.random() * (this.height - 150));
+    const randomX = Math.floor(Math.random() * this.width);
+    const randomY = Math.floor(Math.random() * this.height);
 
     return {
-      x: randomX,
-      y: randomY,
+      x: randomX - 40,
+      y: randomY - 40,
     };
   }
 }
@@ -66,74 +65,62 @@ class Buttons {
 let b = new Buttons();
 
 let numInitialButtons = 0;
+let continueAddingButtons = true;
 function initButtons() {
   setTimeout(function () {
     numInitialButtons++;
     b.addRandomButton();
-    if (numInitialButtons < 10) {
+    if (numInitialButtons < 600 && continueAddingButtons) {
       initButtons();
     }
-  }, 200);
+  }, 20);
 }
 initButtons();
 
-setInterval(() => {
+let addRandButtonInterval = setInterval(() => {
   b.addRandomButton();
 }, 3000);
 
 let explosions: Array<string> = [
   "/viruses/buttons/explosions/nukeexplosion1.gif",
   "/viruses/buttons/explosions/explosion1.gif",
-  "/viruses/buttons/explosions/nukeexplosion2.gif",
-  "/viruses/buttons/explosions/explosion2.gif",
-  "/viruses/buttons/explosions/nukeexplosion3.gif",
-  "/viruses/buttons/explosions/explosion3.gif",
-  "/viruses/buttons/explosions/nukeexplosion4.gif",
-  "/viruses/buttons/explosions/explosion4.gif",
-  "/viruses/buttons/explosions/nukeexplosion5.gif",
-  "/viruses/buttons/explosions/explosion5.gif",
 ];
 
 document.addEventListener("click", function (e: any) {
   if (!e.target) return;
-  if (e.target.type === "button") {
-    for (let x = 0; x < 10; x++) {
-      b.addRandomImage();
-    }
+  if (e.target.type !== "button") return;
 
+  clearInterval(addRandButtonInterval);
+  continueAddingButtons = false;
+
+  for (let x = 0; x < 500; x++) {
+    b.addRandomImage();
+  }
+
+  const buttons = document.querySelectorAll<HTMLElement>("button[type=button]");
+  buttons.forEach((el, key) => {
     let explode = document.createElement("img");
     explode.src = explosions[0];
-    explode.style.top = `${
-      parseInt(e.target.style.top.replace("px", "")) - 25
-    }px`;
+    explode.style.top = `${parseInt(el.style.top.replace("px", "")) - 25}px`;
     explode.style.left = `${
-      parseInt(e.target.style.left.replace("px", "")) +
-      Math.floor(e.target.clientWidth / 2) -
+      parseInt(el.style.left.replace("px", "")) +
+      Math.floor(el.clientWidth / 2) -
       78 / 2
     }px`;
 
     b.container.appendChild(explode);
-
     explosions.push(explosions.shift()!);
 
-    let fadeEffect = setInterval(() => {
-      if (!e.target.style.opacity) {
-        e.target.style.opacity = 1;
-      }
-      if (e.target.style.opacity > 0) {
-        e.target.style.opacity -= 0.1;
-      } else {
-        clearInterval(fadeEffect);
-        try {
-          b.container.removeChild(e.target);
-        } catch {
-          console.error("trouble removing button?");
-        }
+    el.classList.add("fade-out");
+    setTimeout(function () {
+      b.container.removeChild(explode);
+    }, 1500);
+  });
 
-        setTimeout(function () {
-          b.container.removeChild(explode);
-        }, 500);
-      }
-    }, 80);
-  }
+  setTimeout(() => {
+    const css = "img { z-index: 2; }";
+    let styleSheet = document.createElement("style");
+    styleSheet.innerText = css;
+    document.head.appendChild(styleSheet);
+  }, 1000);
 });
