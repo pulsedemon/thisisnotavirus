@@ -86,22 +86,23 @@ class Buttons {
 
 let b = new Buttons();
 
+let initialButtonCount = 600;
+if (b.width <= 700) {
+  initialButtonCount = 300;
+}
+
 let numInitialButtons = 0;
 let continueAddingButtons = true;
 function initButtons() {
   setTimeout(function () {
     numInitialButtons++;
     b.addRandomButton();
-    if (numInitialButtons < 600 && continueAddingButtons) {
+    if (numInitialButtons < initialButtonCount && continueAddingButtons) {
       initButtons();
     }
   }, 20);
 }
 initButtons();
-
-let addRandButtonInterval = setInterval(() => {
-  b.addRandomButton();
-}, 3000);
 
 let explosions: Array<string> = [
   "/viruses/buttons/explosions/nukeexplosion1.gif",
@@ -112,7 +113,6 @@ document.addEventListener("click", function (e: any) {
   if (!e.target) return;
   if (e.target.type !== "button") return;
 
-  clearInterval(addRandButtonInterval);
   continueAddingButtons = false;
 
   for (let x = 0; x < 350; x++) {
