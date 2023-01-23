@@ -7,6 +7,25 @@ class Buttons {
   buttonClasses = ["button-54", "button-49"];
   imagesUsed: Array<string> = [];
   images: Array<string>;
+  buttonText = [
+    "Click Me",
+    "私をクリック", // japanese
+    "点我", // chinese (simplified)
+    "Haz click en mi", // spanish
+    "натисніть мене", // ukrainian
+    "klik my", // afrikaans
+    "кликнете на мене", // macedonian
+    "Klick mich", // german
+    "클릭 해주세요", // korean
+    "нажми на меня", // russian
+    "clique moi", // french
+    "Klikk på meg", // norwegian
+    "Klicka här", // swedish
+    "pindutin mo ako", // filipino
+    "Kliknij", // polish
+    "Klik hier", // dutch
+    "cliccami", // italian
+  ];
 
   constructor() {
     this.container = document.getElementById("container")!;
@@ -22,33 +41,13 @@ class Buttons {
   }
 
   addRandomButton() {
-    const buttonText = [
-      "Click Me",
-      "私をクリック", // japanese
-      "点我", // chinese (simplified)
-      "Haz click en mi", // spanish
-      "натисніть мене", // ukrainian
-      "klik my", // afrikaans
-      "кликнете на мене", // macedonian
-      "Klick mich", // german
-      "클릭 해주세요", // korean
-      "нажми на меня", // russian
-      "clique moi", // french
-      "Klikk på meg", // norwegian
-      "Klicka här", // swedish
-      "pindutin mo ako", // filipino
-      "Kliknij", // polish
-      "Klik hier", // dutch
-      "cliccami", // italian
-    ];
-
+    const coords = b.getRandomCoords();
     let button = document.createElement("button");
     button.type = "button";
-    let coords = b.getRandomCoords();
     button.style.top = `${coords.y}px`;
     button.style.left = `${coords.x}px`;
     button.innerText =
-      buttonText[Math.floor(Math.random() * buttonText.length)];
+      this.buttonText[Math.floor(Math.random() * this.buttonText.length)];
     button.classList.add(
       this.buttonClasses[Math.floor(Math.random() * this.buttonClasses.length)]
     );
@@ -61,7 +60,7 @@ class Buttons {
     if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];
     if (this.imagesUsed.includes(this.images[0])) return this.addRandomImage();
     image.src = this.images[0];
-    let coords = b.getRandomCoords();
+    const coords = b.getRandomCoords();
     image.style.top = `${coords.y}px`;
     image.style.left = `${coords.x}px`;
 
@@ -84,7 +83,7 @@ class Buttons {
   }
 }
 
-let b = new Buttons();
+const b = new Buttons();
 
 let initialButtonCount = 600;
 let numRandomImages = 350;
@@ -106,7 +105,7 @@ function initButtons() {
 }
 initButtons();
 
-let explosions: Array<string> = [
+const explosions: Array<string> = [
   "/viruses/buttons/explosions/nukeexplosion1.gif",
   "/viruses/buttons/explosions/explosion1.gif",
 ];
