@@ -21,12 +21,33 @@ class Buttons {
   }
 
   addRandomButton() {
+    const buttonText = [
+      "Click Me",
+      "私をクリック", // japanese
+      "点我", // chinese (simplified)
+      "Haz click en mi", // spanish
+      "натисніть мене", // ukrainian
+      "klik my", // afrikaans
+      "кликнете на мене", // macedonian
+      "Klick mich", // german
+      "클릭 해주세요", // korean
+      "нажми на меня", // russian
+      "clique moi", // french
+      "Klikk på meg", // norwegian
+      "Klicka här", // swedish
+      "pindutin mo ako", // filipino
+      "Kliknij", // polish
+      "Klik hier", // dutch
+      "cliccami", // italian
+    ];
+
     let button = document.createElement("button");
     button.type = "button";
     let coords = b.getRandomCoords();
     button.style.top = `${coords.y}px`;
     button.style.left = `${coords.x}px`;
-    button.innerText = "Click Me";
+    button.innerText =
+      buttonText[Math.floor(Math.random() * buttonText.length)];
     button.classList.add(
       this.buttonClasses[Math.floor(Math.random() * this.buttonClasses.length)]
     );
