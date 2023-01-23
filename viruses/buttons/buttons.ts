@@ -90,7 +90,7 @@ let initialButtonCount = 600;
 let numRandomImages = 350;
 if (b.width <= 700) {
   initialButtonCount = 300;
-  numRandomImages = 200;
+  numRandomImages = 150;
 }
 
 let numInitialButtons = 0;
