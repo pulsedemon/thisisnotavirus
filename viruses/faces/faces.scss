@@ -34,17 +34,17 @@ body {
         height: 150px;
       }
 
-      background-image: url("eye-x.png");
+      background-image: url("/viruses/faces/eye-x.png");
       background-size: contain;
 
       &.blink {
-        background-image: url("eye-blink.png");
+        background-image: url("/viruses/faces/eye-blink.png");
       }
     }
   }
 
   #mouth {
-    background-image: url("mouth.png");
+    background-image: url("/viruses/faces/mouth.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;

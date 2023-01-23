@@ -26,11 +26,21 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i,
         use: [
-          // Creates `style` nodes from JS strings
           "style-loader",
-          // Translates CSS into CommonJS
-          "css-loader",
-          // Compiles Sass to CSS
+          {
+            loader: "css-loader",
+            options: {
+              url: {
+                filter: (url) => {
+                  if (url.includes("png")) {
+                    return false;
+                  }
+
+                  return true;
+                },
+              },
+            },
+          },
           "sass-loader",
         ],
       },
