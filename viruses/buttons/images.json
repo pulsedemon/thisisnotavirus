@@ -5,6 +5,7 @@
         "/viruses/buttons/images/skull.gif",
         "/viruses/buttons/images/pizzaslice.gif",
         "/viruses/buttons/images/nyan.gif",
+        "/viruses/buttons/images/gengar.gif",
         "/viruses/buttons/images/kirby.gif",
         "/viruses/buttons/images/dedsec.gif",
         "/viruses/buttons/images/dedseceyeballs.gif",
@@ -83,6 +84,21 @@
         "/viruses/buttons/images/ramen.webp",
         "/viruses/buttons/images/gir.webp",
         "/viruses/buttons/images/PmHc9.gif",
-        "/viruses/buttons/images/zombie.gif"
+        "/viruses/buttons/images/zombie.gif",
+        "/viruses/buttons/images/burger.gif",
+        "/viruses/buttons/images/pochita.gif",
+        "/viruses/buttons/images/denjipochita.gif",
+        "/viruses/buttons/images/neko.gif",
+        "/viruses/buttons/images/ghostface.gif",
+        "/viruses/buttons/images/warning.gif",
+        "/viruses/buttons/images/monster.gif",
+        "/viruses/buttons/images/popsicledying.gif",
+        "/viruses/buttons/images/cards.gif",
+        "/viruses/buttons/images/cola.gif",
+        "/viruses/buttons/images/cherries.gif",
+        "/viruses/buttons/images/potion.gif",
+        "/viruses/buttons/images/sirfinger.gif",
+        "/viruses/buttons/images/handheld.gif",
+        "/viruses/buttons/images/popsicle.gif"
     ]
 }
