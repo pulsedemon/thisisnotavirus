@@ -87,8 +87,10 @@ class Buttons {
 let b = new Buttons();
 
 let initialButtonCount = 600;
+let numRandomImages = 350;
 if (b.width <= 700) {
   initialButtonCount = 300;
+  numRandomImages = 200;
 }
 
 let numInitialButtons = 0;
@@ -115,7 +117,7 @@ document.addEventListener("click", function (e: any) {
 
   continueAddingButtons = false;
 
-  for (let x = 0; x < 350; x++) {
+  for (let x = 0; x < numRandomImages; x++) {
     b.addRandomImage();
   }
 
