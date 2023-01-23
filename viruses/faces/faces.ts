@@ -3,13 +3,16 @@ import "./faces.scss";
 class Faces {
   eyes = document.querySelectorAll<HTMLElement>(".eye");
 
-  blink() {
+  blink(eye?) {
+    if (!eye) eye = this.eyes;
+    else eye = [eye];
+
     return new Promise((resolve, reject) => {
-      this.eyes.forEach((el, key) => {
+      eye.forEach((el) => {
         el.classList.add("blink");
       });
       setTimeout(() => {
-        this.eyes.forEach((el, key) => {
+        eye.forEach((el) => {
           el.classList.remove("blink");
         });
       }, 200);
@@ -21,8 +24,16 @@ class Faces {
 }
 
 const faces = new Faces();
+faces.blink().then(() => faces.blink());
+
 setInterval(() => {
   setTimeout(() => {
     faces.blink().then(() => faces.blink());
   }, 1000);
-}, 2000);
+}, 5000);
+
+document.querySelectorAll("#face .eye").forEach((eye) => {
+  eye.addEventListener("click", (e) => {
+    faces.blink(e.target);
+  });
+});
