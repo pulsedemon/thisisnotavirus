@@ -1,4 +1,4 @@
-import { shuffle } from "../../util.js";
+import { shuffle, preloadImage } from "../../util.js";
 
 class Buttons {
   container: HTMLElement;
@@ -17,6 +17,7 @@ class Buttons {
       .then((response) => response.json())
       .then((data) => {
         this.images = data.images;
+        this.images.forEach((i) => preloadImage(i));
       });
   }
 
