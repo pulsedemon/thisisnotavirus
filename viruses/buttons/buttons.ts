@@ -114,7 +114,7 @@ document.addEventListener("click", function (e: any) {
   clearInterval(addRandButtonInterval);
   continueAddingButtons = false;
 
-  for (let x = 0; x < 400; x++) {
+  for (let x = 0; x < 350; x++) {
     b.addRandomImage();
   }
 
