@@ -1,3 +1,5 @@
+import "./sass/main.scss";
+
 const viruses = [
   "random-blocks",
   "sphere",

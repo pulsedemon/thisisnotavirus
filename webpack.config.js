@@ -7,7 +7,7 @@ jsFiles.forEach((filepath) => {
   const filename = filepath.split("/").slice(-1)[0].split(".")[0];
   entries[filename] = filepath;
 });
-entries["main"] = "./main.js";
+entries["main"] = "./main.ts";
 
 module.exports = {
   mode: "development",
@@ -15,6 +15,7 @@ module.exports = {
   output: {
     filename: "[name].js",
     path: path.resolve(__dirname, "build"),
+    publicPath: "",
   },
   module: {
     rules: [

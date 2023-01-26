@@ -1,142 +1,151 @@
 @keyframes wobble {
-    0% {
-      transform: rotate(15deg);
-    }
-    50% {
-      transform: rotate(-15deg);
-    }
-    100% {
-      transform: rotate(15deg);
-    }
+  0% {
+    transform: rotate(15deg);
   }
-  
-  @keyframes shake {
-    0% {
-      transform: rotate(-3deg);
-    }
-    5% {
-      transform: rotate(3deg);
-    }
-    10% {
-      transform: rotate(-3deg);
-    }
-    15% {
-      transform: rotate(3deg);
-    }
-    20% {
-      transform: rotate(-3deg);
-    }
-    25% {
-      transform: rotate(3deg);
-    }
-    30% {
-      transform: rotate(-3deg);
-    }
-    35% {
-      transform: rotate(3deg);
-    }
-    40% {
-      transform: rotate(-3deg);
-    }
-    45% {
-      transform: rotate(3deg);
-    }
-    50% {
-      transform: rotate(-3deg);
-    }
-    55% {
-      transform: rotate(3deg);
-    }
-    60% {
-      transform: rotate(-3deg);
-    }
-    65% {
-      transform: rotate(3deg);
-    }
-    70% {
-      transform: rotate(-3deg);
-    }
-    75% {
-      transform: rotate(3deg);
-    }
-    80% {
-      transform: rotate(-3deg);
-    }
-    85% {
-      transform: rotate(3deg);
-    }
-    90% {
-      transform: rotate(-3deg);
-    }
-    95% {
-      transform: rotate(3deg);
-    }
-    100% {
-      transform: rotate(-3deg);
-    }
+  50% {
+    transform: rotate(-15deg);
   }
-  
-  @keyframes floating {
-    0% {
-      transform: translate(0, 0px);
-    }
-    50% {
-      transform: translate(0, 15px);
-    }
-    100% {
-      transform: translate(0, -0px);
-    }
+  100% {
+    transform: rotate(15deg);
   }
-  
-  @keyframes spin {
-    100% {
-      transform: rotate(360deg);
-    }
-  }
+}
 
-  @keyframes glitch {
-    0% {
-      clip-path: var(--slice-1);
-      transform: translate(-20px, -10px);
-    }
-    10% {
-      clip-path: var(--slice-3);
-      transform: translate(10px, 10px);
-    }
-    20% {
-      clip-path: var(--slice-1);
-      transform: translate(-10px, 10px);
-    }
-    30% {
-      clip-path: var(--slice-3);
-      transform: translate(0px, 5px);
-    }
-    40% {
-      clip-path: var(--slice-2);
-      transform: translate(-5px, 0px);
-    }
-    50% {
-      clip-path: var(--slice-3);
-      transform: translate(5px, 0px);
-    }
-    60% {
-      clip-path: var(--slice-4);
-      transform: translate(5px, 10px);
-    }
-    70% {
-      clip-path: var(--slice-2);
-      transform: translate(-10px, 10px);
-    }
-    80% {
-      clip-path: var(--slice-5);
-      transform: translate(20px, -10px);
-    }
-    90% {
-      clip-path: var(--slice-1);
-      transform: translate(-10px, 0px);
-    }
-    100% {
-      clip-path: var(--slice-1);
-      transform: translate(0);
+@keyframes shake {
+  0% {
+    transform: rotate(-3deg);
+  }
+  5% {
+    transform: rotate(3deg);
+  }
+  10% {
+    transform: rotate(-3deg);
+  }
+  15% {
+    transform: rotate(3deg);
+  }
+  20% {
+    transform: rotate(-3deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  30% {
+    transform: rotate(-3deg);
+  }
+  35% {
+    transform: rotate(3deg);
+  }
+  40% {
+    transform: rotate(-3deg);
+  }
+  45% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+  55% {
+    transform: rotate(3deg);
+  }
+  60% {
+    transform: rotate(-3deg);
+  }
+  65% {
+    transform: rotate(3deg);
+  }
+  70% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+  80% {
+    transform: rotate(-3deg);
+  }
+  85% {
+    transform: rotate(3deg);
+  }
+  90% {
+    transform: rotate(-3deg);
+  }
+  95% {
+    transform: rotate(3deg);
+  }
+  100% {
+    transform: rotate(-3deg);
+  }
+}
+
+@keyframes floating {
+  0% {
+    transform: translate(0, 0px);
+  }
+  50% {
+    transform: translate(0, 15px);
+  }
+  100% {
+    transform: translate(0, -0px);
+  }
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glitch {
+  0% {
+    clip-path: var(--slice-1);
+    transform: translate(-20px, -10px);
+  }
+  10% {
+    clip-path: var(--slice-3);
+    transform: translate(10px, 10px);
+  }
+  20% {
+    clip-path: var(--slice-1);
+    transform: translate(-10px, 10px);
+  }
+  30% {
+    clip-path: var(--slice-3);
+    transform: translate(0px, 5px);
+  }
+  40% {
+    clip-path: var(--slice-2);
+    transform: translate(-5px, 0px);
+  }
+  50% {
+    clip-path: var(--slice-3);
+    transform: translate(5px, 0px);
+  }
+  60% {
+    clip-path: var(--slice-4);
+    transform: translate(5px, 10px);
+  }
+  70% {
+    clip-path: var(--slice-2);
+    transform: translate(-10px, 10px);
+  }
+  80% {
+    clip-path: var(--slice-5);
+    transform: translate(20px, -10px);
+  }
+  90% {
+    clip-path: var(--slice-1);
+    transform: translate(-10px, 0px);
+  }
+  100% {
+    clip-path: var(--slice-1);
+    transform: translate(0);
+  }
+}
+
+$steps: 100;
+@keyframes glitch-effect {
+  @for $i from 0 through $steps {
+    #{percentage($i*(calc(1/$steps)))} {
+      clip: rect(random(100) + px, 9999px, random(100) + px, 0);
     }
   }
+}

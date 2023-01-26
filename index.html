@@ -1,24 +1,38 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale = 1.0, maximum-scale = 1.0">
-    <meta name="apple-touch-fullscreen" content="yes">
-    <meta name="description" content="THISISNOTAVIRUS, created by Michael Squashic since 2008.  Experimental JavaScript/CSS animations.">
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale = 1.0, maximum-scale = 1.0"
+    />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta
+      name="description"
+      content="THISISNOTAVIRUS, created by Michael Squashic since 2008.  Experimental JavaScript/CSS animations."
+    />
 
     <title>THISISNOTAVIRUS</title>
-    <link rel="shortcut icon" href="favicon.png">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/reset.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="/css/style.css" type="text/css" media="screen">
+    <link rel="shortcut icon" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="/css/reset.css"
+      type="text/css"
+      media="screen"
+    />
   </head>
   <body>
     <iframe id="container"></iframe>
     <div id="menu">
       <div class="controls">
-        <span class="material-symbols-outlined" id="skip-previous">skip_previous</span>
+        <span class="material-symbols-outlined" id="skip-previous"
+          >skip_previous</span
+        >
         <span class="material-symbols-outlined" id="play-pause">pause</span>
         <span class="material-symbols-outlined" id="skip-next">skip_next</span>
         <span class="material-symbols-outlined" id="info-btn">info</span>
@@ -29,34 +43,63 @@
       <div id="info-wrapper">
         <div id="info-legend">
           <ul>
-            <li><span class="material-symbols-outlined">skip_previous</span> - skip to previous animation</li>
-            <li><span class="material-symbols-outlined">pause</span> - pause randomization of animatons</li>
-            <li><span class="material-symbols-outlined">play_arrow</span> - resume randomization</li>
-            <li><span class="material-symbols-outlined">skip_next</span> - skip to next animation</li>
+            <li>
+              <span class="material-symbols-outlined">skip_previous</span> -
+              skip to previous animation
+            </li>
+            <li>
+              <span class="material-symbols-outlined">pause</span> - pause
+              randomization of animatons
+            </li>
+            <li>
+              <span class="material-symbols-outlined">play_arrow</span> - resume
+              randomization
+            </li>
+            <li>
+              <span class="material-symbols-outlined">skip_next</span> - skip to
+              next animation
+            </li>
           </ul>
         </div>
         <main>
-          <p>Hi, I'm Michael Squashic.  I created this site in 2008 as a place for me to post JavaScript animations
-            that I fuck around with when I'm bored.</p>
-          <p><a href="mailto:
-  hi@thisisnotavirus.com">
-            hi@thisisnotavirus.com</a></p>
+          <p>
+            Hi, I'm Michael Squashic. I created this site in 2008 as a place for
+            me to post JavaScript animations that I fuck around with when I'm
+            bored.
+          </p>
+          <p>
+            <a
+              href="mailto:
+  hi@thisisnotavirus.com"
+            >
+              hi@thisisnotavirus.com</a
+            >
+          </p>
 
           <p>
-            <a href="https://github.com/pulsedemon/thisisnotavirus" target="_blank" class="link-icon github-icon">GitHub</a>
+            <a
+              href="https://github.com/pulsedemon/thisisnotavirus"
+              target="_blank"
+              class="link-icon github-icon"
+              >GitHub</a
+            >
           </p>
         </main>
       </div>
     </div>
     <script src="/build/main.js" type="module"></script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BPXNQFCW9L"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-BPXNQFCW9L"
+    ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-      gtag('config', 'G-BPXNQFCW9L');
+      gtag("config", "G-BPXNQFCW9L");
     </script>
   </body>
 </html>
