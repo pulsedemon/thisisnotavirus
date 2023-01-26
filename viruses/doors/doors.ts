@@ -8,7 +8,7 @@ class Doors {
   bottomDoorDirection = "down";
   topDoorY = 0;
   bottomDoorY = 0;
-  ySpeed = 10;
+  ySpeed = 12;
 
   constructor() {
     this.container = document.getElementById("container")!;

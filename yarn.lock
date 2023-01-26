@@ -4855,16 +4855,16 @@ __metadata:
     sass-loader: ^13.2.0
     serve: ^14.2.0
     style-loader: ^3.3.1
-    three: 0.71.0
+    three: 0.148.0
     webpack: ^5.75.0
     webpack-cli: ^5.0.1
   languageName: unknown
   linkType: soft
 
-"three@npm:0.71.0":
-  version: 0.71.0
-  resolution: "three@npm:0.71.0"
-  checksum: 993db77a8824eec1ab396b5382e1bf3d583b15a9a6d0171a191ed98742e47603a611887f2cd0380cf0957430bc9bec91768c7b503da95428681583723b6f8911
+"three@npm:0.148.0":
+  version: 0.148.0
+  resolution: "three@npm:0.148.0"
+  checksum: 3f6359585c006c6f78b2fc1adeb90559d9b7cd6daf5cf916e81494ff228f4a9beffe37136bd8d5b0afbf377ac070b70624245bec2e9ee557035e2c485ce05197
   languageName: node
   linkType: hard
 
