@@ -11,9 +11,9 @@ const viruses = [
 import { preloadImage } from "./util.js";
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
-preloadImage("/viruses/faces/eye-x.png");
-preloadImage("/viruses/faces/eye-blink.png");
-preloadImage("/viruses/faces/mouth.png");
+preloadImage("/viruses/faces/eye-x.webp");
+preloadImage("/viruses/faces/eye-blink.webp");
+preloadImage("/viruses/faces/mouth.webp");
 
 const random_times = [
   2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,

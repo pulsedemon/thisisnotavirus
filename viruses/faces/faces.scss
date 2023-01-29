@@ -34,17 +34,24 @@ body {
         height: 150px;
       }
 
-      background-image: url("/viruses/faces/eye-x.png");
       background-size: contain;
 
+      &.x {
+        background-image: url("/viruses/faces/eye-x.webp");
+      }
+
+      &.pupil {
+        background-image: url("/viruses/faces/eye-pupil.webp");
+      }
+
       &.blink {
-        background-image: url("/viruses/faces/eye-blink.png");
+        background-image: url("/viruses/faces/eye-blink.webp");
       }
     }
   }
 
   #mouth {
-    background-image: url("/viruses/faces/mouth.png");
+    background-image: url("/viruses/faces/mouth.webp");
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;

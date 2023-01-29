@@ -3,6 +3,16 @@ import "./faces.scss";
 class Faces {
   eyes = document.querySelectorAll<HTMLElement>(".eye");
 
+  eyeClasses = ["x", "pupil"];
+
+  constructor() {
+    const eyeClass =
+      this.eyeClasses[Math.floor(Math.random() * this.eyeClasses.length)];
+    this.eyes.forEach((e) => {
+      e.classList.add(eyeClass);
+    });
+  }
+
   blink(eye?) {
     if (!eye) eye = this.eyes;
     else eye = [eye];

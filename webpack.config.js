@@ -33,7 +33,7 @@ module.exports = {
             options: {
               url: {
                 filter: (url) => {
-                  if (/png|svg/.test(url)) {
+                  if (/png|svg|webp/.test(url)) {
                     return false;
                   }
 
