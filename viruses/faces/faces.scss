@@ -44,6 +44,10 @@ body {
         background-image: url("/viruses/faces/eye-pupil.webp");
       }
 
+      &.closed {
+        background-image: url("/viruses/faces/eye-blink.webp");
+      }
+
       &.blink {
         background-image: url("/viruses/faces/eye-blink.webp");
       }

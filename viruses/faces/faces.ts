@@ -3,7 +3,7 @@ import "./faces.scss";
 class Faces {
   eyes = document.querySelectorAll<HTMLElement>(".eye");
 
-  eyeClasses = ["x", "pupil"];
+  eyeClasses = ["x", "pupil", "closed"];
 
   constructor() {
     const eyeClass =
