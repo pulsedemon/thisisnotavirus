@@ -114,12 +114,12 @@ class Doors {
 
 const container = document.getElementById("container")!;
 const width = container.clientWidth;
-const numCols = Math.round(container.clientWidth / (isMobile ? 120 : 30));
+const numCols = Math.round(container.clientWidth / (isMobile ? 50 : 30));
 const colorPalettes = [["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"]];
 let colorPalette =
   colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
-const minSpeed = isMobile ? 40 : 10;
-const maxSpeed = isMobile ? 50 : 15;
+const minSpeed = isMobile ? 20 : 10;
+const maxSpeed = isMobile ? 30 : 15;
 
 for (let x = 0; x < numCols; x++) {
   new Doors(
