@@ -1,7 +1,16 @@
 @use "../../sass/animations.scss";
 
+body {
+  background-color: #00ffff;
+}
+
 canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
-  // animation: spin 4s linear infinite;
+  &#one {
+    animation: spin 4s linear infinite;
+  }
 }
