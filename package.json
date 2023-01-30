@@ -16,6 +16,7 @@
     "serve": "^14.2.0",
     "style-loader": "^3.3.1",
     "three": "0.148.0",
+    "ua-parser-js": "^1.0.33",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   },

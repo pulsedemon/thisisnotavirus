@@ -7,6 +7,7 @@ const viruses = [
   "random-characters",
   "buttons",
   "faces",
+  "doors",
 ];
 import { preloadImage } from "./util.js";
 

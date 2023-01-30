@@ -1,4 +1,8 @@
 import "./doors.scss";
+import UAParser from "ua-parser-js";
+
+const usparser = new UAParser();
+const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
 
 class Doors {
   canvas: HTMLCanvasElement;
@@ -7,7 +11,7 @@ class Doors {
   ySpeed = 12;
   doors;
   opacity: 1;
-  ctx;
+  ctx: CanvasRenderingContext2D;
 
   constructor(canvasId, width, color, speed, opacity, xPos) {
     const container = document.getElementById("container")!;
@@ -19,9 +23,7 @@ class Doors {
     this.canvas.height = containerHeight;
     document.getElementById("container")?.appendChild(this.canvas);
     this.opacity = opacity;
-
-    this.ySpeed = containerHeight / 80 + speed;
-
+    this.ySpeed = speed;
     this.doorHeight = this.canvas.height / 2;
     this.doorWidth = width;
 
@@ -52,11 +54,15 @@ class Doors {
 
   updateDoors() {
     this.doors.top.forEach((door) => {
-      this.updateTopDoor(door);
+      requestAnimationFrame(() => {
+        this.updateTopDoor(door);
+      });
     });
 
     this.doors.bottom.forEach((door) => {
-      this.updateBottomDoor(door);
+      requestAnimationFrame(() => {
+        this.updateBottomDoor(door);
+      });
     });
 
     requestAnimationFrame(() => this.updateDoors());
@@ -108,27 +114,21 @@ class Doors {
 
 const container = document.getElementById("container")!;
 const width = container.clientWidth;
+const numCols = Math.round(container.clientWidth / (isMobile ? 120 : 30));
+const colorPalettes = [["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"]];
+let colorPalette =
+  colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+const minSpeed = isMobile ? 40 : 10;
+const maxSpeed = isMobile ? 50 : 15;
 
-// new Doors("one", width, "black", 10, 1, 0);
-// new Doors("one1", width, "black", 10, 1, 0);
-// new Doors("three", width / 2, "red", 17, 0.8, 0);
-// new Doors("four", width / 2, "coral", 15, 0.8, width / 2);
-
-const numCols = container.clientWidth / 90;
-const colors = ["white", "red", "green", "pink"];
 for (let x = 0; x < numCols; x++) {
-  const randomColor = colors[Math.random() * colors.length];
   new Doors(
     x,
     Math.ceil(width / numCols),
-    randomColor,
-    Math.random() * (15 - 10) + 10,
+    colorPalette[0],
+    Math.random() * (maxSpeed - minSpeed) + minSpeed,
     1,
     Math.ceil(width / numCols) * x
   );
+  colorPalette.push(colorPalette.shift()!);
 }
-
-// new Doors("one", width, "black", 10, 1, 0);
-// new Doors("two", width, "red", 14, 0.8, 0);
-// new Doors("three", width / 2, "blue", 17, 0.8, 0);
-// new Doors("four", width / 2, "coral", 15, 0.8, width / 2);
