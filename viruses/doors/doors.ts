@@ -1,5 +1,6 @@
 import "./doors.scss";
 import UAParser from "ua-parser-js";
+import { randomNumberBetween } from "../../util";
 
 const usparser = new UAParser();
 const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
@@ -9,16 +10,21 @@ class Doors {
   doorHeight: number;
   doorWidth: number;
   ySpeed = 12;
-  doors;
-  opacity: 1;
+  doors: object;
+  opacity = 1;
   ctx: CanvasRenderingContext2D;
 
-  constructor(canvasId, width, color, speed, opacity, xPos) {
+  constructor(
+    width: number,
+    color: string,
+    speed: number,
+    opacity: number,
+    xPos: number
+  ) {
     const container = document.getElementById("container")!;
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
     this.canvas = document.createElement("canvas");
-    this.canvas.id = canvasId;
     this.canvas.width = containerWidth;
     this.canvas.height = containerHeight;
     document.getElementById("container")?.appendChild(this.canvas);
@@ -137,10 +143,9 @@ const maxSpeed = isMobile ? 30 : 15;
 document.body.style.backgroundColor = colorPalette.bg;
 for (let x = 0; x < numCols; x++) {
   new Doors(
-    x,
     Math.round(width / numCols),
     colorPalette.doors[0],
-    Math.random() * (maxSpeed - minSpeed) + minSpeed,
+    randomNumberBetween(minSpeed, maxSpeed),
     1,
     Math.round(width / numCols) * x
   );

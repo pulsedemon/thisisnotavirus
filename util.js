@@ -22,3 +22,7 @@ export function shuffle(array) {
 
   return array;
 }
+
+export function randomNumberBetween(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}

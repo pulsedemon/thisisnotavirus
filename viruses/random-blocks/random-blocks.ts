@@ -1,3 +1,5 @@
+import { randomNumberBetween } from "../../util";
+
 class RandomBlocks {
   screenWidth: number;
   screenHeight: number;
@@ -8,7 +10,7 @@ class RandomBlocks {
   canvas: HTMLCanvasElement;
 
   canvasCtx: CanvasRenderingContext2D;
-  blockSize = 5;
+  blockSize = randomNumberBetween(4, 10);
 
   constructor() {
     const container = document.getElementById("container");
