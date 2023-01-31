@@ -115,20 +115,34 @@ class Doors {
 const container = document.getElementById("container")!;
 const width = container.clientWidth;
 const numCols = Math.round(container.clientWidth / (isMobile ? 50 : 30));
-const colorPalettes = [["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"]];
+const colorPalettes = [
+  {
+    bg: "#00ffff",
+    doors: ["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"],
+  },
+  {
+    bg: "#FF0000",
+    doors: ["#482082", "#214EE9", "#7984FF", "#EA00A2", "#FF0053"],
+  },
+  {
+    bg: "#440c46",
+    doors: ["#440c46", "#3a093c", "#2f0631", "#250327", "#1a001c"],
+  },
+];
 let colorPalette =
   colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 const minSpeed = isMobile ? 20 : 10;
 const maxSpeed = isMobile ? 30 : 15;
 
+document.body.style.backgroundColor = colorPalette.bg;
 for (let x = 0; x < numCols; x++) {
   new Doors(
     x,
-    Math.ceil(width / numCols),
-    colorPalette[0],
+    Math.round(width / numCols),
+    colorPalette.doors[0],
     Math.random() * (maxSpeed - minSpeed) + minSpeed,
     1,
-    Math.ceil(width / numCols) * x
+    Math.round(width / numCols) * x
   );
-  colorPalette.push(colorPalette.shift()!);
+  colorPalette.doors.push(colorPalette.doors.shift()!);
 }
