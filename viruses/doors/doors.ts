@@ -162,7 +162,7 @@ const colorPalettes = [
     doors: ["#482082", "#214EE9", "#7984FF", "#EA00A2", "#FF0053"],
   },
   {
-    bg: "#440c46",
+    bg: "#300831",
     doors: ["#440c46", "#3a093c", "#2f0631", "#250327", "#1a001c"],
   },
 ];
@@ -177,14 +177,14 @@ const doorsInstance = new Doors(
   colorPalette.doors[0],
   randomNumberBetween(minSpeed, maxSpeed),
   1,
-  Math.round(width / numCols)
+  0
 );
-colorPalette.doors.push(colorPalette.doors.shift()!);
-for (let x = 1; x < numCols; x++) {
+
+for (let x = 0; x < numCols; x++) {
+  colorPalette.doors.push(colorPalette.doors.shift()!);
   doorsInstance.addDoors(
     Math.round(width / numCols) * x,
     colorPalette.doors[0],
     randomNumberBetween(minSpeed, maxSpeed)
   );
-  colorPalette.doors.push(colorPalette.doors.shift()!);
 }
