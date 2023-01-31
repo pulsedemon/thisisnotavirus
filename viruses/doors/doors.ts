@@ -10,6 +10,7 @@ interface DoorConfig {
   x: number;
   direction: string;
   color: string;
+  speed: number;
 }
 
 interface DoorsConfig {
@@ -21,7 +22,6 @@ class Doors {
   canvas: HTMLCanvasElement;
   doorHeight: number;
   doorWidth: number;
-  ySpeed = 12;
   doors: DoorsConfig;
   opacity = 1;
   ctx: CanvasRenderingContext2D;
@@ -41,7 +41,6 @@ class Doors {
     this.canvas.height = containerHeight;
     document.getElementById("container")?.appendChild(this.canvas);
     this.opacity = opacity;
-    this.ySpeed = speed;
     this.doorHeight = this.canvas.height / 2;
     this.doorWidth = width;
 
@@ -52,6 +51,7 @@ class Doors {
           x: xPos,
           direction: "up",
           color: color,
+          speed: speed,
         },
       ],
       bottom: [
@@ -60,6 +60,7 @@ class Doors {
           x: xPos,
           direction: "down",
           color: color,
+          speed: speed,
         },
       ],
     };
@@ -67,23 +68,41 @@ class Doors {
     this.ctx = this.canvas.getContext("2d")!;
     this.ctx.globalAlpha = this.opacity;
 
+    this.addDoors(xPos, color, speed);
+
     this.updateDoors();
   }
 
+  addDoors(xPos: number, color: string, speed: number) {
+    this.doors.top.push({
+      y: 0,
+      x: xPos,
+      direction: "up",
+      color: color,
+      speed: speed,
+    });
+
+    this.doors.bottom.push({
+      y: this.doorHeight,
+      x: xPos,
+      direction: "down",
+      color: color,
+      speed: speed,
+    });
+  }
+
   updateDoors() {
-    this.doors.top.forEach((door) => {
-      requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      this.doors.top.forEach((door) => {
         this.updateTopDoor(door);
       });
-    });
 
-    this.doors.bottom.forEach((door) => {
-      requestAnimationFrame(() => {
+      this.doors.bottom.forEach((door) => {
         this.updateBottomDoor(door);
       });
-    });
 
-    requestAnimationFrame(() => this.updateDoors());
+      this.updateDoors();
+    });
   }
 
   updateTopDoor(door: DoorConfig) {
@@ -95,9 +114,9 @@ class Doors {
     }
 
     if (door.direction === "up") {
-      door.y -= this.ySpeed;
+      door.y -= door.speed;
     } else if (door.direction === "down") {
-      door.y += this.ySpeed;
+      door.y += door.speed;
     }
 
     this.ctx.fillStyle = door.color;
@@ -114,9 +133,9 @@ class Doors {
     }
 
     if (door.direction === "up") {
-      door.y -= this.ySpeed;
+      door.y -= door.speed;
     } else if (door.direction === "down") {
-      door.y += this.ySpeed;
+      door.y += door.speed;
     }
 
     this.ctx.fillStyle = door.color;
@@ -132,7 +151,7 @@ class Doors {
 
 const container = document.getElementById("container")!;
 const width = container.clientWidth;
-const numCols = Math.round(container.clientWidth / (isMobile ? 50 : 30));
+const numCols = Math.round(container.clientWidth / (isMobile ? 40 : 20));
 const colorPalettes = [
   {
     bg: "#00ffff",
@@ -149,17 +168,23 @@ const colorPalettes = [
 ];
 let colorPalette =
   colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
-const minSpeed = isMobile ? 20 : 10;
-const maxSpeed = isMobile ? 30 : 15;
+const minSpeed = isMobile ? 30 : 10;
+const maxSpeed = isMobile ? 50 : 15;
 
 document.body.style.backgroundColor = colorPalette.bg;
-for (let x = 0; x < numCols; x++) {
-  new Doors(
-    Math.round(width / numCols),
+const doorsInstance = new Doors(
+  Math.round(width / numCols),
+  colorPalette.doors[0],
+  randomNumberBetween(minSpeed, maxSpeed),
+  1,
+  Math.round(width / numCols)
+);
+colorPalette.doors.push(colorPalette.doors.shift()!);
+for (let x = 1; x < numCols; x++) {
+  doorsInstance.addDoors(
+    Math.round(width / numCols) * x,
     colorPalette.doors[0],
-    randomNumberBetween(minSpeed, maxSpeed),
-    1,
-    Math.round(width / numCols) * x
+    randomNumberBetween(minSpeed, maxSpeed)
   );
   colorPalette.doors.push(colorPalette.doors.shift()!);
 }
