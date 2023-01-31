@@ -117,27 +117,31 @@ document.addEventListener("click", function (e: any) {
   continueAddingButtons = false;
 
   for (let x = 0; x < numRandomImages; x++) {
-    b.addRandomImage();
+    requestAnimationFrame(() => {
+      b.addRandomImage();
+    });
   }
 
   const buttons = document.querySelectorAll<HTMLElement>("button[type=button]");
   buttons.forEach((el, key) => {
-    let explode = document.createElement("img");
-    explode.src = explosions[0];
-    explode.style.top = `${parseInt(el.style.top.replace("px", "")) - 25}px`;
-    explode.style.left = `${
-      parseInt(el.style.left.replace("px", "")) +
-      Math.floor(el.clientWidth / 2) -
-      78 / 2
-    }px`;
+    requestAnimationFrame(() => {
+      let explode = document.createElement("img");
+      explode.src = explosions[0];
+      explode.style.top = `${parseInt(el.style.top.replace("px", "")) - 25}px`;
+      explode.style.left = `${
+        parseInt(el.style.left.replace("px", "")) +
+        Math.floor(el.clientWidth / 2) -
+        78 / 2
+      }px`;
 
-    b.container.appendChild(explode);
-    explosions.push(explosions.shift()!);
+      b.container.appendChild(explode);
+      explosions.push(explosions.shift()!);
 
-    el.classList.add("fade-out");
-    setTimeout(function () {
-      b.container.removeChild(explode);
-    }, 1500);
+      el.classList.add("fade-out");
+      setTimeout(function () {
+        b.container.removeChild(explode);
+      }, 1500);
+    });
   });
 
   setTimeout(() => {
