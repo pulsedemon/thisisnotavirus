@@ -9,7 +9,7 @@ const viruses = [
   "faces",
   "doors",
 ];
-import { preloadImage } from "./util.js";
+import { preloadImage } from "./util";
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
 preloadImage("/viruses/faces/eye-x.webp");
@@ -22,8 +22,8 @@ const random_times = [
 
 let params = new URLSearchParams(window.location.search);
 
-let loadRandomInterval;
-const loadRandomVirus = (specificVirusOverride) => {
+let loadRandomInterval: any;
+const loadRandomVirus = (specificVirusOverride?: string): void => {
   const vParam = params.get("v");
   let randomVirus;
   if (specificVirusOverride) {
@@ -42,7 +42,8 @@ const loadRandomVirus = (specificVirusOverride) => {
     return loadRandomVirus();
   }
 
-  document.getElementById("container").src = `/viruses/${randomVirus}/`;
+  const iframe = <HTMLIFrameElement>document.getElementById("container");
+  iframe.src = `/viruses/${randomVirus}/`;
 
   setLastVirusLoaded(randomVirus);
 
@@ -59,7 +60,7 @@ const loadRandomVirus = (specificVirusOverride) => {
     let previousVirus = getLastVirusLoadedNotFlash();
     if (specificVirusOverride) {
       localStorage.removeItem("previousVirusLoadedNotFlash");
-      document.getElementById("skip-previous").classList.remove("show");
+      document.getElementById("skip-previous")!.classList.remove("show");
     } else if (previousVirus) {
       setPreviousVirusLoadedNotFlash(previousVirus);
     }
@@ -71,11 +72,11 @@ const loadRandomVirus = (specificVirusOverride) => {
   }, random_time);
 
   if (randomVirus !== "flash") {
-    let playPauseButton = document.getElementById("play-pause");
+    let playPauseButton = document.getElementById("play-pause")!;
 
     if (vParam !== null) {
       playPauseButton.innerText = "play_arrow";
-      window.history.replaceState({}, window.location.title, "/");
+      window.history.replaceState({}, document.title, "/");
       params.delete("v");
     }
 
@@ -93,11 +94,11 @@ const getLastVirusLoadedNotFlash = () => {
   return localStorage.getItem("lastVirusLoadedNotFlash");
 };
 
-const setLastVirusLoaded = (virus) => {
+const setLastVirusLoaded = (virus: string) => {
   return localStorage.setItem("lastVirusLoaded", virus);
 };
 
-const setLastVirusLoadedNotFlash = (virus) => {
+const setLastVirusLoadedNotFlash = (virus: string) => {
   return localStorage.setItem("lastVirusLoadedNotFlash", virus);
 };
 
@@ -105,8 +106,8 @@ const getPreviousVirusLoadedNotFlash = () => {
   return localStorage.getItem("previousVirusLoadedNotFlash");
 };
 
-const setPreviousVirusLoadedNotFlash = (virus) => {
-  let prevButton = document.getElementById("skip-previous");
+const setPreviousVirusLoadedNotFlash = (virus: string) => {
+  let prevButton = document.getElementById("skip-previous")!;
   if (!prevButton.classList.contains("show")) {
     prevButton.classList.add("show");
   }
@@ -119,34 +120,36 @@ window.addEventListener("orientationchange", function () {
   loadRandomVirus();
 });
 
-document.getElementById("play-pause").onclick = (e) => {
-  if (e.target.innerText === "pause") {
-    e.target.innerText = "play_arrow";
+document.getElementById("play-pause")!.onclick = (e) => {
+  const target = <HTMLElement>e.target;
+  if (target.innerText === "pause") {
+    target.innerText = "play_arrow";
     clearInterval(loadRandomInterval);
     gtag("event", "pause", {
       animation_name: getLastVirusLoaded(),
     });
   } else {
-    e.target.innerText = "pause";
+    target.innerText = "pause";
     gtag("event", "play");
     loadRandomVirus();
   }
 };
 
-document.getElementById("skip-previous").onclick = () => {
+document.getElementById("skip-previous")!.onclick = () => {
   clearInterval(loadRandomInterval);
   gtag("event", "skip_previous");
-  loadRandomVirus(getPreviousVirusLoadedNotFlash());
+  loadRandomVirus(getPreviousVirusLoadedNotFlash()!);
 };
 
-document.getElementById("skip-next").onclick = () => {
+document.getElementById("skip-next")!.onclick = () => {
   clearInterval(loadRandomInterval);
   gtag("event", "skip_next");
   loadRandomVirus();
 };
 
-document.getElementById("info-btn").onclick = (e) => {
-  if (e.target.innerText === "info") {
+document.getElementById("info-btn")!.onclick = (e) => {
+  const target = <HTMLElement>e.target;
+  if (target.innerText === "info") {
     displayInfo();
   } else {
     hideInfo();
@@ -154,14 +157,14 @@ document.getElementById("info-btn").onclick = (e) => {
 };
 
 function displayInfo() {
-  document.getElementById("info").classList.add("show");
-  document.getElementById("info-btn").innerText = "close";
+  document.getElementById("info")!.classList.add("show");
+  document.getElementById("info-btn")!.innerText = "close";
   gtag("event", "display_info");
 }
 
 function hideInfo() {
-  document.getElementById("info").classList.remove("show");
-  document.getElementById("info-btn").innerText = "info";
+  document.getElementById("info")!.classList.remove("show");
+  document.getElementById("info-btn")!.innerText = "info";
 }
 
 document.onkeyup = (e) => {

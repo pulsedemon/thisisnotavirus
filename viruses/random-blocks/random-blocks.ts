@@ -1,15 +1,15 @@
 import { randomNumberBetween } from "../../util";
 
 class RandomBlocks {
-  screenWidth: number;
-  screenHeight: number;
+  screenWidth!: number;
+  screenHeight!: number;
   locations: any = [];
   count: number = 0;
   numberOfBlocks: number = 0;
   blocksAppended: number = 0;
-  canvas: HTMLCanvasElement;
+  canvas!: HTMLCanvasElement;
 
-  canvasCtx: CanvasRenderingContext2D;
+  canvasCtx!: CanvasRenderingContext2D;
   blockSize = randomNumberBetween(4, 10);
 
   constructor() {

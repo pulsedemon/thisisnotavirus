@@ -17,6 +17,9 @@ module.exports = {
     path: path.resolve(__dirname, "build"),
     publicPath: "",
   },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js", ".json"],
+  },
   module: {
     rules: [
       {

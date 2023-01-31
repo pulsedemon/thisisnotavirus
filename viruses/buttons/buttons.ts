@@ -1,4 +1,4 @@
-import { shuffle, preloadImage } from "../../util.js";
+import { shuffle, preloadImage } from "../../util";
 
 class Buttons {
   container: HTMLElement;
@@ -6,7 +6,7 @@ class Buttons {
   height: number;
   buttonClasses = ["button-54", "button-49"];
   imagesUsed: Array<string> = [];
-  images: Array<string>;
+  images: Array<string> = [];
   buttonText = [
     "Click Me",
     "私をクリック", // japanese
@@ -36,7 +36,7 @@ class Buttons {
       .then((response) => response.json())
       .then((data) => {
         this.images = data.images;
-        this.images.forEach((i) => preloadImage(i));
+        this.images!.forEach((i) => preloadImage(i));
       });
   }
 
@@ -54,7 +54,7 @@ class Buttons {
     this.container.appendChild(button);
   }
 
-  addRandomImage() {
+  addRandomImage(): void {
     let image = document.createElement("img");
     this.images = shuffle(this.images);
     if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];

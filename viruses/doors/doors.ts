@@ -5,12 +5,24 @@ import { randomNumberBetween } from "../../util";
 const usparser = new UAParser();
 const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
 
+interface DoorConfig {
+  y: number;
+  x: number;
+  direction: string;
+  color: string;
+}
+
+interface DoorsConfig {
+  top: DoorConfig[];
+  bottom: DoorConfig[];
+}
+
 class Doors {
   canvas: HTMLCanvasElement;
   doorHeight: number;
   doorWidth: number;
   ySpeed = 12;
-  doors: object;
+  doors: DoorsConfig;
   opacity = 1;
   ctx: CanvasRenderingContext2D;
 
@@ -74,7 +86,7 @@ class Doors {
     requestAnimationFrame(() => this.updateDoors());
   }
 
-  updateTopDoor(door) {
+  updateTopDoor(door: DoorConfig) {
     if (door.direction === "up" && door.y <= -this.doorHeight) {
       door.direction = "down";
     }
@@ -93,7 +105,7 @@ class Doors {
     this.ctx.fillRect(door.x, door.y, this.doorWidth, this.doorHeight);
   }
 
-  updateBottomDoor(door) {
+  updateBottomDoor(door: DoorConfig) {
     if (door.direction === "up" && door.y <= this.doorHeight) {
       door.direction = "down";
     }
