@@ -34,8 +34,10 @@ class RandomBlocks {
   }
 
   update() {
-    for (let i = 0; i < 100; i++) this.add(this.blockSize);
-    window.requestAnimationFrame(() => this.update());
+    requestAnimationFrame(() => {
+      for (let i = 0; i < 200; i++) this.add(this.blockSize);
+      this.update();
+    });
   }
 
   calculateNumberOfBlocks(): number {
