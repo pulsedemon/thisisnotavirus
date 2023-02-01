@@ -10,7 +10,7 @@ img {
 }
 
 button {
-  cursor: url("../../cursor.png") 15 0, pointer;
+  cursor: url("../../images/cursor.png") 15 0, pointer;
   animation: floating 1.5s ease-in-out infinite;
   white-space: nowrap;
   z-index: 1;
