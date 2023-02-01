@@ -169,22 +169,31 @@ const colorPalettes = [
 let colorPalette =
   colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 const minSpeed = isMobile ? 30 : 10;
-const maxSpeed = isMobile ? 50 : 15;
+const maxSpeed = isMobile ? 80 : 30;
 
 document.body.style.backgroundColor = colorPalette.bg;
-const doorsInstance = new Doors(
-  Math.round(width / numCols),
-  colorPalette.doors[0],
-  randomNumberBetween(minSpeed, maxSpeed),
-  1,
-  0
-);
 
-for (let x = 0; x < numCols; x++) {
-  colorPalette.doors.push(colorPalette.doors.shift()!);
-  doorsInstance.addDoors(
-    Math.round(width / numCols) * x,
-    colorPalette.doors[0],
-    randomNumberBetween(minSpeed, maxSpeed)
+const numInstances = 6;
+for (let i = 0; i < numInstances; i++) {
+  const numCols = randomNumberBetween(
+    container.clientWidth / (isMobile ? 40 : 20),
+    container.clientWidth / (isMobile ? 50 : 40)
   );
+
+  let doorsInstance = new Doors(
+    Math.round(width / numCols),
+    colorPalette.doors[0],
+    randomNumberBetween(minSpeed, maxSpeed),
+    1,
+    0
+  );
+
+  for (let x = 0; x < numCols; x++) {
+    colorPalette.doors.push(colorPalette.doors.shift()!);
+    doorsInstance.addDoors(
+      Math.round(width / numCols) * x,
+      colorPalette.doors[0],
+      randomNumberBetween(minSpeed, maxSpeed)
+    );
+  }
 }
