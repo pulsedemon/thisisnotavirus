@@ -37,25 +37,25 @@ body {
       background-size: contain;
 
       &.x {
-        background-image: url("/viruses/faces/eye-x.webp");
+        background-image: url("/viruses/faces/images/eye-x.webp");
       }
 
       &.pupil {
-        background-image: url("/viruses/faces/eye-pupil.webp");
+        background-image: url("/viruses/faces/images/eye-pupil.webp");
       }
 
       &.closed {
-        background-image: url("/viruses/faces/eye-blink.webp");
+        background-image: url("/viruses/faces/images/eye-blink.webp");
       }
 
       &.blink {
-        background-image: url("/viruses/faces/eye-blink.webp");
+        background-image: url("/viruses/faces/images/eye-blink.webp");
       }
     }
   }
 
   #mouth {
-    background-image: url("/viruses/faces/mouth.webp");
+    background-image: url("/viruses/faces/images/mouth.webp");
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
