@@ -34,8 +34,8 @@ class RandomBlocks {
   }
 
   update() {
+    for (let i = 0; i < 200; i++) this.add(this.blockSize);
     requestAnimationFrame(() => {
-      for (let i = 0; i < 200; i++) this.add(this.blockSize);
       this.update();
     });
   }
