@@ -155,15 +155,19 @@ const numCols = Math.round(container.clientWidth / (isMobile ? 40 : 20));
 const colorPalettes = [
   {
     bg: "#00ffff",
-    doors: ["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"],
+    primary: ["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"],
   },
   {
     bg: "#FF0000",
-    doors: ["#482082", "#214EE9", "#7984FF", "#EA00A2", "#FF0053"],
+    primary: ["#482082", "#214EE9", "#7984FF", "#EA00A2", "#FF0053"],
   },
   {
     bg: "#300831",
-    doors: ["#440c46", "#3a093c", "#2f0631", "#250327", "#1a001c"],
+    primary: ["#440c46", "#3a093c", "#2f0631", "#250327", "#1a001c"],
+  },
+  {
+    bg: "#000000",
+    primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
 let colorPalette =
@@ -182,17 +186,17 @@ for (let i = 0; i < numInstances; i++) {
 
   let doorsInstance = new Doors(
     Math.round(width / numCols),
-    colorPalette.doors[0],
+    colorPalette.primary[0],
     randomNumberBetween(minSpeed, maxSpeed),
     1,
     0
   );
 
   for (let x = 0; x < numCols; x++) {
-    colorPalette.doors.push(colorPalette.doors.shift()!);
+    colorPalette.primary.push(colorPalette.primary.shift()!);
     doorsInstance.addDoors(
       Math.round(width / numCols) * x,
-      colorPalette.doors[0],
+      colorPalette.primary[0],
       randomNumberBetween(minSpeed, maxSpeed)
     );
   }
