@@ -168,8 +168,8 @@ const colorPalettes = [
 ];
 let colorPalette =
   colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
-const minSpeed = isMobile ? 30 : 10;
-const maxSpeed = isMobile ? 50 : 30;
+const minSpeed = 10;
+const maxSpeed = 30;
 
 document.body.style.backgroundColor = colorPalette.bg;
 
