@@ -1,10 +1,14 @@
-import { shuffle, preloadImage } from "../../util";
+import { shuffle, preloadImage, randomNumberBetween } from "../../util";
 
 class Buttons {
   container: HTMLElement;
   width: number;
   height: number;
   buttonClasses = ["button-54", "button-49"];
+  grid: string[] = [];
+  imageGridSize = 55;
+  gridCols: number;
+  gridRows: number;
   imagesUsed: Array<string> = [];
   images: Array<string> = [];
   buttonText = [
@@ -32,11 +36,15 @@ class Buttons {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
+    this.gridCols = Math.ceil(this.width / this.imageGridSize);
+    this.gridRows = Math.ceil(this.height / this.imageGridSize);
+
     fetch("/viruses/buttons/images.json")
       .then((response) => response.json())
       .then((data) => {
         this.images = data.images;
         this.images!.forEach((i) => preloadImage(i));
+        this.assignImages();
       });
   }
 
@@ -54,22 +62,36 @@ class Buttons {
     this.container.appendChild(button);
   }
 
-  addRandomImage(): void {
-    let image = document.createElement("img");
+  assignImages() {
+    const totalCells = this.gridRows * this.gridCols;
+
+    for (let i = 0; i < totalCells; i++) {
+      this.grid.push(this.getRandomImage());
+    }
+  }
+
+  appendImages(): void {
+    this.grid.forEach((imgSrc, i) => {
+      let image = document.createElement("img");
+      image.src = imgSrc;
+
+      const coords = this.getRandomCoordsForCell(i + 1);
+      image.style.top = `${coords.y}px`;
+      image.style.left = `${coords.x}px`;
+
+      let filename = image.src.split("/").slice(-1)[0].split(".")[0];
+      image.classList.add(filename);
+
+      this.container.appendChild(image);
+    });
+  }
+
+  getRandomImage(): string {
     this.images = shuffle(this.images);
     if (this.imagesUsed.length === this.images.length) this.imagesUsed = [];
-    if (this.imagesUsed.includes(this.images[0])) return this.addRandomImage();
-    image.src = this.images[0];
-    const coords = b.getRandomCoords();
-    image.style.top = `${coords.y}px`;
-    image.style.left = `${coords.x}px`;
-
-    let filename = image.src.split("/").slice(-1)[0].split(".")[0];
-
-    image.classList.add(filename);
-
-    this.container.appendChild(image);
+    if (this.imagesUsed.includes(this.images[0])) return this.getRandomImage();
     this.imagesUsed.push(this.images[0]);
+    return this.images[0];
   }
 
   getRandomCoords() {
@@ -81,15 +103,29 @@ class Buttons {
       y: randomY - 40,
     };
   }
+
+  getRandomCoordsForCell(cell: number) {
+    const col = cell % this.gridCols == 0 ? 1 : cell % this.gridCols;
+    const row = Math.ceil(cell / this.gridCols);
+
+    const startingX = col * this.imageGridSize - this.imageGridSize;
+    const endingX = startingX + this.imageGridSize;
+
+    const startingY = row * this.imageGridSize - this.imageGridSize;
+    const endingY = startingY + this.imageGridSize;
+
+    return {
+      x: randomNumberBetween(startingX, endingX) - 40,
+      y: randomNumberBetween(startingY, endingY) - 40,
+    };
+  }
 }
 
 const b = new Buttons();
 
 let initialButtonCount = 600;
-let numRandomImages = 350;
 if (b.width <= 700) {
   initialButtonCount = 300;
-  numRandomImages = 150;
 }
 
 let numInitialButtons = 0;
@@ -117,9 +153,7 @@ document.addEventListener("click", function (e: any) {
   continueAddingButtons = false;
 
   requestAnimationFrame(() => {
-    for (let x = 0; x < numRandomImages; x++) {
-      b.addRandomImage();
-    }
+    b.appendImages();
   });
 
   const buttons = document.querySelectorAll<HTMLElement>("button[type=button]");
@@ -140,6 +174,7 @@ document.addEventListener("click", function (e: any) {
       el.classList.add("fade-out");
       setTimeout(function () {
         b.container.removeChild(explode);
+        buttons.forEach((buttonEl) => buttonEl.remove());
       }, 1500);
     });
   });
