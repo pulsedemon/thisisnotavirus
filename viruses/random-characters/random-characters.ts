@@ -1,5 +1,7 @@
+import { randomInt } from "../../util";
+
 class RandomCharacters {
-  text: string;
+  text!: string;
   xloc = 0;
   yloc: number;
   randomStringLength = 170;
@@ -17,9 +19,7 @@ class RandomCharacters {
     let string = "";
 
     for (let i = 0; i < length; i++) {
-      string += this.characters.charAt(
-        Math.floor(Math.random() * this.characters.length)
-      );
+      string += this.characters.charAt(randomInt(this.characters.length));
     }
 
     string = this.insertRandomEmoji(string);
@@ -30,10 +30,10 @@ class RandomCharacters {
   }
 
   insertRandomEmoji(string: string): string {
-    let pos = Math.floor(Math.random() * string.length);
+    let pos = randomInt(string.length);
     string =
       string.slice(0, pos) +
-      this.emojis[Math.floor(Math.random() * this.emojis.length)] +
+      this.emojis[randomInt(this.emojis.length)] +
       string.slice(pos);
     return string;
   }

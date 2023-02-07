@@ -3,6 +3,10 @@ export function preloadImage(url: string) {
   img.src = url;
 }
 
+export function randomInt(max: number): number {
+  return Math.floor(Math.random() * max);
+}
+
 export function shuffle(array: any[]) {
   let currentIndex = array.length,
     randomIndex;
@@ -10,7 +14,7 @@ export function shuffle(array: any[]) {
   // While there remain elements to shuffle.
   while (currentIndex != 0) {
     // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
+    randomIndex = randomInt(currentIndex);
     currentIndex--;
 
     // And swap it with the current element.

@@ -9,7 +9,7 @@ const viruses = [
   "faces",
   "doors",
 ];
-import { preloadImage } from "./util";
+import { preloadImage, randomInt } from "./util";
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
 preloadImage("/viruses/faces/images/eye-blink.webp");
@@ -33,7 +33,7 @@ const loadRandomVirus = (specificVirusOverride?: string): void => {
     if (vParam !== null) {
       randomVirus = vParam;
     } else {
-      randomVirus = viruses[Math.floor(Math.random() * viruses.length)];
+      randomVirus = viruses[randomInt(viruses.length)];
     }
   }
 
@@ -53,7 +53,7 @@ const loadRandomVirus = (specificVirusOverride?: string): void => {
   if (randomVirus === "flash") {
     random_time = 400;
   } else {
-    this_time = Math.floor(Math.random() * random_times.length);
+    this_time = randomInt(random_times.length);
     random_time = random_times[this_time];
 
     let previousVirus = getLastVirusLoadedNotFlash();

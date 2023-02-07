@@ -1,6 +1,6 @@
 import "./doors.scss";
 import UAParser from "ua-parser-js";
-import { randomNumberBetween } from "../../util";
+import { randomNumberBetween, randomInt } from "../../util";
 
 const usparser = new UAParser();
 const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
@@ -170,8 +170,7 @@ const colorPalettes = [
     primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
-let colorPalette =
-  colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+let colorPalette = colorPalettes[randomInt(colorPalettes.length)];
 const minSpeed = 10;
 const maxSpeed = 30;
 

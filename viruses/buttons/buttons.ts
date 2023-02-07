@@ -1,4 +1,9 @@
-import { shuffle, preloadImage, randomNumberBetween } from "../../util";
+import {
+  shuffle,
+  preloadImage,
+  randomNumberBetween,
+  randomInt,
+} from "../../util";
 
 class Buttons {
   container: HTMLElement;
@@ -54,10 +59,9 @@ class Buttons {
     button.type = "button";
     button.style.top = `${coords.y}px`;
     button.style.left = `${coords.x}px`;
-    button.innerText =
-      this.buttonText[Math.floor(Math.random() * this.buttonText.length)];
+    button.innerText = this.buttonText[randomInt(this.buttonText.length)];
     button.classList.add(
-      this.buttonClasses[Math.floor(Math.random() * this.buttonClasses.length)]
+      this.buttonClasses[randomInt(this.buttonClasses.length)]
     );
     this.container.appendChild(button);
   }
@@ -95,8 +99,8 @@ class Buttons {
   }
 
   getRandomCoords() {
-    const randomX = Math.floor(Math.random() * this.width);
-    const randomY = Math.floor(Math.random() * this.height);
+    const randomX = randomInt(this.width);
+    const randomY = randomInt(this.height);
 
     return {
       x: randomX - 40,

@@ -1,6 +1,7 @@
 "use strict";
 
 import * as THREE from "three";
+import { randomInt } from "../../util";
 
 class Sphere {
   WIDTH = window.innerWidth;
@@ -34,7 +35,7 @@ class Sphere {
 
     const segmentOptions = [7, 12, 20, 22];
     const radius = 100;
-    const segment = Math.floor(Math.random() * segmentOptions.length);
+    const segment = randomInt(segmentOptions.length);
     const segments = segmentOptions[segment];
     const rings = 18;
 
