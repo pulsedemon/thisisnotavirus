@@ -216,5 +216,12 @@ document.getElementById("icon")!.onclick = (e) => {
     }
   }
 
-  menu.style.inset = menuPositions[randomInt(menuPositions.length)];
+  menu.style.animation = "glitch-effect 3s infinite linear alternate-reverse";
+
+  setTimeout(() => {
+    menu.style.inset = menuPositions[randomInt(menuPositions.length)];
+    setTimeout(() => {
+      menu.style.animation = "unset";
+    }, 400);
+  }, 300);
 };
