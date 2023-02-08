@@ -13,16 +13,16 @@ class Faces {
     });
   }
 
-  blink(eye?) {
+  blink(eye?: any) {
     if (!eye) eye = this.eyes;
     else eye = [eye];
 
     return new Promise((resolve, reject) => {
-      eye.forEach((el) => {
+      eye.forEach((el: HTMLElement) => {
         el.classList.add("blink");
       });
       setTimeout(() => {
-        eye.forEach((el) => {
+        eye.forEach((el: HTMLElement) => {
           el.classList.remove("blink");
         });
       }, 200);
