@@ -34,6 +34,10 @@ body {
     display: inline-block;
     position: relative;
     top: 2px;
+
+    span:hover {
+      color: #00ffff;
+    }
   }
 
   #skip-previous {
