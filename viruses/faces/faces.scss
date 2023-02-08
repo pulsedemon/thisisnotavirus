@@ -19,7 +19,11 @@ body {
 
   #eyes {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
+
+    max-width: 600px;
+    margin: 0 auto;
+
     .eye {
       width: 300px;
       height: 300px;
@@ -55,12 +59,14 @@ body {
   }
 
   #mouth {
-    background-image: url("/viruses/faces/images/mouth.webp");
+    background-image: url("/viruses/faces/images/mouth-smile.webp");
     background-repeat: no-repeat;
     background-position: center;
-    background-size: contain;
+    background-size: cover;
     width: 100%;
     height: 200px;
+    position: relative;
+    top: -50px;
   }
 }
 
