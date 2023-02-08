@@ -193,3 +193,28 @@ function shuffleTitle() {
 setTimeout(function () {
   shuffleTitle();
 }, 5000);
+
+document.getElementById("icon")!.onclick = (e) => {
+  const menu = document.getElementById("menu")!;
+
+  let menuPositions = [
+    "0px auto auto 0px",
+    "0px 0px auto auto",
+    "auto auto 0px 0px",
+    "auto 0px 0px auto",
+  ];
+
+  if (menu.style.inset) {
+    const index = menuPositions.indexOf(menu.style.inset);
+    if (index > -1) {
+      menuPositions.splice(index, 1);
+    }
+  } else {
+    const index = menuPositions.indexOf("0px 0px auto auto");
+    if (index > -1) {
+      menuPositions.splice(index, 1);
+    }
+  }
+
+  menu.style.inset = menuPositions[randomInt(menuPositions.length)];
+};
