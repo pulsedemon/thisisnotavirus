@@ -195,6 +195,7 @@ setTimeout(function () {
 }, 5000);
 
 document.getElementById("icon")!.onclick = (e) => {
+  gtag("event", "v_icon_click");
   const menu = document.getElementById("menu")!;
 
   let menuPositions = [
