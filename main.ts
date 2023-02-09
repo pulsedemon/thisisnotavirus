@@ -1,26 +1,12 @@
 import "./sass/main.scss";
+import { virus, ascii } from "./ascii";
+import { preloadImage, randomInt } from "./util";
 
 console.log(`
-                      :::!~!!!!!:.
-                  .xUHWH!! !!?M88WHX:.
-                .X*#M@$!!  !X!M$$$$$$WWx:.
-               :!!!!!!?H! :!$!$$$$$$$$$$8X:
-              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:
-             :!~::!H!<   ~.U$X!?R$$$$$$$$MM!
-             ~!~!!!!~~ .:XW$$$U!!?$$$$$$RMM!
-               !:~~~ .:!M"T#$$$$WX??#MRRMMM!
-               ~?WuxiW*'   '"#$$$$8!!!!??!!!
-             :X- M$$$$       '"T#$T~!8$WUXU~
-            :%'  ~#$$$m:        ~!~ ?$$$$$$
-          :!'.-   ~T$$$$8xx.  .xWW- ~""##*"
-.....   -~~:<' !    ~?T#$$@@W@*?$$      /'
-W$@@M!!! .!~~ !!     .:XUW$W!~ '"~:    :
-#"~~'.:x%'!!  !H:   !WM$$$$Ti.: .!WUn+!'
-:::~:!!':X~ .: ?H.!u "$$$B$$$!W:U!T$$M~
-.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! '
-Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!
-$R@i.~~ !     :   ~$$$$$B$$en:''
-?MXT@Wx.~    :     ~"##*$$$$M~
+  ${virus}
+`);
+console.log(`
+  ${ascii[randomInt(ascii.length)]}
 `);
 
 const viruses = [
@@ -32,7 +18,6 @@ const viruses = [
   "faces",
   "doors",
 ];
-import { preloadImage, randomInt } from "./util";
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
 preloadImage("/viruses/faces/images/eye-blink.webp");
