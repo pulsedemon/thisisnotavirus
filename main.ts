@@ -21,7 +21,6 @@ const viruses = [
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
 preloadImage("/viruses/faces/images/eye-blink.webp");
-preloadImage("/viruses/faces/images/mouth.webp");
 
 const random_times = [
   2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
