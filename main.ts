@@ -1,13 +1,13 @@
 import "./sass/main.scss";
-import { virus, ascii } from "./ascii";
+import { virus } from "./ascii";
 import { preloadImage, randomInt } from "./util";
 
-console.log(`
+console.log(
+  `%c
   ${virus}
-`);
-console.log(`
-  ${ascii[randomInt(ascii.length)]}
-`);
+`,
+  "color: #00ffff"
+);
 
 const viruses = [
   "random-blocks",
