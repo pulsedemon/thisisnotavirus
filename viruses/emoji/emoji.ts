@@ -1,6 +1,10 @@
 import "./emoji.scss";
+import UAParser from "ua-parser-js";
 
-const size = 70;
+const usparser = new UAParser();
+const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
+
+const size = isMobile ? 50 : 70;
 const container = document.getElementById("container")!;
 container.style.lineHeight = `${size}px`;
 container.style.fontSize = `${size}px`;
