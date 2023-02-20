@@ -1,5 +1,8 @@
+@use "../../sass/animations.scss";
+
 #container {
   height: auto;
   line-break: anywhere;
   text-align: justify;
+  animation: glitch 3s infinite linear alternate-reverse;
 }

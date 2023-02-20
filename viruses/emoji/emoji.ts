@@ -1,5 +1,6 @@
 import "./emoji.scss";
 import UAParser from "ua-parser-js";
+import { randomInt } from "../../util";
 
 const usparser = new UAParser();
 const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
@@ -9,7 +10,10 @@ const container = document.getElementById("container")!;
 container.style.lineHeight = `${size}px`;
 container.style.fontSize = `${size}px`;
 
+const bgColors = ["black", "red", "aqua"];
+
 function forwards() {
+  document.body.style.backgroundColor = bgColors[randomInt(bgColors.length)];
   const interval = setInterval(() => {
     container.innerHTML += "🙂";
     if (container.clientHeight > document.body.clientHeight + 70) {
