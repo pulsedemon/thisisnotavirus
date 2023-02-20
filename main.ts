@@ -17,6 +17,7 @@ const viruses = [
   "buttons",
   "faces",
   "doors",
+  "emoji",
 ];
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
