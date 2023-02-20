@@ -149,3 +149,12 @@ $steps: 100;
     }
   }
 }
+
+$steps: 20;
+@keyframes shaky {
+  @for $i from 0 through $steps {
+    #{percentage($i*(calc(1/$steps)))} {
+      transform: translate(random(100) - 50 + px, random(100) - 50 + px);
+    }
+  }
+}
