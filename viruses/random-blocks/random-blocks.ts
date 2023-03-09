@@ -19,16 +19,11 @@ class RandomBlocks {
     container.appendChild(this.canvas);
     this.canvas.width = container.clientWidth;
     this.canvas.height = container.clientHeight;
-
     this.screenWidth = this.canvas.width;
     this.screenHeight = this.canvas.height;
-
     this.canvas.height = this.screenHeight;
     this.canvasCtx = this.canvas.getContext("2d")!;
-
     this.numberOfBlocks = this.calculateNumberOfBlocks();
-
-    console.log("Blocks needed to fill screen: ", this.numberOfBlocks);
 
     this.update();
   }

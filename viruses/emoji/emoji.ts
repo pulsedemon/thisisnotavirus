@@ -12,6 +12,7 @@ container.style.fontSize = `${size}px`;
 
 const bgColors = ["black", "red", "aqua"];
 const emojis = [
+  "👻",
   "🙂",
   "😎",
   "🔪",
@@ -22,7 +23,9 @@ const emojis = [
   "🥳",
   "😍",
   "✌🏻",
+  "✌🏾",
   "🤘🏻",
+  "🫀",
 ];
 
 function forwards() {
