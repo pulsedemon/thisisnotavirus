@@ -11,11 +11,25 @@ container.style.lineHeight = `${size}px`;
 container.style.fontSize = `${size}px`;
 
 const bgColors = ["black", "red", "aqua"];
+const emojis = [
+  "🙂",
+  "😎",
+  "🔪",
+  "👾",
+  "🤘",
+  "🙃",
+  "🙁",
+  "🥳",
+  "😍",
+  "✌🏻",
+  "🤘🏻",
+];
 
 function forwards() {
   document.body.style.backgroundColor = bgColors[randomInt(bgColors.length)];
+  const emoji = emojis[randomInt(emojis.length)];
   const interval = setInterval(() => {
-    container.innerHTML += "🙂";
+    container.innerHTML += emoji;
     if (container.clientHeight > document.body.clientHeight + 70) {
       clearInterval(interval);
       backwards();
