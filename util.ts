@@ -7,7 +7,7 @@ export function randomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
-export function shuffle(array: any[]) {
+export function shuffle(array: any[]): any[] {
   let currentIndex = array.length,
     randomIndex;
 

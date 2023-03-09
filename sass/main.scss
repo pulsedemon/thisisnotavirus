@@ -41,11 +41,7 @@ body {
   }
 
   #skip-previous {
-    display: none;
-
-    &.show {
-      display: inline-block;
-    }
+    display: inline-block;
   }
 
   #icon {

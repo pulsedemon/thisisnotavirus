@@ -1,6 +1,7 @@
 import "./sass/main.scss";
 import { virus } from "./ascii";
-import { preloadImage, randomInt } from "./util";
+import { preloadImage, randomInt, randomNumberBetween } from "./util";
+import Playlist from "./components/Playlist";
 
 console.log(
   `%c
@@ -9,149 +10,90 @@ console.log(
   "color: #00ffff"
 );
 
-const viruses = [
-  "random-blocks",
-  "sphere",
-  "uzumaki",
-  "random-characters",
-  "buttons",
-  "faces",
-  "doors",
-  "emoji",
-];
+const playlist = new Playlist();
 
 preloadImage("/viruses/uzumaki/uzumaki.webp");
 preloadImage("/viruses/faces/images/eye-blink.webp");
 
-const random_times = [
-  2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000,
-];
+class VirusLoader {
+  lastLoaded: string = "flash";
+  iframe = <HTMLIFrameElement>document.getElementById("container");
+  loadRandomInterval: any;
 
-let params = new URLSearchParams(window.location.search);
+  constructor() {
+    this.loadVirus(playlist.current());
+    this.startRandomization();
+  }
 
-let loadRandomInterval: any;
-const loadRandomVirus = (specificVirusOverride?: string): void => {
-  const vParam = params.get("v");
-  let randomVirus;
-  if (specificVirusOverride) {
-    randomVirus = specificVirusOverride;
-  } else if (getLastVirusLoaded() !== "flash") {
-    randomVirus = "flash";
-  } else {
-    if (vParam !== null) {
-      randomVirus = vParam;
+  loadVirus(name: string) {
+    this.iframe.src = `/viruses/${name}/`;
+    this.lastLoaded = name;
+  }
+
+  skipNext() {
+    this.loadVirus("flash");
+    this.startRandomization();
+  }
+
+  skipPrev() {
+    this.loadVirus("flash");
+    playlist.prev();
+    this.startRandomization(playlist.current());
+  }
+
+  startRandomization(name?: string) {
+    clearInterval(this.loadRandomInterval);
+
+    let randomTime = randomNumberBetween(2, 12) * 1000;
+
+    let virusToLoad: string;
+    if (this.lastLoaded !== "flash") {
+      virusToLoad = "flash";
+    } else if (name) {
+      virusToLoad = name;
+      randomTime = 400;
     } else {
-      randomVirus = viruses[randomInt(viruses.length)];
-    }
-  }
-
-  if (vParam === null && getLastVirusLoadedNotFlash() === randomVirus) {
-    return loadRandomVirus();
-  }
-
-  const iframe = <HTMLIFrameElement>document.getElementById("container");
-  iframe.src = `/viruses/${randomVirus}/`;
-
-  setLastVirusLoaded(randomVirus);
-
-  clearInterval(loadRandomInterval);
-
-  let random_time;
-  let this_time;
-  if (randomVirus === "flash") {
-    random_time = 400;
-  } else {
-    this_time = randomInt(random_times.length);
-    random_time = random_times[this_time];
-
-    let previousVirus = getLastVirusLoadedNotFlash();
-    if (specificVirusOverride) {
-      localStorage.removeItem("previousVirusLoadedNotFlash");
-      document.getElementById("skip-previous")!.classList.remove("show");
-    } else if (previousVirus) {
-      setPreviousVirusLoadedNotFlash(previousVirus);
+      virusToLoad = playlist.next();
+      randomTime = 400;
     }
 
-    setLastVirusLoadedNotFlash(randomVirus);
+    this.loadRandomInterval = setInterval(() => {
+      this.loadVirus(virusToLoad);
+      this.startRandomization();
+    }, randomTime);
   }
-  loadRandomInterval = setInterval(function () {
-    return loadRandomVirus();
-  }, random_time);
+}
 
-  if (randomVirus !== "flash") {
-    let playPauseButton = document.getElementById("play-pause")!;
-
-    if (vParam !== null) {
-      playPauseButton.innerText = "play_arrow";
-      window.history.replaceState({}, document.title, "/");
-      params.delete("v");
-    }
-
-    if (playPauseButton.innerText === "play_arrow") {
-      clearInterval(loadRandomInterval);
-    }
-  }
-};
-
-const getLastVirusLoaded = () => {
-  return localStorage.getItem("lastVirusLoaded");
-};
-
-const getLastVirusLoadedNotFlash = () => {
-  return localStorage.getItem("lastVirusLoadedNotFlash");
-};
-
-const setLastVirusLoaded = (virus: string) => {
-  return localStorage.setItem("lastVirusLoaded", virus);
-};
-
-const setLastVirusLoadedNotFlash = (virus: string) => {
-  return localStorage.setItem("lastVirusLoadedNotFlash", virus);
-};
-
-const getPreviousVirusLoadedNotFlash = () => {
-  return localStorage.getItem("previousVirusLoadedNotFlash");
-};
-
-const setPreviousVirusLoadedNotFlash = (virus: string) => {
-  let prevButton = document.getElementById("skip-previous")!;
-  if (!prevButton.classList.contains("show")) {
-    prevButton.classList.add("show");
-  }
-  return localStorage.setItem("previousVirusLoadedNotFlash", virus);
-};
-
-loadRandomVirus();
+const vl = new VirusLoader();
 
 window.addEventListener("orientationchange", function () {
-  loadRandomVirus();
+  vl.skipNext();
 });
+
+document.getElementById("skip-previous")!.onclick = () => {
+  clearInterval(vl.loadRandomInterval);
+  gtag("event", "skip_previous");
+  vl.skipPrev();
+};
 
 document.getElementById("play-pause")!.onclick = (e) => {
   const target = <HTMLElement>e.target;
   if (target.innerText === "pause") {
     target.innerText = "play_arrow";
-    clearInterval(loadRandomInterval);
+    clearInterval(vl.loadRandomInterval);
     gtag("event", "pause", {
-      animation_name: getLastVirusLoaded(),
+      animation_name: vl.lastLoaded,
     });
   } else {
     target.innerText = "pause";
     gtag("event", "play");
-    loadRandomVirus();
+    vl.skipNext();
   }
 };
 
-document.getElementById("skip-previous")!.onclick = () => {
-  clearInterval(loadRandomInterval);
-  gtag("event", "skip_previous");
-  loadRandomVirus(getPreviousVirusLoadedNotFlash()!);
-};
-
 document.getElementById("skip-next")!.onclick = () => {
-  clearInterval(loadRandomInterval);
   gtag("event", "skip_next");
-  loadRandomVirus();
+  vl.skipNext();
 };
 
 document.getElementById("info-btn")!.onclick = (e) => {
