@@ -94,6 +94,11 @@ document.getElementById("play-pause")!.onclick = (e) => {
 document.getElementById("skip-next")!.onclick = () => {
   gtag("event", "skip_next");
   vl.skipNext();
+
+  const playButton = document.getElementById("play-pause")!;
+  if (playButton.innerText === "play_arrow") {
+    playButton.innerText = "pause";
+  }
 };
 
 document.getElementById("info-btn")!.onclick = (e) => {
