@@ -30,3 +30,26 @@ export function shuffle(array: any[]): any[] {
 export function randomNumberBetween(min: number, max: number) {
   return Math.floor(Math.random() * (max - min) + min);
 }
+
+export function draggable(el: any) {
+  el.addEventListener("mousedown", function (e: any) {
+    e.preventDefault();
+    el.style.zIndex = 3;
+    let offsetX = e.clientX - parseInt(window.getComputedStyle(e.target).left);
+    let offsetY = e.clientY - parseInt(window.getComputedStyle(e.target).top);
+
+    function mouseMoveHandler(e: any) {
+      e.preventDefault();
+      el.style.top = e.clientY - offsetY + "px";
+      el.style.left = e.clientX - offsetX + "px";
+    }
+
+    function reset() {
+      window.removeEventListener("mousemove", mouseMoveHandler);
+      window.removeEventListener("mouseup", reset);
+    }
+
+    window.addEventListener("mousemove", mouseMoveHandler);
+    window.addEventListener("mouseup", reset);
+  });
+}

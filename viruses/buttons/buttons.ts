@@ -5,6 +5,7 @@ import {
   preloadImage,
   randomNumberBetween,
   randomInt,
+  draggable,
 } from "../../util";
 
 class Buttons {
@@ -89,6 +90,8 @@ class Buttons {
       image.classList.add(filename);
 
       this.container.appendChild(image);
+
+      draggable(image);
     });
   }
 
