@@ -5,4 +5,14 @@
   line-break: anywhere;
   text-align: justify;
   animation: shaky 3s infinite linear alternate-reverse;
+
+  span {
+    display: inline-block;
+    animation: spin 0.5s infinite;
+
+    &.wider {
+      padding: 10px;
+      animation: wobble 0.5s infinite;
+    }
+  }
 }
