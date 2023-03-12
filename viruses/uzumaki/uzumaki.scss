@@ -4,24 +4,24 @@ body {
   transition: all 0.2s linear;
 }
 
-img {
-  position: relative;
-}
-
 #container {
   width: 100vw;
   height: 100vh;
   text-align: center;
   position: relative;
-}
 
-#container::before {
-  content: "";
-  position: fixed;
-  width: 300%;
-  height: 300%;
-  left: -100%;
-  top: -100%;
-  background-position: center center;
-  animation: spin 4s linear infinite;
+  &::before {
+    content: "";
+    position: fixed;
+    width: 300%;
+    height: 300%;
+    left: -100%;
+    top: -100%;
+    background-position: center center;
+    animation: spin 4s linear infinite;
+  }
+
+  img {
+    position: relative;
+  }
 }
