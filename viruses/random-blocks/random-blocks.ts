@@ -11,21 +11,29 @@ class RandomBlocks {
 
   canvasCtx!: CanvasRenderingContext2D;
   blockSize = randomNumberBetween(4, 10);
+  container = document.getElementById("container")!;
 
   constructor() {
-    const container = document.getElementById("container");
-    if (!container) return;
     this.canvas = document.createElement("canvas");
-    container.appendChild(this.canvas);
-    this.canvas.width = container.clientWidth;
-    this.canvas.height = container.clientHeight;
-    this.screenWidth = this.canvas.width;
-    this.screenHeight = this.canvas.height;
-    this.canvas.height = this.screenHeight;
     this.canvasCtx = this.canvas.getContext("2d")!;
-    this.numberOfBlocks = this.calculateNumberOfBlocks();
+    this.container.appendChild(this.canvas);
+    this.setVariables();
 
     this.update();
+
+    window.addEventListener("resize", () => this.onWindowResize(), false);
+  }
+
+  setVariables() {
+    this.canvas.width = this.container.clientWidth;
+    this.canvas.height = this.container.clientHeight;
+    this.screenWidth = this.canvas.width;
+    this.screenHeight = this.canvas.height;
+    this.numberOfBlocks = this.calculateNumberOfBlocks();
+  }
+
+  onWindowResize() {
+    this.setVariables();
   }
 
   update() {
