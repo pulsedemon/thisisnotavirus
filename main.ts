@@ -149,8 +149,12 @@ setTimeout(function () {
   shuffleTitle();
 }, 5000);
 
-document.getElementById("icon")!.onclick = (e) => {
-  gtag("event", "v_icon_click");
+document.getElementById("icon")!.onclick = () => {
+  teleportMenu();
+};
+
+function teleportMenu() {
+  const animationClassName = "teleporting";
   const menu = document.getElementById("menu")!;
 
   let menuPositions = [
@@ -172,12 +176,13 @@ document.getElementById("icon")!.onclick = (e) => {
     }
   }
 
-  menu.style.animation = "glitch-effect 3s infinite linear alternate-reverse";
-
+  menu.classList.add(animationClassName);
   setTimeout(() => {
     menu.style.inset = menuPositions[randomInt(menuPositions.length)];
     setTimeout(() => {
-      menu.style.animation = "unset";
+      menu.classList.remove(animationClassName);
     }, 400);
   }, 300);
-};
+
+  gtag("event", "v_icon_click");
+}
