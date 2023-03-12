@@ -1,14 +1,7 @@
+@use "../../sass/animations.scss";
+
 img {
   position: relative;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 #container {
