@@ -1,5 +1,9 @@
 @use "../../sass/animations.scss";
 
+body {
+  transition: all 0.2s ease-in;
+}
+
 img {
   position: relative;
 }
