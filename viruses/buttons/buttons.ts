@@ -1,3 +1,5 @@
+import "./buttons.scss";
+
 import {
   shuffle,
   preloadImage,
@@ -9,7 +11,7 @@ class Buttons {
   container: HTMLElement;
   width: number;
   height: number;
-  buttonClasses = ["button-54", "button-49"];
+  buttonClasses = ["button-54", "button-49", "button-triangle"];
   grid: string[] = [];
   imageGridSize = 55;
   gridCols: number;

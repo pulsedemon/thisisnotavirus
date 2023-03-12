@@ -158,3 +158,16 @@ $steps: 20;
     }
   }
 }
+
+@mixin random-text-color() {
+  color: rgb(random(255), random(255), random(255));
+}
+
+$steps: 20;
+@keyframes text-blink {
+  @for $i from 0 through $steps {
+    #{percentage($i*(calc(1/$steps)))} {
+      @include random-text-color();
+    }
+  }
+}

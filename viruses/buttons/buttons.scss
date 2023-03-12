@@ -1,3 +1,5 @@
+@use "../../sass/animations.scss";
+
 body,
 #container {
   width: 100vw;
@@ -16,111 +18,16 @@ button {
   z-index: 1;
   opacity: 1;
   text-transform: uppercase;
-}
-button.fade-out {
-  opacity: 0;
-  transition: opacity 1s linear;
+
+  &.fade-out {
+    opacity: 0;
+    transition: opacity 1s linear;
+  }
 }
 
 img {
   max-height: 150px;
   max-width: 150px;
-}
-
-@keyframes wobble {
-  0% {
-    transform: rotate(15deg);
-  }
-  50% {
-    transform: rotate(-15deg);
-  }
-  100% {
-    transform: rotate(15deg);
-  }
-}
-
-@keyframes shake {
-  0% {
-    transform: rotate(-3deg);
-  }
-  5% {
-    transform: rotate(3deg);
-  }
-  10% {
-    transform: rotate(-3deg);
-  }
-  15% {
-    transform: rotate(3deg);
-  }
-  20% {
-    transform: rotate(-3deg);
-  }
-  25% {
-    transform: rotate(3deg);
-  }
-  30% {
-    transform: rotate(-3deg);
-  }
-  35% {
-    transform: rotate(3deg);
-  }
-  40% {
-    transform: rotate(-3deg);
-  }
-  45% {
-    transform: rotate(3deg);
-  }
-  50% {
-    transform: rotate(-3deg);
-  }
-  55% {
-    transform: rotate(3deg);
-  }
-  60% {
-    transform: rotate(-3deg);
-  }
-  65% {
-    transform: rotate(3deg);
-  }
-  70% {
-    transform: rotate(-3deg);
-  }
-  75% {
-    transform: rotate(3deg);
-  }
-  80% {
-    transform: rotate(-3deg);
-  }
-  85% {
-    transform: rotate(3deg);
-  }
-  90% {
-    transform: rotate(-3deg);
-  }
-  95% {
-    transform: rotate(3deg);
-  }
-  100% {
-    transform: rotate(-3deg);
-  }
-}
-
-@keyframes floating {
-  0% {
-    transform: translate(0, 0px);
-  }
-  50% {
-    transform: translate(0, 15px);
-  }
-  100% {
-    transform: translate(0, -0px);
-  }
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 img.troll-face {
@@ -224,49 +131,29 @@ img.fffffuuuuuuuu {
   animation-timing-function: steps(2, end);
 }
 
-@keyframes glitch {
-  0% {
-    clip-path: var(--slice-1);
-    transform: translate(-20px, -10px);
+.button-triangle {
+  color: #ffffff;
+  border: 0;
+  background: none;
+  word-break: break-word;
+  font-size: 10px;
+  white-space: normal;
+  width: 55px;
+  animation: spin 1.5s forwards infinite;
+
+  &:hover {
+    animation: shake 1.5s ease-in-out forwards infinite, text-blink 1s infinite;
   }
-  10% {
-    clip-path: var(--slice-3);
-    transform: translate(10px, 10px);
-  }
-  20% {
-    clip-path: var(--slice-1);
-    transform: translate(-10px, 10px);
-  }
-  30% {
-    clip-path: var(--slice-3);
-    transform: translate(0px, 5px);
-  }
-  40% {
-    clip-path: var(--slice-2);
-    transform: translate(-5px, 0px);
-  }
-  50% {
-    clip-path: var(--slice-3);
-    transform: translate(5px, 0px);
-  }
-  60% {
-    clip-path: var(--slice-4);
-    transform: translate(5px, 10px);
-  }
-  70% {
-    clip-path: var(--slice-2);
-    transform: translate(-10px, 10px);
-  }
-  80% {
-    clip-path: var(--slice-5);
-    transform: translate(20px, -10px);
-  }
-  90% {
-    clip-path: var(--slice-1);
-    transform: translate(-10px, 0px);
-  }
-  100% {
-    clip-path: var(--slice-1);
-    transform: translate(0);
+
+  &::before {
+    content: "";
+    border-bottom: 100px solid black;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
   }
 }
