@@ -3,7 +3,8 @@
       "strict": true,
       "esModuleInterop": true,
       "module": "esnext",
-      "moduleResolution": "node"
+      "moduleResolution": "node",
+      "downlevelIteration": true
     },
     "exclude": ["node_modules"]
 }
