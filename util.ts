@@ -1,3 +1,8 @@
+import UAParser from "ua-parser-js";
+
+const usparser = new UAParser();
+const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
+
 export function preloadImage(url: string) {
   let img = new Image();
   img.src = url;
@@ -32,24 +37,32 @@ export function randomNumberBetween(min: number, max: number) {
 }
 
 export function draggable(el: any) {
-  el.addEventListener("mousedown", function (e: any) {
-    e.preventDefault();
+  const downEvent = isMobile ? "touchstart" : "mousedown";
+  const upEvent = isMobile ? "touchend" : "mouseup";
+  const moveEvent = isMobile ? "touchmove" : "mousemove";
+
+  el.addEventListener(downEvent, function (e: any) {
+    if (!isMobile) e.preventDefault();
     el.style.zIndex = 3;
-    let offsetX = e.clientX - parseInt(window.getComputedStyle(e.target).left);
-    let offsetY = e.clientY - parseInt(window.getComputedStyle(e.target).top);
+    let clientY = e.clientY || e.changedTouches[0].clientY;
+    let clientX = e.clientX || e.changedTouches[0].clientX;
+    let offsetX = clientX - parseInt(window.getComputedStyle(e.target).left);
+    let offsetY = clientY - parseInt(window.getComputedStyle(e.target).top);
 
     function mouseMoveHandler(e: any) {
-      e.preventDefault();
-      el.style.top = e.clientY - offsetY + "px";
-      el.style.left = e.clientX - offsetX + "px";
+      if (!isMobile) e.preventDefault();
+      let clientY = e.clientY || e.changedTouches[0].clientY;
+      let clientX = e.clientX || e.changedTouches[0].clientX;
+      el.style.top = clientY - offsetY + "px";
+      el.style.left = clientX - offsetX + "px";
     }
 
     function reset() {
-      window.removeEventListener("mousemove", mouseMoveHandler);
-      window.removeEventListener("mouseup", reset);
+      window.removeEventListener(moveEvent, mouseMoveHandler);
+      window.removeEventListener(upEvent, reset);
     }
 
-    window.addEventListener("mousemove", mouseMoveHandler);
-    window.addEventListener("mouseup", reset);
+    window.addEventListener(moveEvent, mouseMoveHandler);
+    window.addEventListener(upEvent, reset);
   });
 }
