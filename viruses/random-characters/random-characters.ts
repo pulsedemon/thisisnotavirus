@@ -56,13 +56,13 @@ class RandomCharacters {
 }
 
 const canvasHeight = 28;
-let numCanvases = Math.ceil(
-  document.getElementById("container")!.clientHeight / canvasHeight
-);
 
-appendCanvases(numCanvases);
+appendCanvases();
 
-function appendCanvases(numCanvases: number) {
+function appendCanvases() {
+  let numCanvases = Math.ceil(
+    document.getElementById("container")!.clientHeight / canvasHeight
+  );
   for (let i = 0; i < numCanvases; i++) {
     let canvas = document.createElement("canvas");
     canvas.height = canvasHeight;
@@ -80,14 +80,11 @@ window.addEventListener(
   () => {
     clearTimeout(resizeStop);
     resizeStop = setTimeout(() => {
-      let numCanvases = Math.ceil(
-        document.getElementById("container")!.clientHeight / canvasHeight
-      );
       const currentCanvases = document.querySelectorAll("#container canvas");
       currentCanvases.forEach((el) => {
         el.remove();
       });
-      appendCanvases(numCanvases);
+      appendCanvases();
     }, 200);
   },
   false
