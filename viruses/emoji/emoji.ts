@@ -1,7 +1,7 @@
 import "./emoji.scss";
 import { randomInt, randomNumberBetween, isMobile } from "../../util";
 
-const size = isMobile ? 50 : 70;
+const size = isMobile ? 40 : 50;
 const container = document.getElementById("container")!;
 container.style.lineHeight = `${size}px`;
 container.style.fontSize = `${size}px`;

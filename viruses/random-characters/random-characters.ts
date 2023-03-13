@@ -1,3 +1,4 @@
+import "./random-characters.scss";
 import { randomInt } from "../../util";
 
 class RandomCharacters {
@@ -59,12 +60,35 @@ let numCanvases = Math.ceil(
   document.getElementById("container")!.clientHeight / canvasHeight
 );
 
-for (let i = 0; i < numCanvases; i++) {
-  let canvas = document.createElement("canvas");
-  canvas.height = canvasHeight;
-  document.getElementById("container")!.appendChild(canvas);
-  canvas.width = canvas.clientWidth;
+appendCanvases(numCanvases);
 
-  let rc = new RandomCharacters(canvas, 15);
-  rc.doAnimation();
+function appendCanvases(numCanvases: number) {
+  for (let i = 0; i < numCanvases; i++) {
+    let canvas = document.createElement("canvas");
+    canvas.height = canvasHeight;
+    document.getElementById("container")!.appendChild(canvas);
+    canvas.width = canvas.clientWidth;
+
+    let rc = new RandomCharacters(canvas, 15);
+    rc.doAnimation();
+  }
 }
+
+let resizeStop: any;
+window.addEventListener(
+  "resize",
+  () => {
+    clearTimeout(resizeStop);
+    resizeStop = setTimeout(() => {
+      let numCanvases = Math.ceil(
+        document.getElementById("container")!.clientHeight / canvasHeight
+      );
+      const currentCanvases = document.querySelectorAll("#container canvas");
+      currentCanvases.forEach((el) => {
+        el.remove();
+      });
+      appendCanvases(numCanvases);
+    }, 200);
+  },
+  false
+);
