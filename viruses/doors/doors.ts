@@ -1,9 +1,5 @@
 import "./doors.scss";
-import UAParser from "ua-parser-js";
-import { randomNumberBetween, randomInt } from "../../util";
-
-const usparser = new UAParser();
-const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
+import { randomNumberBetween, randomInt, isMobile } from "../../util";
 
 interface DoorConfig {
   y: number;

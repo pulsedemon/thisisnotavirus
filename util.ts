@@ -1,7 +1,8 @@
 import UAParser from "ua-parser-js";
 
 const usparser = new UAParser();
-const isMobile = usparser.getResult().device.type === "mobile" ? true : false;
+export const isMobile =
+  usparser.getResult().device.type === "mobile" ? true : false;
 
 export function preloadImage(url: string) {
   let img = new Image();
@@ -43,26 +44,25 @@ export function draggable(el: any) {
 
   el.addEventListener(downEvent, function (e: any) {
     if (!isMobile) e.preventDefault();
-    el.style.zIndex = 3;
-    let clientY = e.clientY || e.changedTouches[0].clientY;
-    let clientX = e.clientX || e.changedTouches[0].clientX;
-    let offsetX = clientX - parseInt(window.getComputedStyle(e.target).left);
-    let offsetY = clientY - parseInt(window.getComputedStyle(e.target).top);
+    const clientY = e.clientY || e.changedTouches[0].clientY;
+    const clientX = e.clientX || e.changedTouches[0].clientX;
+    const offsetX = clientX - parseInt(window.getComputedStyle(e.target).left);
+    const offsetY = clientY - parseInt(window.getComputedStyle(e.target).top);
 
-    function mouseMoveHandler(e: any) {
+    function moveHandler(e: any) {
       if (!isMobile) e.preventDefault();
-      let clientY = e.clientY || e.changedTouches[0].clientY;
-      let clientX = e.clientX || e.changedTouches[0].clientX;
+      const clientY = e.clientY || e.changedTouches[0].clientY;
+      const clientX = e.clientX || e.changedTouches[0].clientX;
       el.style.top = clientY - offsetY + "px";
       el.style.left = clientX - offsetX + "px";
     }
 
     function reset() {
-      window.removeEventListener(moveEvent, mouseMoveHandler);
+      window.removeEventListener(moveEvent, moveHandler);
       window.removeEventListener(upEvent, reset);
     }
 
-    window.addEventListener(moveEvent, mouseMoveHandler);
+    window.addEventListener(moveEvent, moveHandler);
     window.addEventListener(upEvent, reset);
   });
 }

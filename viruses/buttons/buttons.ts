@@ -1,4 +1,5 @@
 import "./buttons.scss";
+import { isMobile } from "../../util";
 
 import {
   shuffle,
@@ -19,6 +20,7 @@ class Buttons {
   gridRows: number;
   imagesUsed: Array<string> = [];
   images: Array<string> = [];
+  topzIndex = 2;
   buttonText = [
     "Click Me",
     "私をクリック", // japanese
@@ -92,7 +94,15 @@ class Buttons {
       this.container.appendChild(image);
 
       draggable(image);
+
+      image.addEventListener(isMobile ? "touchstart" : "mousedown", (e) => {
+        this.bringToTop(e.target);
+      });
     });
+  }
+
+  bringToTop(el: any) {
+    el.style.zIndex = this.topzIndex += 1;
   }
 
   getRandomImage(): string {
