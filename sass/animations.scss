@@ -10,6 +10,24 @@
   }
 }
 
+@keyframes space-letters {
+  0% {
+    letter-spacing: 0;
+  }
+
+  50% {
+    letter-spacing: 10px;
+  }
+
+  75% {
+    letter-spacing: 15px;
+  }
+
+  100% {
+    letter-spacing: 100px;
+  }
+}
+
 @keyframes shake {
   0% {
     transform: rotate(-3deg);

@@ -2,6 +2,7 @@ import "./sass/main.scss";
 import { virus } from "./ascii";
 import { preloadImage, randomInt, randomNumberBetween } from "./util";
 import Playlist from "./components/Playlist";
+import Comments from "./components/comments/Comments";
 
 console.log(
   `%c
@@ -110,20 +111,44 @@ document.getElementById("info-btn")!.onclick = (e) => {
   }
 };
 
+document.getElementById("comments-btn")!.onclick = (e) => {
+  const target = <HTMLElement>e.target;
+  if (target.innerText === "comment") {
+    displayComments();
+  } else {
+    hideComments();
+  }
+};
+
 function displayInfo() {
-  document.getElementById("info")!.classList.add("show");
+  document.querySelector(".modal.info-modal")!.classList.add("show");
   document.getElementById("info-btn")!.innerText = "close";
   gtag("event", "display_info");
 }
 
 function hideInfo() {
-  document.getElementById("info")!.classList.remove("show");
+  document.querySelector(".modal.info-modal")!.classList.remove("show");
   document.getElementById("info-btn")!.innerText = "info";
+}
+
+function displayComments() {
+  document.querySelector(".modal.comments-modal")!.classList.add("show");
+  document.getElementById("comments-btn")!.innerText = "close";
+  new Comments();
+  gtag("event", "display_comments");
+}
+
+displayComments();
+
+function hideComments() {
+  document.querySelector(".modal.comments-modal")!.classList.remove("show");
+  document.getElementById("comments-btn")!.innerText = "comment";
 }
 
 document.onkeyup = (e) => {
   if (e.key === "Escape") {
     hideInfo();
+    hideComments();
   }
 };
 

@@ -1,0 +1,89 @@
+@use "../../sass/animations.scss";
+
+.comments-modal {
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 20px;
+    background-color: #000000; /* or add it to the track */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: white;
+  }
+
+  overflow: auto;
+
+  .modal-wrapper {
+    top: auto;
+    transform: translate(-50%, 0);
+  }
+
+  h2 {
+    margin-top: 40px;
+    text-transform: uppercase;
+  }
+}
+
+#comment-form {
+  margin-top: 20px;
+
+  input,
+  textarea {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    margin: 0 0 10px 0;
+    border: 0;
+    font-family: monospace;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    outline: none;
+
+    &::placeholder {
+      color: aqua;
+      text-transform: uppercase;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  input[type="submit"] {
+    cursor: url("../images/cursor.png") 15 0, pointer;
+    text-transform: uppercase;
+
+    &:hover {
+      animation: shake 1s ease-in-out forwards infinite,
+        space-letters 1s infinite;
+      background-color: aqua;
+      color: black;
+    }
+  }
+}
+
+#comments-wrapper {
+  margin-top: 20px;
+
+  #num-comments {
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .comment {
+    font-size: 15px;
+    margin-bottom: 20px;
+
+    .commenter-name {
+      display: block;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+    .commenter-comment {
+      display: inline;
+      background-color: #ffffff;
+      color: #000000;
+    }
+  }
+}

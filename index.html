@@ -49,11 +49,12 @@
         <span class="material-symbols-outlined" id="play-pause">pause</span>
         <span class="material-symbols-outlined" id="skip-next">skip_next</span>
         <span class="material-symbols-outlined" id="info-btn">info</span>
+        <span class="material-symbols-outlined" id="comments-btn">comment</span>
       </div>
       <span id="icon">V</span>
     </div>
-    <div id="info">
-      <div id="info-wrapper">
+    <div class="modal info-modal">
+      <div class="modal-wrapper">
         <div id="info-legend">
           <ul>
             <li>
@@ -100,6 +101,35 @@
         </main>
       </div>
     </div>
+
+    <div class="modal comments-modal">
+      <div class="modal-wrapper">
+        <h2>Comments</h2>
+
+        <form id="comment-form">
+          <input type="text" placeholder="Name" />
+          <textarea placeholder="Comment"></textarea>
+          <input type="submit" value="Send" />
+        </form>
+
+        <div id="comments-wrapper">
+          <strong id="num-comments"
+            ><span id="comment-count"></span> Comments</strong
+          >
+
+          <div id="comments"></div>
+        </div>
+      </div>
+    </div>
+
+    <script id="comment-template" type="x-tmpl-mustache">
+      <div class="comment">
+          <div class="commenter-name">
+            {{ name }} &mdash; <span class="created">{{ created }}</span>
+          </div>
+          <div class="commenter-comment">{{ comment }}</div>
+        </div>
+    </script>
     <script src="/build/main.js" type="module"></script>
   </body>
 </html>
