@@ -9,14 +9,35 @@ export default class Comments {
 
   constructor() {
     this.loadComments();
-    this.initForm();
+    this.commentFormEl.addEventListener("submit", this.onSubmit.bind(this));
   }
 
-  initForm() {
-    this.commentFormEl.addEventListener("submit", (e) => {
-      e.preventDefault();
-      console.log("submit");
+  onSubmit(e: any) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    this.submitComment(formData).then((response) => {
+      console.log("response", response);
+      const commentHTML = this.commentHTML(
+        response.name,
+        response.comment,
+        response.created
+      );
+
+      this.commentsEl.insertAdjacentHTML("afterbegin", commentHTML);
+      // TODO: update comment count
     });
+  }
+
+  async submitComment(data: FormData) {
+    const response = await fetch("http://localhost:8080/comments/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(Object.fromEntries(data.entries())),
+    });
+    return response.json();
   }
 
   loadComments() {

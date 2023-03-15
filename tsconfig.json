@@ -4,7 +4,12 @@
       "esModuleInterop": true,
       "module": "esnext",
       "moduleResolution": "node",
-      "downlevelIteration": true
+      "downlevelIteration": true,
+      "lib": [
+        "ESNext",
+        "dom",
+        "dom.iterable"
+      ],
     },
     "exclude": ["node_modules"]
 }
