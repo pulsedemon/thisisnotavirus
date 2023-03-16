@@ -104,13 +104,14 @@
 
     <div class="modal comments-modal">
       <div class="modal-wrapper">
-        <h2>Comments</h2>
-
-        <form id="comment-form">
-          <input type="text" name="name" placeholder="Name" required />
-          <textarea name="comment" placeholder="Comment" required></textarea>
-          <input type="submit" value="Send" />
-        </form>
+        <div id="comment-form-wrapper">
+          <form id="comment-form">
+            <input type="text" name="name" placeholder="Name" required />
+            <textarea name="comment" placeholder="Comment" required></textarea>
+            <input type="submit" value="Send" />
+          </form>
+          <div id="comment-form-thanks-message">(｡◕‿‿◕｡) Thx (｡◕‿‿◕｡)</div>
+        </div>
 
         <div id="comments-wrapper">
           <strong id="num-comments"

@@ -5,6 +5,7 @@ export default class Comments {
   commentsEl = document.getElementById("comments")!;
   commentCountEl = document.getElementById("comment-count")!;
   commentFormEl = document.getElementById("comment-form")!;
+  commentFormThanksEl = document.getElementById("comment-form-thanks-message")!;
   template = document.getElementById("comment-template")!.innerHTML;
 
   constructor() {
@@ -26,7 +27,19 @@ export default class Comments {
 
       this.commentsEl.insertAdjacentHTML("afterbegin", commentHTML);
       // TODO: update comment count
+
+      this.animateForm();
     });
+  }
+
+  animateForm() {
+    this.commentFormEl.addEventListener("animationend", (e) => {
+      console.log("animationend");
+      this.commentFormEl.style.visibility = "hidden";
+      this.commentFormThanksEl.classList.add("display");
+    });
+
+    this.commentFormEl.classList.add("submitted");
   }
 
   async submitComment(data: FormData) {

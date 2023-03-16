@@ -17,48 +17,66 @@
     top: auto;
     transform: translate(-50%, 0);
   }
-
-  h2 {
-    margin-top: 40px;
-    text-transform: uppercase;
-  }
 }
 
-#comment-form {
-  margin-top: 20px;
+#comment-form-wrapper {
+  margin-top: 40px;
+  position: relative;
 
-  input,
-  textarea {
-    display: block;
-    box-sizing: border-box;
-    width: 100%;
-    padding: 10px;
-    margin: 0 0 10px 0;
-    border: 0;
-    font-family: monospace;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    outline: none;
+  #comment-form {
+    margin-top: 20px;
 
-    &::placeholder {
-      color: aqua;
+    &.submitted {
+      animation: shrink 0.5s;
+    }
+
+    input,
+    textarea {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      margin: 0 0 10px 0;
+      border: 0;
+      font-family: monospace;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      outline: none;
+
+      &::placeholder {
+        color: aqua;
+        text-transform: uppercase;
+      }
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    input[type="submit"] {
+      cursor: url("../images/cursor.png") 15 0, pointer;
       text-transform: uppercase;
+
+      &:hover {
+        animation: shake 1s ease-in-out forwards infinite,
+          space-letters 1s infinite;
+        background-color: aqua;
+        color: black;
+      }
     }
   }
 
-  textarea {
-    resize: vertical;
-  }
+  #comment-form-thanks-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    visibility: hidden;
 
-  input[type="submit"] {
-    cursor: url("../images/cursor.png") 15 0, pointer;
-    text-transform: uppercase;
-
-    &:hover {
-      animation: shake 1s ease-in-out forwards infinite,
-        space-letters 1s infinite;
-      background-color: aqua;
-      color: black;
+    &.display {
+      visibility: visible;
     }
   }
 }
