@@ -27,7 +27,6 @@ export default class Comments {
 
   addCharCount() {
     this.commentTextarea.addEventListener("keyup", (e: any) => {
-      console.log("keyup");
       this.textareaCharCountEl.textContent = e.target.value.length;
     });
   }
@@ -43,7 +42,6 @@ export default class Comments {
 
         this.submitComment(formData)
           .then((response) => {
-            console.log("response", response);
             const commentHTML = this.commentHTML(
               response.name,
               response.comment,
@@ -55,10 +53,14 @@ export default class Comments {
               parseInt(this.commentCountEl.innerText) + 1
             }`;
 
+            if (this.commentCountEl.innerText === "1") {
+              document.getElementById("be-the-first")!.remove();
+            }
+
             this.animateForm();
           })
           .catch((error) => {
-            console.log("dfrgr", error);
+            console.log(error);
           });
       });
   }
@@ -104,7 +106,12 @@ export default class Comments {
           );
         });
 
-        this.commentsEl.innerHTML = commentsHTML;
+        if (data.length === 0) {
+          this.commentsEl.innerHTML =
+            "<div id='be-the-first'><p>(ඟ⍘ඟ)</p><p>It's lonely here</p></div>";
+        } else {
+          this.commentsEl.innerHTML = commentsHTML;
+        }
       });
   }
 
