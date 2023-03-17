@@ -66,3 +66,7 @@ export function draggable(el: any) {
     window.addEventListener(upEvent, reset);
   });
 }
+
+export function stripTags(str: string) {
+  return str.replace(/(<([^>]+)>)/gi, "");
+}
