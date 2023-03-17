@@ -106,8 +106,19 @@
       <div class="modal-wrapper">
         <div id="comment-form-wrapper">
           <form id="comment-form">
-            <input type="text" name="name" placeholder="Name" required />
-            <textarea name="comment" placeholder="Comment" required></textarea>
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              required
+              maxlength="100"
+            />
+            <textarea
+              name="comment"
+              placeholder="Comment"
+              required
+              maxlength="255"
+            ></textarea>
             <input type="submit" value="Send" />
           </form>
           <div id="comment-form-thanks-message">
