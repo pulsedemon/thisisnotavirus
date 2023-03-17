@@ -54,6 +54,20 @@
       height: 100px;
     }
 
+    #textarea-wrapper {
+      position: relative;
+
+      #char-count {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        font-size: 12px;
+        background-color: aqua;
+        color: black;
+        padding: 2px;
+      }
+    }
+
     input[type="submit"] {
       cursor: url("../images/cursor.png") 15 0, pointer;
       text-transform: uppercase;

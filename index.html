@@ -113,12 +113,15 @@
               required
               maxlength="100"
             />
-            <textarea
-              name="comment"
-              placeholder="Comment"
-              required
-              maxlength="255"
-            ></textarea>
+            <div id="textarea-wrapper">
+              <textarea
+                name="comment"
+                placeholder="Comment"
+                required
+                maxlength="255"
+              ></textarea>
+              <div id="char-count"><span>0</span>/255</div>
+            </div>
             <input type="submit" value="Send" />
           </form>
           <div id="comment-form-thanks-message">
@@ -144,6 +147,7 @@
           <div class="commenter-comment">{{ comment }}</div>
         </div>
     </script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeYiwolAAAAAG9u-F-xmcJLRFUB_W0HkvOqC12U"></script>
     <script src="/build/main.js" type="module"></script>
   </body>
 </html>

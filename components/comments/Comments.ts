@@ -1,6 +1,6 @@
 import "./comments.scss";
 import Mustache from "mustache";
-import { stripTags } from "../../util";
+import { stripTags, checkResponse } from "../../util";
 
 interface Comment {
   name: string;
@@ -11,39 +11,56 @@ export default class Comments {
   commentsEl = document.getElementById("comments")!;
   commentCountEl = document.getElementById("comment-count")!;
   commentFormEl = document.getElementById("comment-form")!;
+  commentTextarea = document.querySelector("#comment-form textarea")!;
+  textareaCharCountEl = document.querySelector("#char-count span")!;
   commentFormThanksEl = document.getElementById("comment-form-thanks-message")!;
   template = document.getElementById("comment-template")!.innerHTML;
+  captchaKey = "6LeYiwolAAAAAG9u-F-xmcJLRFUB_W0HkvOqC12U";
 
   constructor() {
     // TODO: add loading animation
     // TODO: only show comment form once per day
+    this.addCharCount();
     this.loadComments();
     this.commentFormEl.addEventListener("submit", this.onSubmit.bind(this));
   }
 
+  addCharCount() {
+    this.commentTextarea.addEventListener("keyup", (e: any) => {
+      console.log("keyup");
+      this.textareaCharCountEl.textContent = e.target.value.length;
+    });
+  }
+
   onSubmit(e: any) {
     e.preventDefault();
-    const formData = new FormData(e.target);
 
-    // TODO: min num words validation
-    // TODO: max num words validation
-    // TODO: max char validation
+    grecaptcha
+      .execute(this.captchaKey, { action: "submit" })
+      .then((token: string) => {
+        const formData = new FormData(e.target);
+        formData.append("captchaToken", token);
 
-    this.submitComment(formData).then((response) => {
-      console.log("response", response);
-      const commentHTML = this.commentHTML(
-        response.name,
-        response.comment,
-        response.created
-      );
+        this.submitComment(formData)
+          .then((response) => {
+            console.log("response", response);
+            const commentHTML = this.commentHTML(
+              response.name,
+              response.comment,
+              response.created
+            );
 
-      this.commentsEl.insertAdjacentHTML("afterbegin", commentHTML);
-      this.commentCountEl.innerText = `${
-        parseInt(this.commentCountEl.innerText) + 1
-      }`;
+            this.commentsEl.insertAdjacentHTML("afterbegin", commentHTML);
+            this.commentCountEl.innerText = `${
+              parseInt(this.commentCountEl.innerText) + 1
+            }`;
 
-      this.animateForm();
-    });
+            this.animateForm();
+          })
+          .catch((error) => {
+            console.log("dfrgr", error);
+          });
+      });
   }
 
   animateForm() {
@@ -68,7 +85,7 @@ export default class Comments {
       },
       body: JSON.stringify(formDataObject),
     });
-    return response.json();
+    return checkResponse(response);
   }
 
   loadComments() {
