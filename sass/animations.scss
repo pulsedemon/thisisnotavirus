@@ -16,6 +16,15 @@
   }
 }
 
+@keyframes flip-horizontal {
+  0% {
+    transform: scale(-1, 1);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
+
 @keyframes wobble {
   0% {
     transform: rotate(15deg);

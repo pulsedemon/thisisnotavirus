@@ -32,7 +32,9 @@ export default class Comments {
       );
 
       this.commentsEl.insertAdjacentHTML("afterbegin", commentHTML);
-      // TODO: update comment count
+      this.commentCountEl.innerText = `${
+        parseInt(this.commentCountEl.innerText) + 1
+      }`;
 
       this.animateForm();
     });
