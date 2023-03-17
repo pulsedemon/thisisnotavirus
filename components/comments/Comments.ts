@@ -33,6 +33,7 @@ export default class Comments {
 
   onSubmit(e: any) {
     e.preventDefault();
+    e.target.querySelector("button").disabled = true;
 
     grecaptcha
       .execute(this.captchaKey, { action: "submit" })
