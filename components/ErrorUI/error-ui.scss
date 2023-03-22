@@ -1,0 +1,10 @@
+@use "../../sass/animations.scss";
+
+.error {
+  animation: shake 1s infinite;
+  position: absolute;
+  color: #ffffff;
+  font-size: 40px;
+  font-family: monospace;
+  text-shadow: red 2px 5px;
+}

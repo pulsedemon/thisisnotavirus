@@ -1,6 +1,7 @@
 import "./comments.scss";
 import Mustache from "mustache";
 import { stripTags, checkResponse } from "../../util";
+import ErrorUI from "../ErrorUI/ErrorUI";
 
 interface Comment {
   name: string;
@@ -62,6 +63,8 @@ export default class Comments {
           })
           .catch((error) => {
             console.log(error);
+            console.log("fuck");
+            // TODO: add error ui
           });
       });
   }
@@ -93,7 +96,7 @@ export default class Comments {
 
   loadComments() {
     fetch("http://localhost:8080/comments/")
-      .then((response) => response.json())
+      .then((response) => checkResponse(response))
       .then((data) => {
         this.commentsEl.innerText = "";
         this.commentCountEl.innerText = data.length;
@@ -109,10 +112,15 @@ export default class Comments {
 
         if (data.length === 0) {
           this.commentsEl.innerHTML =
-            "<div id='be-the-first'><p>(ඟ⍘ඟ)</p><p>It's lonely here</p></div>";
+            "<div id='be-the-first'><p>(ඟ⍘ඟ)</p><p>404 Not Found</p></div>";
         } else {
           this.commentsEl.innerHTML = commentsHTML;
         }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO: add error ui
+        new ErrorUI(document.querySelector(".comments-modal"));
       });
   }
 

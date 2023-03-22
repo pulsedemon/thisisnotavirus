@@ -78,7 +78,7 @@ export async function checkResponse(response: Response) {
   } else {
     return response.json().then((response) => {
       throw {
-        error: "error",
+        error: response.detail,
         status: status,
       };
     });
