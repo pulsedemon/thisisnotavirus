@@ -1,20 +1,38 @@
-import { randomInt, randomNumberBetween } from "../../util";
 import "./error-ui.scss";
+import { randomInt, randomNumberBetween } from "../../util";
 
 export default class ErrorUI {
   el;
   text = "ERROR";
-  numEls = 500;
+  numEls = 600;
   width = window.innerWidth;
   height = window.innerHeight;
-  constructor(el) {
+  fillScreenTimeout: any;
+
+  constructor(el: Element) {
     this.el = el;
-    console.log("el", el);
+  }
+
+  start() {
+    this.el.classList.add("disable-overflow");
     this.fillScreen();
   }
 
+  stop() {
+    clearTimeout(this.fillScreenTimeout);
+    this.el.classList.remove("disable-overflow");
+    this.clearScreen();
+  }
+
+  clearScreen() {
+    const errors = this.el.querySelectorAll(".error");
+    errors.forEach((e, i) => {
+      this.el.removeChild(e);
+    });
+  }
+
   fillScreen() {
-    setTimeout(() => {
+    this.fillScreenTimeout = setTimeout(() => {
       this.numEls--;
       this.appendError();
       if (this.numEls > 0) {
@@ -29,16 +47,15 @@ export default class ErrorUI {
 
   appendError() {
     const errorDiv = document.createElement("div");
+    const coords = this.getRandomCoords();
+
     errorDiv.innerText = this.text;
     errorDiv.classList.add("error");
-    const coords = this.getRandomCoords();
-    console.log("coords", coords);
     errorDiv.style.top = `${coords.y}px`;
     errorDiv.style.left = `${coords.x}px`;
     errorDiv.style.fontSize = this.randomFontSize();
 
     this.el.append(errorDiv);
-    console.log("dfkrgmk");
   }
 
   getRandomCoords() {

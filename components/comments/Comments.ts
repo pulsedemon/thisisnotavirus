@@ -62,9 +62,10 @@ export default class Comments {
             this.animateForm();
           })
           .catch((error) => {
-            console.log(error);
-            console.log("fuck");
-            // TODO: add error ui
+            const errorUi = new ErrorUI(
+              document.querySelector(".comments-modal")!
+            );
+            errorUi.start();
           });
       });
   }
@@ -118,9 +119,8 @@ export default class Comments {
         }
       })
       .catch((error) => {
-        console.log(error);
-        // TODO: add error ui
-        new ErrorUI(document.querySelector(".comments-modal"));
+        const errorUi = new ErrorUI(document.querySelector(".comments-modal")!);
+        errorUi.start();
       });
   }
 
