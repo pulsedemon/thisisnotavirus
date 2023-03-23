@@ -6,8 +6,8 @@ frontend:
         - yarn install
     build:
       commands:
-        - yarn run build:prod
         - echo "process.env.API_BASE_URL=$API_BASE_URL" > .env
+        - yarn run build:prod
 
   artifacts:
     baseDirectory: /
