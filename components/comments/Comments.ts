@@ -85,7 +85,7 @@ export default class Comments {
       formDataObject[k as keyof Comment] = stripTags(v as string);
     });
 
-    const response = await fetch("http://localhost:8080/comments/", {
+    const response = await fetch(`${process.env.API_BASE_URL}/comments/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -96,7 +96,7 @@ export default class Comments {
   }
 
   loadComments() {
-    fetch("http://localhost:8080/comments/")
+    fetch(`${process.env.API_BASE_URL}/comments/`)
       .then((response) => checkResponse(response))
       .then((data) => {
         this.commentsEl.innerText = "";

@@ -55,6 +55,11 @@ export default class ErrorUI {
     errorDiv.style.left = `${coords.x}px`;
     errorDiv.style.fontSize = this.randomFontSize();
 
+    const randomBool = Math.random() < 0.5;
+    if (randomBool) {
+      errorDiv.classList.add("vary");
+    }
+
     this.el.append(errorDiv);
   }
 

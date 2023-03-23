@@ -7,6 +7,11 @@
   font-size: 40px;
   font-family: monospace;
   text-shadow: red 2px 5px;
+
+  &.vary {
+    animation: glitch 1s infinite;
+    text-shadow: black 2px 5px;
+  }
 }
 
 .disable-overflow {
