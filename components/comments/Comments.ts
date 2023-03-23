@@ -21,8 +21,6 @@ export default class Comments {
   captchaKey = "6LeYiwolAAAAAG9u-F-xmcJLRFUB_W0HkvOqC12U";
 
   constructor() {
-    // TODO: add loading animation
-    // TODO: only show comment form once per day
     this.addCharCount();
     this.loadComments();
     this.commentFormEl.addEventListener("submit", this.onSubmit.bind(this));
@@ -34,9 +32,23 @@ export default class Comments {
     });
   }
 
+  buttonLoading() {
+    const submitButton = document.querySelector("#comment-form button")!;
+    let dotStr = "";
+    let dots = setInterval(() => {
+      if (dotStr.length > 2) {
+        dotStr = "";
+      } else {
+        dotStr += ".";
+      }
+      submitButton.innerHTML = `Loading<span class="dots">${dotStr}</span>`;
+    }, 100);
+  }
+
   onSubmit(e: any) {
     e.preventDefault();
     e.target.querySelector("button").disabled = true;
+    this.buttonLoading();
 
     grecaptcha
       .execute(this.captchaKey, { action: "submit" })
