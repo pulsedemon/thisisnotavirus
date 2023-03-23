@@ -2,6 +2,8 @@ import "./comments.scss";
 import Mustache from "mustache";
 import { stripTags, checkResponse } from "../../util";
 import ErrorUI from "../ErrorUI/ErrorUI";
+// @ts-ignore
+import grecaptcha from "grecaptcha";
 
 interface Comment {
   name: string;

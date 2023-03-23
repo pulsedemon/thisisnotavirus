@@ -23,6 +23,10 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".json"],
   },
+  externals: {
+    gtag: "gtag",
+    grecaptcha: "grecaptcha",
+  },
   plugins: [
     new webpack.DefinePlugin({
       "process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL),

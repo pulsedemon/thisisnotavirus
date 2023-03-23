@@ -3,6 +3,8 @@ import { virus } from "./ascii";
 import { preloadImage, randomInt, randomNumberBetween } from "./util";
 import Playlist from "./components/Playlist";
 import Comments from "./components/comments/Comments";
+// @ts-ignore
+import gtag from "gtag";
 
 console.log(
   `%c
