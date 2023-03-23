@@ -108,6 +108,7 @@ document.getElementById("info-btn")!.onclick = (e) => {
   const target = <HTMLElement>e.target;
   if (target.innerText === "info") {
     displayInfo();
+    hideComments();
   } else {
     hideInfo();
   }
@@ -117,6 +118,7 @@ document.getElementById("comments-btn")!.onclick = (e) => {
   const target = <HTMLElement>e.target;
   if (target.innerText === "comment") {
     displayComments();
+    hideInfo();
   } else {
     hideComments();
   }
