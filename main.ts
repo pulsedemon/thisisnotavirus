@@ -140,8 +140,6 @@ function displayComments() {
   gtag("event", "display_comments");
 }
 
-displayComments();
-
 function hideComments() {
   document.querySelector(".modal.comments-modal")!.classList.remove("show");
   document.getElementById("comments-btn")!.innerText = "comment";
