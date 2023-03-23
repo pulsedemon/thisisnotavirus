@@ -11,6 +11,7 @@ interface Comment {
 }
 
 export default class Comments {
+  commentsModal = document.querySelector(".comments-modal")!;
   commentsEl = document.getElementById("comments")!;
   commentCountEl = document.getElementById("comment-count")!;
   commentFormEl = document.getElementById("comment-form")!;
@@ -19,11 +20,16 @@ export default class Comments {
   commentFormThanksEl = document.getElementById("comment-form-thanks-message")!;
   template = document.getElementById("comment-template")!.innerHTML;
   captchaKey = "6LeYiwolAAAAAG9u-F-xmcJLRFUB_W0HkvOqC12U";
+  nextPage = 1;
 
   constructor() {
     this.addCharCount();
     this.loadComments();
     this.commentFormEl.addEventListener("submit", this.onSubmit.bind(this));
+    this.commentsModal.addEventListener(
+      "scroll",
+      this.handleInfiniteScroll.bind(this)
+    );
   }
 
   addCharCount() {
@@ -110,14 +116,24 @@ export default class Comments {
   }
 
   loadComments() {
-    fetch(`${process.env.API_BASE_URL}/comments/`)
+    if (this.nextPage === null) {
+      return;
+    }
+
+    fetch(`${process.env.API_BASE_URL}/comments/?page=${this.nextPage}`)
       .then((response) => checkResponse(response))
       .then((data) => {
-        this.commentsEl.innerText = "";
-        this.commentCountEl.innerText = data.length;
+        this.nextPage = data.next;
+
+        const results = data.results;
+
+        if (data.previous === null) {
+          this.commentsEl.innerHTML = "";
+          this.commentCountEl.innerText = data.count;
+        }
 
         let commentsHTML = "";
-        data.forEach((comment: any) => {
+        results.forEach((comment: any) => {
           commentsHTML += this.commentHTML(
             comment.name,
             comment.comment,
@@ -125,17 +141,28 @@ export default class Comments {
           );
         });
 
-        if (data.length === 0) {
+        if (data.count === 0) {
           this.commentsEl.innerHTML =
             "<div id='be-the-first'><p>(ඟ⍘ඟ)</p><p>404 Not Found</p></div>";
         } else {
-          this.commentsEl.innerHTML = commentsHTML;
+          this.commentsEl.innerHTML += commentsHTML;
         }
       })
       .catch((error) => {
+        console.log(error);
         const errorUi = new ErrorUI(document.querySelector(".comments-modal")!);
         errorUi.start();
       });
+  }
+
+  handleInfiniteScroll() {
+    const endOfPage =
+      this.commentsModal.scrollTop ===
+      this.commentsModal.scrollHeight - this.commentsModal.offsetHeight;
+    if (endOfPage) {
+      // TODO: add loading animation
+      this.loadComments();
+    }
   }
 
   commentHTML(name: string, comment: string, created: string) {
