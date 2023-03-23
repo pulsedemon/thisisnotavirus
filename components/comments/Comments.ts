@@ -11,7 +11,7 @@ interface Comment {
 }
 
 export default class Comments {
-  commentsModal = document.querySelector(".comments-modal")!;
+  commentsModal: HTMLElement = document.querySelector(".comments-modal")!;
   commentsEl = document.getElementById("comments")!;
   commentCountEl = document.getElementById("comment-count")!;
   commentFormEl = document.getElementById("comment-form")!;
