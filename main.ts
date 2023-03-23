@@ -1,3 +1,6 @@
+import * as Sentry from "@sentry/browser";
+import { BrowserTracing } from "@sentry/tracing";
+
 import "./sass/main.scss";
 import { virus } from "./ascii";
 import { preloadImage, randomInt, randomNumberBetween } from "./util";
@@ -5,6 +8,16 @@ import Playlist from "./components/Playlist";
 import Comments from "./components/comments/Comments";
 // @ts-ignore
 import gtag from "gtag";
+
+Sentry.init({
+  dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
+  integrations: [new BrowserTracing()],
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
+});
 
 console.log(
   `%c
