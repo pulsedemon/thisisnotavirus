@@ -26,6 +26,9 @@
     "webpack": "^5.76.0",
     "webpack-cli": "^5.0.1"
   },
+  "devDependencies": {
+    "source-map-loader": "^4.0.1"
+  },
   "scripts": {
     "start": "concurrently 'yarn:build --watch' 'yarn:serve'",
     "build": "webpack",
