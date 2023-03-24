@@ -33,12 +33,22 @@ preloadImage("/viruses/faces/images/eye-blink.webp");
 
 class VirusLoader {
   lastLoaded: string = "flash";
+  loaderIframe = <HTMLIFrameElement>(
+    document.getElementById("loading-container")
+  );
   iframe = <HTMLIFrameElement>document.getElementById("container");
   loadRandomInterval: any;
 
   constructor() {
     this.loadVirus(playlist.current());
     this.startRandomization();
+
+    console.log("loaderIframe", this.loaderIframe);
+    this.iframe.addEventListener("load", this.iframeLoaded.bind(this));
+  }
+
+  iframeLoaded() {
+    console.log("iframeLoaded");
   }
 
   loadVirus(name: string) {

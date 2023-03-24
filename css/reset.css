@@ -131,7 +131,8 @@ table {
 
 html,
 body,
-#container {
+#container,
+#loading-container {
   width: 100vw;
   height: 100vh;
 }

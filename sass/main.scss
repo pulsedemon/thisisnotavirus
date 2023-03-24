@@ -5,6 +5,14 @@ body {
   line-height: 1;
 }
 
+#loading-container {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  overflow: hidden;
+  z-index: 1000;
+}
+
 #container {
   width: 100vw;
   height: 100vh;
