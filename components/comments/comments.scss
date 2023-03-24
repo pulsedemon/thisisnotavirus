@@ -112,7 +112,21 @@
   }
 }
 
+.comments-loading-animation {
+  width: 100%;
+  &.hide {
+    display: none;
+  }
+}
+
 #comments-wrapper {
+  &.loading {
+    #num-comments,
+    #comments {
+      display: none;
+    }
+  }
+
   margin-top: 20px;
 
   #num-comments {

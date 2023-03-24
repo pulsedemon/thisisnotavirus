@@ -14,8 +14,10 @@ export default class Comments {
   commentsModal: HTMLElement = document.querySelector(".comments-modal")!;
   commentsEl = document.getElementById("comments")!;
   commentCountEl = document.getElementById("comment-count")!;
+  commentWrapperEl = document.getElementById("comments-wrapper")!;
   commentFormEl = document.getElementById("comment-form")!;
   commentTextarea = document.querySelector("#comment-form textarea")!;
+  loadingAnim = document.querySelector(".comments-loading-animation")!;
   textareaCharCountEl = document.querySelector("#char-count span")!;
   commentFormThanksEl = document.getElementById("comment-form-thanks-message")!;
   template = document.getElementById("comment-template")!.innerHTML;
@@ -23,6 +25,7 @@ export default class Comments {
   nextPage = 1;
 
   constructor() {
+    this.commentWrapperEl.classList.add("loading");
     this.addCharCount();
     this.loadComments();
     this.commentFormEl.addEventListener("submit", this.onSubmit.bind(this));
@@ -120,6 +123,8 @@ export default class Comments {
       return;
     }
 
+    this.showLoadingAnim();
+
     fetch(`${process.env.API_BASE_URL}/comments/?page=${this.nextPage}`)
       .then((response) => checkResponse(response))
       .then((data) => {
@@ -147,6 +152,9 @@ export default class Comments {
         } else {
           this.commentsEl.innerHTML += commentsHTML;
         }
+
+        this.commentWrapperEl.classList.remove("loading");
+        this.hideLoadingAnim();
       })
       .catch((error) => {
         console.log(error);
@@ -155,12 +163,19 @@ export default class Comments {
       });
   }
 
+  hideLoadingAnim() {
+    this.loadingAnim.classList.add("hide");
+  }
+
+  showLoadingAnim() {
+    this.loadingAnim.classList.remove("hide");
+  }
+
   handleInfiniteScroll() {
     const endOfPage =
       this.commentsModal.scrollTop ===
       this.commentsModal.scrollHeight - this.commentsModal.offsetHeight;
     if (endOfPage) {
-      // TODO: add loading animation
       this.loadComments();
     }
   }
