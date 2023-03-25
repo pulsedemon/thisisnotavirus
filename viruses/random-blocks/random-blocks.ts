@@ -12,8 +12,11 @@ class RandomBlocks {
   canvasCtx!: CanvasRenderingContext2D;
   blockSize = randomNumberBetween(4, 10);
   container = document.getElementById("container")!;
+  bgColors = ["black", "white"];
 
   constructor() {
+    document.body.style.backgroundColor =
+      this.bgColors[randomNumberBetween(0, this.bgColors.length)];
     this.canvas = document.createElement("canvas");
     this.canvasCtx = this.canvas.getContext("2d")!;
     this.container.appendChild(this.canvas);
