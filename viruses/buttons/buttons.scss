@@ -1,5 +1,9 @@
 @use "../../sass/animations.scss";
 
+body {
+  background-color: #ffffff;
+}
+
 body,
 #container {
   width: 100vw;
