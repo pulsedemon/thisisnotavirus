@@ -181,6 +181,9 @@ export default class Comments {
   }
 
   commentHTML(name: string, comment: string, created: string) {
+    if (name.toLowerCase() === "thisisnotavirus") {
+      name = `<span class="owner">${name}</span>`;
+    }
     return Mustache.render(this.template, {
       name: name,
       comment: comment,
