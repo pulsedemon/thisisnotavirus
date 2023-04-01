@@ -4,7 +4,7 @@ import { randomInt, randomNumberBetween } from "../../util";
 export default class ErrorUI {
   el;
   text = "ERROR";
-  numEls = 600;
+  numEls = 700;
   width = window.innerWidth;
   height = window.innerHeight;
   fillScreenTimeout: any;
