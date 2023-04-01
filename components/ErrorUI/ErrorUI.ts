@@ -9,8 +9,11 @@ export default class ErrorUI {
   height = window.innerHeight;
   fillScreenTimeout: any;
 
-  constructor(el: Element) {
+  constructor(el: Element, text?: string) {
     this.el = el;
+    if (text) {
+      this.text = text.toUpperCase();
+    }
   }
 
   start() {
