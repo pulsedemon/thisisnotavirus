@@ -10,7 +10,6 @@ export default class Playlist {
     "faces",
     "doors",
     "emoji",
-    "error-like-text",
   ];
 
   playlist: string[] = [];
