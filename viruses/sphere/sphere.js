@@ -1,12 +1,15 @@
 "use strict";
 
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
 import { randomInt } from "../../util";
 
 class Sphere {
   WIDTH = window.innerWidth;
   HEIGHT = window.innerHeight;
   renderer;
+  controls;
   scene;
   camera;
   vortex;
@@ -68,6 +71,9 @@ class Sphere {
     this.randomizeSphereColor = Math.random() < 0.5;
     this.randomizeDiamondColor = Math.random() < 0.5;
 
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.update();
+
     this.render();
     this.diamond_color();
   }
@@ -117,6 +123,7 @@ class Sphere {
       );
     }
 
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.render());
   }

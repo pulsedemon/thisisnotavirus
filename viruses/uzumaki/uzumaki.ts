@@ -19,18 +19,20 @@ const colors = [
 ];
 const randomizeBgContinuously =
   randomNumberBetween(1, 10) % 2 === 0 ? true : false;
-let randomColor = colors[Math.floor(Math.random() * colors.length)];
+let randomColor;
+
 if (randomizeBgContinuously) {
   setInterval(() => {
     randomColor = colors[Math.floor(Math.random() * colors.length)];
     document.body.style.backgroundColor = randomColor;
   }, 200);
 } else {
+  randomColor = colors[Math.floor(Math.random() * colors.length)];
   document.body.style.backgroundColor = randomColor;
 }
 
 const css =
   "#container::before { background-image: " + `url(${imageUrl})` + "; }');";
-let styleSheet = document.createElement("style");
+const styleSheet = document.createElement("style");
 styleSheet.innerText = css;
 document.head.appendChild(styleSheet);
