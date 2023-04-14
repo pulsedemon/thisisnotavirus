@@ -121,7 +121,7 @@ document.getElementById("info-btn")!.onclick = (e) => {
   const target = <HTMLElement>e.target;
   if (target.innerText === "info") {
     displayInfo();
-    hideComments();
+    // hideComments();
   } else {
     hideInfo();
   }
@@ -163,7 +163,7 @@ function hideComments() {
 document.onkeyup = (e) => {
   if (e.key === "Escape") {
     hideInfo();
-    hideComments();
+    // hideComments();
   }
 };
 
