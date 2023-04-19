@@ -32,7 +32,6 @@ preloadImage("/viruses/uzumaki/uzumaki.webp");
 preloadImage("/viruses/faces/images/eye-blink.webp");
 
 class VirusLoader {
-  lastLoaded: string = "flash";
   iframe = <HTMLIFrameElement>document.getElementById("container");
   loadRandomInterval: any;
 
@@ -43,37 +42,30 @@ class VirusLoader {
 
   loadVirus(name: string) {
     this.iframe.src = `/viruses/${name}/`;
-    this.lastLoaded = name;
   }
 
   skipNext() {
-    this.loadVirus("flash");
+    this.loadVirus(playlist.next());
     this.startRandomization();
   }
 
   skipPrev() {
-    this.loadVirus("flash");
-    playlist.prev();
-    this.startRandomization(playlist.current());
+    this.loadVirus(playlist.prev());
+    this.startRandomization();
   }
 
   startRandomization(name?: string) {
     clearInterval(this.loadRandomInterval);
 
     let randomTime = randomNumberBetween(2, 12) * 1000;
-
     let virusToLoad: string;
-    if (this.lastLoaded !== "flash") {
-      virusToLoad = "flash";
-    } else if (name) {
-      virusToLoad = name;
-      randomTime = 400;
-    } else {
-      virusToLoad = playlist.next();
-      randomTime = 400;
-    }
 
     this.loadRandomInterval = setInterval(() => {
+      if (name) {
+        virusToLoad = name;
+      } else {
+        virusToLoad = playlist.next();
+      }
       this.loadVirus(virusToLoad);
       this.startRandomization();
     }, randomTime);
@@ -98,7 +90,7 @@ document.getElementById("play-pause")!.onclick = (e) => {
     target.innerText = "play_arrow";
     clearInterval(vl.loadRandomInterval);
     gtag("event", "pause", {
-      animation_name: vl.lastLoaded,
+      animation_name: playlist.current(),
     });
   } else {
     target.innerText = "pause";
