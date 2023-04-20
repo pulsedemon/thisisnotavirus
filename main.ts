@@ -43,23 +43,27 @@ class VirusLoader {
   constructor() {
     this.loadingAnim = new Flash(this.loadingAnimEl);
     this.loading(true);
-    console.log("this.loadingAnim", this.loadingAnim);
+    this.iframe.addEventListener("load", this.iframeLoaded.bind(this));
     this.loadVirus(playlist.current());
     this.startRandomization();
   }
 
-  loading(state: boolean) {
-    let display;
-    if (state) {
-      display = "block";
-    } else {
-      display = "none";
-    }
+  iframeLoaded() {
+    this.loading(false);
+  }
 
-    this.loadingAnimEl.style.display = display;
+  loading(state: boolean) {
+    if (state) {
+      this.loadingAnimEl.style.display = "block";
+    } else {
+      setTimeout(() => {
+        this.loadingAnimEl.style.display = "none";
+      }, 400);
+    }
   }
 
   loadVirus(name: string) {
+    this.loading(true);
     this.iframe.src = `/viruses/${name}/`;
   }
 
