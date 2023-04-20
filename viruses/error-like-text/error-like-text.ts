@@ -6,7 +6,7 @@ import { randomNumberBetween } from "../../util";
 class ErrorLikeText {
   constructor() {
     const container = document.getElementById("container");
-    const texts = ["amygdala", "fuck you"];
+    const texts = ["game over"];
     const errorUi = new ErrorUI(
       container!,
       texts[randomNumberBetween(0, texts.length)]
