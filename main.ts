@@ -3,6 +3,7 @@ import { BrowserTracing } from "@sentry/tracing";
 
 import "./sass/main.scss";
 import { virus } from "./ascii";
+import Flash from "./components/flash/flash";
 import { preloadImage, randomInt, randomNumberBetween } from "./util";
 import Playlist from "./components/Playlist";
 import Comments from "./components/comments/Comments";
@@ -34,10 +35,28 @@ preloadImage("/viruses/faces/images/eye-blink.webp");
 class VirusLoader {
   iframe = <HTMLIFrameElement>document.getElementById("container");
   loadRandomInterval: any;
+  loadingAnimEl: HTMLCanvasElement = document.getElementById(
+    "loading-anim"
+  ) as HTMLCanvasElement;
+  loadingAnim;
 
   constructor() {
+    this.loadingAnim = new Flash(this.loadingAnimEl);
+    this.loading(true);
+    console.log("this.loadingAnim", this.loadingAnim);
     this.loadVirus(playlist.current());
     this.startRandomization();
+  }
+
+  loading(state: boolean) {
+    let display;
+    if (state) {
+      display = "block";
+    } else {
+      display = "none";
+    }
+
+    this.loadingAnimEl.style.display = display;
   }
 
   loadVirus(name: string) {

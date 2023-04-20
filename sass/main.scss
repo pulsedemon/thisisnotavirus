@@ -1,5 +1,12 @@
 @use "./animations.scss";
 
+#loading-anim {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  z-index: 2;
+}
+
 body {
   font-size: 62.5%;
   line-height: 1;

@@ -1,19 +1,16 @@
-class Flash {
-  canvas;
+export default class Flash {
+  canvas: HTMLCanvasElement;
   screenWidth: number;
   screenHeight: number;
-  canvasCtx;
+  canvasCtx: CanvasRenderingContext2D;
 
-  constructor() {
-    this.canvas = document.createElement("canvas");
+  constructor(el: HTMLCanvasElement) {
+    this.canvas = el;
     this.screenWidth = window.innerWidth;
     this.screenHeight = window.innerHeight;
-
-    const container = document.getElementById("container");
-    container?.appendChild(this.canvas);
     this.canvas.width = this.screenWidth;
     this.canvas.height = this.screenHeight;
-    this.canvasCtx = this.canvas.getContext("2d");
+    this.canvasCtx = this.canvas.getContext("2d")!;
 
     this.update();
   }
@@ -36,5 +33,3 @@ class Flash {
     );
   }
 }
-
-new Flash();
