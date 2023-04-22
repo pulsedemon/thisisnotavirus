@@ -12,8 +12,10 @@ export default class Flash {
   }
 
   stop() {
-    clearInterval(this.animationInterval);
-    this.el.style.display = "none";
+    setTimeout(() => {
+      clearInterval(this.animationInterval);
+      this.el.style.display = "none";
+    }, 200);
   }
 
   update() {
