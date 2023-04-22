@@ -47,7 +47,7 @@ function forwards() {
 
 function backwards() {
   const interval = setInterval(() => {
-    container.innerHTML = container.innerHTML.slice(0, -13);
+    container.innerHTML = container.innerHTML.slice(0, -(13 * 2));
     if (container.innerHTML.length === 0) {
       clearInterval(interval);
       forwards();

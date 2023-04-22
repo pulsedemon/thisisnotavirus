@@ -1,4 +1,4 @@
-import { randomNumberBetween } from "../../util";
+import { randomNumberBetween, randomRGBColor } from "../../util";
 
 class RandomBlocks {
   screenWidth!: number;
@@ -59,7 +59,7 @@ class RandomBlocks {
 
     const position: number[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
-      let randomColor = this.randomColor();
+      let randomColor = randomRGBColor();
       let xPosition = position[0];
       let yPosition = position[1];
 
@@ -79,17 +79,6 @@ class RandomBlocks {
 
   randomYAxis(size: number): number {
     return Math.round((Math.random() * this.screenHeight) / size) * size;
-  }
-
-  randomColor(): string {
-    return (
-      "" +
-      (Math.round(Math.random() * 256) +
-        "," +
-        Math.round(Math.random() * 256) +
-        "," +
-        Math.round(Math.random() * 256))
-    );
   }
 }
 

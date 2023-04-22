@@ -4,7 +4,7 @@ import { randomInt } from "../../util";
 class Faces {
   eyes = document.querySelectorAll<HTMLElement>(".eye");
 
-  eyeClasses = ["x", "pupil", "closed"];
+  eyeClasses = ["x", "pupil"];
 
   constructor() {
     const eyeClass = this.eyeClasses[randomInt(this.eyeClasses.length)];

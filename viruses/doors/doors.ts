@@ -147,7 +147,6 @@ class Doors {
 
 const container = document.getElementById("container")!;
 const width = container.clientWidth;
-const numCols = Math.round(container.clientWidth / (isMobile ? 40 : 20));
 const colorPalettes = [
   {
     bg: "#00ffff",

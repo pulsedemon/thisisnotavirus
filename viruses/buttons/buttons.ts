@@ -90,7 +90,6 @@ class Buttons {
 
       let filename = image.src.split("/").slice(-1)[0].split(".")[0];
       image.classList.add(filename);
-
       this.container.appendChild(image);
 
       draggable(image);
