@@ -84,3 +84,14 @@ export async function checkResponse(response: Response) {
     });
   }
 }
+
+export function randomRGBColor() {
+  return (
+    "" +
+    (Math.round(Math.random() * 256) +
+      "," +
+      Math.round(Math.random() * 256) +
+      "," +
+      Math.round(Math.random() * 256))
+  );
+}

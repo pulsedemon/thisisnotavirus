@@ -1,3 +1,5 @@
+import { randomRGBColor } from "../../util";
+
 export default class Flash {
   el: HTMLDivElement;
   animationInterval: any;
@@ -19,18 +21,7 @@ export default class Flash {
   }
 
   update() {
-    const randomColor = this.randomColor();
+    const randomColor = randomRGBColor();
     this.el.style.backgroundColor = "rgb(" + randomColor + ")";
-  }
-
-  randomColor() {
-    return (
-      "" +
-      (Math.round(Math.random() * 256) +
-        "," +
-        Math.round(Math.random() * 256) +
-        "," +
-        Math.round(Math.random() * 256))
-    );
   }
 }
