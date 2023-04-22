@@ -1,25 +1,24 @@
 export default class Flash {
-  canvas: HTMLCanvasElement;
-  screenWidth: number;
-  screenHeight: number;
-  canvasCtx: CanvasRenderingContext2D;
+  el: HTMLDivElement;
+  animationInterval: any;
 
-  constructor(el: HTMLCanvasElement) {
-    this.canvas = el;
-    this.screenWidth = window.innerWidth;
-    this.screenHeight = window.innerHeight;
-    this.canvas.width = this.screenWidth;
-    this.canvas.height = this.screenHeight;
-    this.canvasCtx = this.canvas.getContext("2d")!;
+  constructor(el: HTMLDivElement) {
+    this.el = el;
+  }
 
-    this.update();
+  start() {
+    this.el.style.display = "block";
+    this.animationInterval = setInterval(() => this.update(), 100);
+  }
+
+  stop() {
+    clearInterval(this.animationInterval);
+    this.el.style.display = "none";
   }
 
   update() {
     const randomColor = this.randomColor();
-    this.canvasCtx.fillStyle = "rgb(" + randomColor + ")";
-    this.canvasCtx.fillRect(0, 0, this.screenWidth, this.screenHeight);
-    window.requestAnimationFrame(() => this.update());
+    this.el.style.backgroundColor = "rgb(" + randomColor + ")";
   }
 
   randomColor() {
