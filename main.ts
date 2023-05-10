@@ -6,7 +6,7 @@ import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
 import { randomInt, randomNumberBetween } from "./util";
 import Playlist from "./components/Playlist";
-// import Comments from "./components/comments/Comments";
+
 // @ts-ignore
 import gtag from "gtag";
 
@@ -128,16 +128,6 @@ document.getElementById("info-btn")!.onclick = (e) => {
   toggleInfo();
 };
 
-// document.getElementById("comments-btn")!.onclick = (e) => {
-//   const target = <HTMLElement>e.target;
-//   if (target.innerText === "comment") {
-//     displayComments();
-//     hideInfo();
-//   } else {
-//     hideComments();
-//   }
-// };
-
 function toggleInfo() {
   const infoEl = document.querySelector(".modal.info-modal")!;
 
@@ -158,18 +148,6 @@ function hideInfo() {
   document.querySelector(".modal.info-modal")!.classList.remove("show");
   document.getElementById("info-btn")!.innerText = "info";
 }
-
-// function displayComments() {
-//   document.querySelector(".modal.comments-modal")!.classList.add("show");
-//   document.getElementById("comments-btn")!.innerText = "close";
-//   // new Comments();
-//   gtag("event", "display_comments");
-// }
-
-// function hideComments() {
-//   document.querySelector(".modal.comments-modal")!.classList.remove("show");
-//   document.getElementById("comments-btn")!.innerText = "comment";
-// }
 
 document.onkeyup = (e) => {
   if (e.key === "Escape") {

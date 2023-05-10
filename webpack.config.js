@@ -25,7 +25,6 @@ module.exports = {
   },
   externals: {
     gtag: "gtag",
-    grecaptcha: "grecaptcha",
   },
   plugins: [
     new webpack.DefinePlugin({
