@@ -88,44 +88,44 @@ window.addEventListener("orientationchange", function () {
 });
 
 document.getElementById("skip-previous")!.onclick = () => {
-  clearInterval(vl.loadRandomInterval);
   gtag("event", "skip_previous");
   vl.skipPrev();
 };
 
-document.getElementById("play-pause")!.onclick = (e) => {
-  const target = <HTMLElement>e.target;
-  if (target.innerText === "pause") {
-    target.innerText = "play_arrow";
+function togglePlayPause() {
+  const playPauseBtn = document.getElementById("play-pause")!;
+  if (playPauseBtn.innerText === "pause") {
+    playPauseBtn.innerText = "play_arrow";
     clearInterval(vl.loadRandomInterval);
     gtag("event", "pause", {
       animation_name: playlist.current(),
     });
   } else {
-    target.innerText = "pause";
+    playPauseBtn.innerText = "pause";
     gtag("event", "play");
     vl.skipNext();
   }
-};
+}
+
+document.getElementById("play-pause")!.onclick = togglePlayPause;
+
+function resumePlayback() {
+  const playButton = document.getElementById("play-pause")!;
+  if (playButton.innerText === "play_arrow") {
+    playButton.innerText = "pause";
+  }
+}
 
 document.getElementById("skip-next")!.onclick = () => {
   gtag("event", "skip_next");
   vl.skipNext();
 
-  const playButton = document.getElementById("play-pause")!;
-  if (playButton.innerText === "play_arrow") {
-    playButton.innerText = "pause";
-  }
+  resumePlayback();
 };
 
 document.getElementById("info-btn")!.onclick = (e) => {
   const target = <HTMLElement>e.target;
-  if (target.innerText === "info") {
-    displayInfo();
-    // hideComments();
-  } else {
-    hideInfo();
-  }
+  toggleInfo();
 };
 
 // document.getElementById("comments-btn")!.onclick = (e) => {
@@ -138,6 +138,16 @@ document.getElementById("info-btn")!.onclick = (e) => {
 //   }
 // };
 
+function toggleInfo() {
+  const infoEl = document.querySelector(".modal.info-modal")!;
+
+  if (infoEl.classList.contains("show")) {
+    hideInfo();
+  } else {
+    displayInfo();
+  }
+}
+
 function displayInfo() {
   document.querySelector(".modal.info-modal")!.classList.add("show");
   document.getElementById("info-btn")!.innerText = "close";
@@ -149,22 +159,33 @@ function hideInfo() {
   document.getElementById("info-btn")!.innerText = "info";
 }
 
-function displayComments() {
-  document.querySelector(".modal.comments-modal")!.classList.add("show");
-  document.getElementById("comments-btn")!.innerText = "close";
-  new Comments();
-  gtag("event", "display_comments");
-}
+// function displayComments() {
+//   document.querySelector(".modal.comments-modal")!.classList.add("show");
+//   document.getElementById("comments-btn")!.innerText = "close";
+//   // new Comments();
+//   gtag("event", "display_comments");
+// }
 
-function hideComments() {
-  document.querySelector(".modal.comments-modal")!.classList.remove("show");
-  document.getElementById("comments-btn")!.innerText = "comment";
-}
+// function hideComments() {
+//   document.querySelector(".modal.comments-modal")!.classList.remove("show");
+//   document.getElementById("comments-btn")!.innerText = "comment";
+// }
 
 document.onkeyup = (e) => {
   if (e.key === "Escape") {
     hideInfo();
     // hideComments();
+  } else if (e.key === "ArrowRight") {
+    gtag("event", "skip_next_keyboard");
+    vl.skipNext();
+    resumePlayback();
+  } else if (e.key === "ArrowLeft") {
+    gtag("event", "skip_prev_keyboard");
+    vl.skipPrev();
+  } else if (e.key === " " || e.key === "Spacebar") {
+    togglePlayPause();
+  } else if (e.key === "?") {
+    toggleInfo();
   }
 };
 
