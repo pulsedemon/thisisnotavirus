@@ -105,60 +105,6 @@
       </div>
     </div>
 
-    <div class="modal comments-modal">
-      <div class="modal-wrapper">
-        <div id="comment-form-wrapper">
-          <form id="comment-form">
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              required
-              maxlength="100"
-            />
-            <div id="textarea-wrapper">
-              <textarea
-                name="comment"
-                placeholder="Comment"
-                required
-                maxlength="255"
-              ></textarea>
-              <div id="char-count"><span>0</span>/255</div>
-            </div>
-            <button type="submit">Send</button>
-          </form>
-          <div id="comment-form-thanks-message">
-            <span>(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧</span>
-          </div>
-        </div>
-
-        <div id="comments-wrapper">
-          <strong id="num-comments"
-            ><span id="comment-count"></span> Comments</strong
-          >
-
-          <div id="comments"></div>
-          <div class="comments-loading-animation hide">
-            <div class="lds-ring">
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script id="comment-template" type="x-tmpl-mustache">
-      <div class="comment">
-          <div class="commenter-name">
-            {{{ name }}} &mdash; <span class="created">{{ created }}</span>
-          </div>
-          <div class="commenter-comment">{{ comment }}</div>
-        </div>
-    </script>
-
     <script src="/build/main.js" type="module"></script>
   </body>
 </html>
