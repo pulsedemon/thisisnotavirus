@@ -6,7 +6,7 @@ import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
 import { randomInt, randomNumberBetween } from "./util";
 import Playlist from "./components/Playlist";
-import Comments from "./components/comments/Comments";
+// import Comments from "./components/comments/Comments";
 // @ts-ignore
 import gtag from "gtag";
 
