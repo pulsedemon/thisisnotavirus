@@ -4,7 +4,7 @@ import { BrowserTracing } from "@sentry/tracing";
 import "./sass/main.scss";
 import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
-import { preloadImage, randomInt, randomNumberBetween } from "./util";
+import { randomInt, randomNumberBetween } from "./util";
 import Playlist from "./components/Playlist";
 import Comments from "./components/comments/Comments";
 // @ts-ignore
@@ -28,9 +28,6 @@ console.log(
 );
 
 const playlist = new Playlist();
-
-preloadImage("/viruses/uzumaki/uzumaki.webp");
-preloadImage("/viruses/faces/images/eye-blink.webp");
 
 class VirusLoader {
   iframe = <HTMLIFrameElement>document.getElementById("container");
