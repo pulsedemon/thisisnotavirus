@@ -2,13 +2,15 @@
 
 ## What is this?
 
-JavaScript/CSS animations that I work on when I'm bored.
+This is my personal site that I use to post JavaScript/CSS animations that I work on when I'm bored. I do this for fun, so don't expect this code to be totally production level. That said, it will run fine in any modern browser and load relatively quickly.
 
-If you're bored and you'd like to mess around with this code then:
+## Installation
+
+Clone repo, then:
 
 ```
 yarn install
 yarn run start
 ```
 
-Should be accessible at http://localhost:3000
+Should be accessible at http://localhost:3000 unless you've already occupied port 3000. See terminal output.
