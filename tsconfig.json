@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
       "strict": true,
+      "strictPropertyInitialization": false,
       "esModuleInterop": true,
       "module": "esnext",
       "moduleResolution": "node",

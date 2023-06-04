@@ -9,6 +9,7 @@
     "@sentry/browser": "^7.45.0",
     "@sentry/tracing": "^7.45.0",
     "@types/mustache": "^4.2.2",
+    "@types/three": "^0.152.1",
     "@types/ua-parser-js": "^0.7.36",
     "babel-loader": "^9.1.2",
     "concurrently": "^7.6.0",
@@ -21,7 +22,7 @@
     "sass-loader": "^13.2.1",
     "serve": "^14.2.0",
     "style-loader": "^3.3.2",
-    "three": "0.150.1",
+    "three": "0.153.0",
     "ua-parser-js": "^1.0.34",
     "webpack": "^5.76.3",
     "webpack-cli": "^5.0.1"
