@@ -1,5 +1,5 @@
 import "./faces.scss";
-import { randomInt } from "../../util";
+import Random from "../../utils/random";
 
 class Faces {
   eyes = document.querySelectorAll<HTMLElement>(".eye");
@@ -7,7 +7,7 @@ class Faces {
   eyeClasses = ["x", "pupil"];
 
   constructor() {
-    const eyeClass = this.eyeClasses[randomInt(this.eyeClasses.length)];
+    const eyeClass = this.eyeClasses[Random.int(this.eyeClasses.length)];
     this.eyes.forEach((e) => {
       e.classList.add(eyeClass);
     });

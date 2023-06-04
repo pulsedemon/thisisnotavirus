@@ -1,13 +1,7 @@
 import "./buttons.scss";
-import { isMobile } from "../../util";
 
-import {
-  shuffle,
-  preloadImage,
-  randomNumberBetween,
-  randomInt,
-  draggable,
-} from "../../util";
+import { isMobile, shuffle, preloadImage, draggable } from "../../utils/misc";
+import Random from "../../utils/random";
 
 class Buttons {
   container: HTMLElement;
@@ -64,9 +58,9 @@ class Buttons {
     button.type = "button";
     button.style.top = `${coords.y}px`;
     button.style.left = `${coords.x}px`;
-    button.innerText = this.buttonText[randomInt(this.buttonText.length)];
+    button.innerText = this.buttonText[Random.int(this.buttonText.length)];
     button.classList.add(
-      this.buttonClasses[randomInt(this.buttonClasses.length)]
+      this.buttonClasses[Random.int(this.buttonClasses.length)]
     );
     this.container.appendChild(button);
   }
@@ -113,8 +107,8 @@ class Buttons {
   }
 
   getRandomCoords() {
-    const randomX = randomInt(this.width);
-    const randomY = randomInt(this.height);
+    const randomX = Random.int(this.width);
+    const randomY = Random.int(this.height);
 
     return {
       x: randomX - 40,
@@ -133,8 +127,8 @@ class Buttons {
     const endingY = startingY + this.imageGridSize;
 
     return {
-      x: randomNumberBetween(startingX, endingX) - 40,
-      y: randomNumberBetween(startingY, endingY) - 40,
+      x: Random.numberBetween(startingX, endingX) - 40,
+      y: Random.numberBetween(startingY, endingY) - 40,
     };
   }
 }

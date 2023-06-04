@@ -1,5 +1,5 @@
 import "./doors.scss";
-import { randomNumberBetween, randomInt, isMobile } from "../../util";
+import Random from "../../utils/random";
 
 interface DoorConfig {
   y: number;
@@ -165,7 +165,7 @@ const colorPalettes = [
     primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
-let colorPalette = colorPalettes[randomInt(colorPalettes.length)];
+let colorPalette = colorPalettes[Random.int(colorPalettes.length)];
 const minSpeed = 10;
 const maxSpeed = 30;
 
@@ -173,7 +173,7 @@ document.body.style.backgroundColor = colorPalette.bg;
 
 const numInstances = 6;
 for (let i = 0; i < numInstances; i++) {
-  const numCols = randomNumberBetween(
+  const numCols = Random.numberBetween(
     container.clientWidth / 20,
     container.clientWidth / 30
   );
@@ -181,7 +181,7 @@ for (let i = 0; i < numInstances; i++) {
   let doorsInstance = new Doors(
     Math.round(width / numCols),
     colorPalette.primary[0],
-    randomNumberBetween(minSpeed, maxSpeed),
+    Random.numberBetween(minSpeed, maxSpeed),
     1,
     0
   );
@@ -191,7 +191,7 @@ for (let i = 0; i < numInstances; i++) {
     doorsInstance.addDoors(
       Math.round(width / numCols) * x,
       colorPalette.primary[0],
-      randomNumberBetween(minSpeed, maxSpeed)
+      Random.numberBetween(minSpeed, maxSpeed)
     );
   }
 }

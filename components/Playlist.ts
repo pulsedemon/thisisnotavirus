@@ -1,4 +1,4 @@
-import { shuffle } from "../util";
+import { shuffle } from "../utils/misc";
 
 export default class Playlist {
   viruses = [

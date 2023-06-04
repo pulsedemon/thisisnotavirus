@@ -1,22 +1,21 @@
-import { randomNumberBetween, randomRGBColor } from "../../util";
+import Random from "../../utils/random";
 
 class RandomBlocks {
   screenWidth!: number;
   screenHeight!: number;
   locations: any = [];
   count: number = 0;
-  numberOfBlocks: number = 0;
   blocksAppended: number = 0;
   canvas!: HTMLCanvasElement;
 
   canvasCtx!: CanvasRenderingContext2D;
-  blockSize = randomNumberBetween(4, 10);
+  blockSize = Random.numberBetween(4, 20);
   container = document.getElementById("container")!;
   bgColors = ["black", "white", "aqua", "red"];
 
   constructor() {
     document.body.style.backgroundColor =
-      this.bgColors[randomNumberBetween(0, this.bgColors.length)];
+      this.bgColors[Random.numberBetween(0, this.bgColors.length)];
     this.canvas = document.createElement("canvas");
     this.canvasCtx = this.canvas.getContext("2d")!;
     this.container.appendChild(this.canvas);
@@ -32,7 +31,6 @@ class RandomBlocks {
     this.canvas.height = this.container.clientHeight;
     this.screenWidth = this.canvas.width;
     this.screenHeight = this.canvas.height;
-    this.numberOfBlocks = this.calculateNumberOfBlocks();
   }
 
   onWindowResize() {
@@ -46,20 +44,13 @@ class RandomBlocks {
     });
   }
 
-  calculateNumberOfBlocks(): number {
-    let numBlocksAcross = this.screenWidth / this.blockSize;
-    let numBlocksDown = this.screenHeight / this.blockSize;
-
-    return Math.ceil(numBlocksAcross * numBlocksDown);
-  }
-
   add(size: number) {
     let randomXNumber = this.randomXAxis(size);
     let randomYNumber = this.randomYAxis(size);
 
     const position: number[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
-      let randomColor = randomRGBColor();
+      let randomColor = Random.rgbColor();
       let xPosition = position[0];
       let yPosition = position[1];
 

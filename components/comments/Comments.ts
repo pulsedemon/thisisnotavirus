@@ -1,6 +1,6 @@
 import "./comments.scss";
 import Mustache from "mustache";
-import { stripTags, checkResponse } from "../../util";
+import { stripTags, checkResponse } from "../../utils/misc";
 import ErrorUI from "../ErrorUI/ErrorUI";
 // @ts-ignore
 import grecaptcha from "grecaptcha";

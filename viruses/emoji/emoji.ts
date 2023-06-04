@@ -1,5 +1,6 @@
 import "./emoji.scss";
-import { randomInt, randomNumberBetween, isMobile } from "../../util";
+import { isMobile } from "../../utils/misc";
+import Random from "../../utils/random";
 
 const size = isMobile ? 40 : 50;
 const container = document.getElementById("container")!;
@@ -29,12 +30,12 @@ const emojis = [
 ];
 
 function forwards() {
-  document.body.style.backgroundColor = bgColors[randomInt(bgColors.length)];
-  let emoji = emojis[randomInt(emojis.length)];
-  const useAllEmoji = randomNumberBetween(1, 10) % 2 === 0 ? true : false;
+  document.body.style.backgroundColor = bgColors[Random.int(bgColors.length)];
+  let emoji = emojis[Random.int(emojis.length)];
+  const useAllEmoji = Random.numberBetween(1, 10) % 2 === 0 ? true : false;
   const interval = setInterval(() => {
-    const randomClass = randomNumberBetween(1, 100) % 2 === 0 ? "wider" : "";
-    if (useAllEmoji) emoji = emojis[randomInt(emojis.length)];
+    const randomClass = Random.numberBetween(1, 100) % 2 === 0 ? "wider" : "";
+    if (useAllEmoji) emoji = emojis[Random.int(emojis.length)];
     container.innerHTML += `<span class="${randomClass}">${emoji}</span>`;
     if (container.clientHeight > document.body.clientHeight + 70) {
       clearInterval(interval);

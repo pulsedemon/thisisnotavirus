@@ -4,7 +4,7 @@ import { BrowserTracing } from "@sentry/tracing";
 import "./sass/main.scss";
 import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
-import { randomInt, randomNumberBetween } from "./util";
+import Random from "./utils/random";
 import Playlist from "./components/Playlist";
 
 // @ts-ignore
@@ -66,7 +66,7 @@ class VirusLoader {
   startRandomization(name?: string) {
     clearInterval(this.loadRandomInterval);
 
-    let randomTime = randomNumberBetween(2, 12) * 1000;
+    let randomTime = Random.numberBetween(2, 12) * 1000;
     let virusToLoad: string;
 
     this.loadRandomInterval = setInterval(() => {
@@ -218,7 +218,7 @@ function teleportMenu() {
 
   menu.classList.add(animationClassName);
   setTimeout(() => {
-    menu.style.inset = menuPositions[randomInt(menuPositions.length)];
+    menu.style.inset = menuPositions[Random.int(menuPositions.length)];
     setTimeout(() => {
       menu.classList.remove(animationClassName);
     }, 400);

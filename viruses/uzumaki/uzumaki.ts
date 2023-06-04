@@ -1,4 +1,4 @@
-import { randomNumberBetween } from "../../util";
+import Random from "../../utils/random";
 import "./uzumaki.scss";
 
 const imageUrl = `/viruses/uzumaki/uzumaki.webp`;
@@ -17,8 +17,7 @@ const colors = [
   "#ff1d58",
   "#f75990",
 ];
-const randomizeBgContinuously =
-  randomNumberBetween(1, 10) % 2 === 0 ? true : false;
+const randomizeBgContinuously = Random.bool();
 let randomColor;
 
 if (randomizeBgContinuously) {

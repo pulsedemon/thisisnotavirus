@@ -1,4 +1,5 @@
 import UAParser from "ua-parser-js";
+import Random from "./random";
 
 const usparser = new UAParser();
 export const isMobile =
@@ -9,10 +10,6 @@ export function preloadImage(url: string) {
   img.src = url;
 }
 
-export function randomInt(max: number): number {
-  return Math.floor(Math.random() * max);
-}
-
 export function shuffle(array: any[]): any[] {
   let currentIndex = array.length,
     randomIndex;
@@ -20,7 +17,7 @@ export function shuffle(array: any[]): any[] {
   // While there remain elements to shuffle.
   while (currentIndex != 0) {
     // Pick a remaining element.
-    randomIndex = randomInt(currentIndex);
+    randomIndex = Random.int(currentIndex);
     currentIndex--;
 
     // And swap it with the current element.
@@ -31,10 +28,6 @@ export function shuffle(array: any[]): any[] {
   }
 
   return array;
-}
-
-export function randomNumberBetween(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min) + min);
 }
 
 export function draggable(el: any) {
@@ -83,15 +76,4 @@ export async function checkResponse(response: Response) {
       };
     });
   }
-}
-
-export function randomRGBColor() {
-  return (
-    "" +
-    (Math.round(Math.random() * 256) +
-      "," +
-      Math.round(Math.random() * 256) +
-      "," +
-      Math.round(Math.random() * 256))
-  );
 }

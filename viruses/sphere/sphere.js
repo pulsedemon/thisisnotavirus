@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-import { randomInt } from "../../util";
+import Random from "../../utils/random";
 
 class Sphere {
   WIDTH = window.innerWidth;
@@ -38,7 +38,7 @@ class Sphere {
 
     const segmentOptions = [7, 12, 20, 22];
     const radius = 100;
-    const segment = randomInt(segmentOptions.length);
+    const segment = Random.int(segmentOptions.length);
     const segments = segmentOptions[segment];
     const rings = 18;
 

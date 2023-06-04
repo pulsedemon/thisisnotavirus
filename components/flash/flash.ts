@@ -1,4 +1,4 @@
-import { randomRGBColor } from "../../util";
+import Random from "../../utils/random";
 
 export default class Flash {
   el: HTMLDivElement;
@@ -21,7 +21,7 @@ export default class Flash {
   }
 
   update() {
-    const randomColor = randomRGBColor();
+    const randomColor = Random.rgbColor();
     this.el.style.backgroundColor = "rgb(" + randomColor + ")";
   }
 }
