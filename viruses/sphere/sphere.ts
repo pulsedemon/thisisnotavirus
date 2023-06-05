@@ -14,36 +14,18 @@ class Sphere {
   camera: THREE.PerspectiveCamera;
   vortex: THREE.Mesh;
   diamond: THREE.Mesh;
-  randomizeSphereColor = false;
-  randomizeDiamondColor = false;
+  randomizeSphereColor = Random.bool();
+  randomizeDiamondColor = Random.bool();
+  shouldRotateDiamond = Random.bool();
 
   constructor() {
-    this.setWidthHeight();
-
-    const VIEW_ANGLE = 45;
-    const ASPECT = this.WIDTH / this.HEIGHT;
-    const NEAR = 1;
-    const FAR = 10000;
-
-    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-
-    this.camera.position.z = 300;
+    this.setRenderOptions();
     this.scene = new THREE.Scene();
-
     this.createVortex();
     this.createDiamond();
 
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(this.WIDTH, this.HEIGHT);
-
     document.getElementById("container")!.appendChild(this.renderer.domElement);
-
-    this.renderer.domElement.style.top =
-      window.innerHeight - this.HEIGHT / 2 + "px";
-
-    window.addEventListener("resize", () => this.onWindowResize(), false);
-    this.randomizeSphereColor = Random.bool();
-    this.randomizeDiamondColor = Random.bool();
+    window.addEventListener("resize", () => this.setRenderOptions(), false);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.update();
@@ -52,8 +34,7 @@ class Sphere {
     this.diamond_color();
   }
 
-  setWidthHeight() {
-    // TODO: refactor this to include camera and renderer initialization
+  setRenderOptions() {
     this.WIDTH = window.innerWidth;
     this.HEIGHT = window.innerHeight;
 
@@ -63,23 +44,37 @@ class Sphere {
 
     this.WIDTH = this.WIDTH * 2;
     this.HEIGHT = this.HEIGHT * 2;
+
+    if (!this.renderer) this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setSize(this.WIDTH, this.HEIGHT);
+
+    this.renderer.domElement.style.top =
+      window.innerHeight - this.HEIGHT / 2 + "px";
+
+    if (!this.camera) {
+      const VIEW_ANGLE = 45;
+      const ASPECT = this.WIDTH / this.HEIGHT;
+      const NEAR = 1;
+      const FAR = 10000;
+      this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+      this.camera.position.z = 300;
+    } else {
+      this.camera.aspect = this.WIDTH / this.HEIGHT;
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   createVortex() {
     const segmentOptions = [7, 12, 20, 22];
-    const radius = 100;
     const segment = Random.int(segmentOptions.length);
     const segments = segmentOptions[segment];
-    const rings = 18;
+    const extraOptions = [0, Math.PI * 2, 0, Math.PI * 2];
 
     const geometry = new THREE.SphereGeometry(
-      radius,
+      100,
       segments,
-      rings,
-      0,
-      Math.PI * 2,
-      0,
-      Math.PI * 2
+      18,
+      ...extraOptions
     );
     const random_color = Math.random() * 0xffffff;
     const material = new THREE.MeshBasicMaterial({
@@ -91,25 +86,10 @@ class Sphere {
   }
 
   createDiamond() {
-    const radius = 50;
-    const segments = 20;
-    const rings = 2;
-    const geometry = new THREE.SphereGeometry(radius, segments, rings);
+    const geometry = new THREE.SphereGeometry(50, 20, 2);
     const material = new THREE.MeshBasicMaterial({ wireframe: true });
     this.diamond = new THREE.Mesh(geometry, material);
     this.scene.add(this.diamond);
-  }
-
-  onWindowResize() {
-    this.setWidthHeight();
-
-    this.camera.aspect = this.WIDTH / this.HEIGHT;
-    this.camera.updateProjectionMatrix();
-
-    this.renderer.domElement.style.top =
-      window.innerHeight - this.HEIGHT / 2 + "px";
-
-    this.renderer.setSize(this.WIDTH, this.HEIGHT);
   }
 
   render() {
@@ -117,6 +97,11 @@ class Sphere {
 
     this.vortex.rotation.y = 0.02 * time;
     this.vortex.rotation.z = 0.02 * time;
+
+    if (this.shouldRotateDiamond) {
+      this.diamond.rotation.y = -0.02 * time;
+      this.diamond.rotation.z = -0.02 * time;
+    }
 
     if (this.randomizeSphereColor) {
       this.randomizeMeshColor(this.vortex);
