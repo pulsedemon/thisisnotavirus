@@ -7,7 +7,7 @@ class Faces {
   eyeClasses = ["x", "pupil"];
 
   constructor() {
-    const eyeClass = this.eyeClasses[Random.int(this.eyeClasses.length)];
+    const eyeClass = Random.itemInArray(this.eyeClasses);
     this.eyes.forEach((e) => {
       e.classList.add(eyeClass);
     });

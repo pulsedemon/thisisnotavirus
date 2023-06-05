@@ -1,7 +1,6 @@
 import Random from "../../utils/random";
 import "./uzumaki.scss";
 
-const imageUrl = `/viruses/uzumaki/uzumaki.webp`;
 const colors = [
   "#ff0000",
   "#00ffff",
@@ -22,16 +21,10 @@ let randomColor;
 
 if (randomizeBgContinuously) {
   setInterval(() => {
-    randomColor = colors[Math.floor(Math.random() * colors.length)];
+    randomColor = Random.itemInArray(colors);
     document.body.style.backgroundColor = randomColor;
   }, 200);
 } else {
-  randomColor = colors[Math.floor(Math.random() * colors.length)];
+  randomColor = Random.itemInArray(colors);
   document.body.style.backgroundColor = randomColor;
 }
-
-const css =
-  "#container::before { background-image: " + `url(${imageUrl})` + "; }');";
-const styleSheet = document.createElement("style");
-styleSheet.innerText = css;
-document.head.appendChild(styleSheet);

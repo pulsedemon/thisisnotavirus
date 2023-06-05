@@ -165,7 +165,7 @@ const colorPalettes = [
     primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
-let colorPalette = colorPalettes[Random.int(colorPalettes.length)];
+let colorPalette = Random.itemInArray(colorPalettes);
 const minSpeed = 10;
 const maxSpeed = 30;
 

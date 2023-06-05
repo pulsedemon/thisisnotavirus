@@ -21,4 +21,8 @@ export default class Random {
   static bool() {
     return Math.random() < 0.5;
   }
+
+  static itemInArray(array: any[]) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
 }

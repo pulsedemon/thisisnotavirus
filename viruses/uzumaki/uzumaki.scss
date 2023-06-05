@@ -11,6 +11,7 @@ body {
   position: relative;
 
   &::before {
+    background-image: url("/viruses/uzumaki/uzumaki.webp");
     content: "";
     position: fixed;
     width: 300%;

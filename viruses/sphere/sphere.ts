@@ -2,7 +2,6 @@ import "./sphere.scss";
 import * as THREE from "three";
 // @ts-ignore
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-
 import Random from "../../utils/random";
 
 class Sphere {
