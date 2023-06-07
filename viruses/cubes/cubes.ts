@@ -30,10 +30,12 @@ class Cubes {
     this.renderer.setSize(this.width, this.height);
     document.getElementById("container")!.appendChild(this.renderer.domElement);
 
-    const xOffset = -85;
     const xDistance = 10;
     let yOffset = 55;
-    for (let x = 0; x < 200; x++) {
+    const cols = Math.ceil(this.width / 70);
+    const rows = Math.ceil(this.height / 70);
+    const xOffset = -(cols * 4) - 1;
+    for (let x = 0; x < cols * rows; x++) {
       const color = this.randomizeCubeColor
         ? Random.itemInArray(this.colors)
         : 0xffffff;
@@ -44,11 +46,11 @@ class Cubes {
         new THREE.LineBasicMaterial({ color: color })
       );
 
-      if (x % 20 === 0) {
+      if (x % cols === 0) {
         yOffset -= 10;
       }
       cube.position.y = yOffset;
-      cube.position.x = xDistance * (x % 20) + xOffset;
+      cube.position.x = xDistance * (x % cols) + xOffset;
       cube.useSpeedModifier = Random.bool();
 
       this.scene.add(cube);
