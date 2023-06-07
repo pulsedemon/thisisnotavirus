@@ -8,18 +8,19 @@ class Cubes {
   camera;
   width = window.innerWidth;
   height = window.innerHeight;
-  cubes = [];
+  cubes: THREE.LineSegments[] = [];
   randomizeCubeColor = Random.bool();
   colors = [
     0xff0000, 0xffffff, 0xffff00, 0x00ffff, 0x00ff00, 0xccff00, 0xff1d58,
     0xf75990, 0x00ff7f, 0xffd700,
   ];
+  speedModifier = Random.bool() ? 3 : 1;
 
   constructor() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       25,
-      window.innerWidth / window.innerHeight,
+      this.width / this.height,
       0.1,
       1000
     );
@@ -48,6 +49,8 @@ class Cubes {
       }
       cube.position.y = yOffset;
       cube.position.x = xDistance * (x % 20) + xOffset;
+      cube.useSpeedModifier = Random.bool();
+
       this.scene.add(cube);
       this.cubes.push(cube);
     }
@@ -57,9 +60,12 @@ class Cubes {
 
   animate() {
     requestAnimationFrame(() => this.animate());
+
     this.cubes.forEach((cube) => {
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      cube.rotation.x +=
+        0.01 * (cube.useSpeedModifier ? this.speedModifier : 1);
+      cube.rotation.y +=
+        0.01 * (cube.useSpeedModifier ? this.speedModifier : 1);
     });
 
     this.renderer.render(this.scene, this.camera);
