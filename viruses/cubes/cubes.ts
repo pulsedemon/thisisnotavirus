@@ -19,7 +19,7 @@ class Cubes {
     );
     this.camera.position.z = 200;
 
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(this.width, this.height);
     document.getElementById("container")!.appendChild(this.renderer.domElement);
 
