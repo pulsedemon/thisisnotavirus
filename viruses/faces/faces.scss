@@ -69,14 +69,30 @@ body {
 
     &.smile {
       background-image: url("/viruses/faces/images/mouth-smile.webp");
+
+      @media (min-width: 320px) and (max-width: 480px) {
+        height: 150px;
+      }
     }
+
     &.monster {
       background-size: contain;
       background-image: url("/viruses/faces/images/mouth-monster.webp");
+
+      @media (min-width: 320px) and (max-width: 480px) {
+        top: -30px;
+        height: 150px;
+      }
     }
+
     &.bear {
       background-size: contain;
       background-image: url("/viruses/faces/images/mouth-bear.webp");
+
+      @media (min-width: 320px) and (max-width: 480px) {
+        top: -40px;
+        height: 150px;
+      }
     }
   }
 }
