@@ -6,7 +6,7 @@ class Faces {
   mouth = document.getElementById("mouth")!;
 
   eyeClasses = ["x", "pupil"];
-  mouthClasses = ["smile", "monster"];
+  mouthClasses = ["smile", "monster", "bear"];
 
   constructor() {
     const eyeClass = Random.itemInArray(this.eyeClasses);
