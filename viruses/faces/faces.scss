@@ -59,7 +59,6 @@ body {
   }
 
   #mouth {
-    background-image: url("/viruses/faces/images/mouth-smile.webp");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -67,6 +66,14 @@ body {
     height: 200px;
     position: relative;
     top: -50px;
+
+    &.smile {
+      background-image: url("/viruses/faces/images/mouth-smile.webp");
+    }
+    &.monster {
+      background-size: contain;
+      background-image: url("/viruses/faces/images/monster.png");
+    }
   }
 }
 

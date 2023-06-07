@@ -10,7 +10,7 @@ Clone repo, then:
 
 ```
 yarn install
-yarn run start
+yarn start
 ```
 
 Should be accessible at http://localhost:3000 unless you've already occupied port 3000. See terminal output.

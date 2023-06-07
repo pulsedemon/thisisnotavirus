@@ -3,14 +3,19 @@ import Random from "../../utils/random";
 
 class Faces {
   eyes = document.querySelectorAll<HTMLElement>(".eye");
+  mouth = document.getElementById("mouth")!;
 
   eyeClasses = ["x", "pupil"];
+  mouthClasses = ["smile", "monster"];
 
   constructor() {
     const eyeClass = Random.itemInArray(this.eyeClasses);
+    const mouthClass = Random.itemInArray(this.mouthClasses);
     this.eyes.forEach((e) => {
       e.classList.add(eyeClass);
     });
+
+    this.mouth.classList.add(mouthClass);
   }
 
   blink(eye?: any) {
