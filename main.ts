@@ -47,13 +47,6 @@ class VirusLoader {
 
   iframeLoaded() {
     this.loadingAnim.stop();
-    const innerDoc =
-      this.iframe.contentDocument || this.iframe.contentWindow.document;
-    if (browserName === "Mobile Safari") {
-      const iframeSourceCodeEl = innerDoc.getElementById("source-code");
-      iframeSourceCodeEl!.style.bottom = "auto";
-      iframeSourceCodeEl!.style.top = "0px";
-    }
   }
 
   loadVirus(name: string) {
