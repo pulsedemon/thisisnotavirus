@@ -4,6 +4,7 @@ import Random from "./random";
 const usparser = new UAParser();
 export const isMobile =
   usparser.getResult().device.type === "mobile" ? true : false;
+export const browserName = usparser.getResult().browser.name;
 
 export function preloadImage(url: string) {
   let img = new Image();

@@ -26,6 +26,10 @@ body {
     animation: glitch-effect 3s infinite linear alternate-reverse;
   }
 
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+
   display: inline-block;
   background-color: #000;
   font-family: serif;
