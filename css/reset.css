@@ -140,23 +140,3 @@ input,
 textarea {
   border-radius: 0;
 }
-
-#source-code {
-  position: fixed;
-  min-height: 50px;
-  max-height: 50px;
-  box-sizing: border-box;
-  top: 0;
-  left: 0;
-  color: white;
-  background-color: black;
-  font-size: 30px;
-  padding: 10px 15px;
-  z-index: 10000;
-}
-
-#source-code a {
-  color: white;
-  position: relative;
-  top: 4px;
-}

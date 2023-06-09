@@ -37,6 +37,12 @@ class VirusLoader {
     "loading-anim"
   ) as HTMLDivElement;
   loadingAnim;
+  loadingRing: HTMLDivElement = document.getElementById(
+    "loading-ring"
+  ) as HTMLDivElement;
+  sourceCodeLink: HTMLAnchorElement = document.querySelector(
+    "#source-code a"
+  )! as HTMLAnchorElement;
 
   constructor() {
     this.loadingAnim = new Flash(this.loadingAnimEl);
@@ -45,12 +51,21 @@ class VirusLoader {
     this.startRandomization();
   }
 
+  sourceCodeUrl(virus: string) {
+    return `https://github.com/pulsedemon/thisisnotavirus/tree/master/viruses/${virus}`;
+  }
+
   iframeLoaded() {
     this.loadingAnim.stop();
+    this.sourceCodeLink.classList.remove("hide");
+    this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
+    this.loadingRing.classList.remove("loading");
   }
 
   loadVirus(name: string) {
     this.loadingAnim.start();
+    this.sourceCodeLink?.classList.add("hide");
+    this.loadingRing.classList.add("loading");
     this.iframe.src = `/viruses/${name}/`;
   }
 
