@@ -215,8 +215,9 @@ body {
 
 #source-code {
   position: fixed;
-  min-height: 50px;
-  max-height: 50px;
+  width: 55px;
+  height: 50px;
+  overflow: hidden;
   box-sizing: border-box;
   top: 0;
   left: 0;
