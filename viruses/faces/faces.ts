@@ -39,7 +39,9 @@ class Faces {
 }
 
 const faces = new Faces();
-faces.blink().then(() => faces.blink());
+setTimeout(() => {
+  faces.blink().then(() => faces.blink());
+}, 700);
 
 setInterval(() => {
   setTimeout(() => {
