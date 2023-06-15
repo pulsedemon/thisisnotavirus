@@ -44,6 +44,12 @@ class VirusLoader {
     this.iframe.addEventListener("load", this.iframeLoaded.bind(this));
     this.loadVirus(playlist.current());
     this.startRandomization();
+
+    this.sourceCodeLink.addEventListener("click", () => {
+      gtag("event", "source-click", {
+        animation_name: playlist.current(),
+      });
+    });
   }
 
   sourceCodeUrl(virus: string) {
