@@ -135,7 +135,7 @@ class Buttons {
 
 const b = new Buttons();
 
-let initialButtonCount = 600;
+let initialButtonCount = 450;
 if (b.width <= 700) {
   initialButtonCount = 300;
 }
