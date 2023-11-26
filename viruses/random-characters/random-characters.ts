@@ -74,7 +74,7 @@ function appendCanvases() {
   }
 }
 
-let resizeStop: any;
+let resizeStop: NodeJS.Timeout;
 window.addEventListener(
   "resize",
   () => {

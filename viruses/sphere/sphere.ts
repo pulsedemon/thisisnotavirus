@@ -1,6 +1,6 @@
 import "./sphere.scss";
 import * as THREE from "three";
-// @ts-ignore
+// @ts-expect-error doesn't work without this
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Random from "../../utils/random";
 
@@ -112,7 +112,7 @@ class Sphere {
   }
 
   randomizeMeshColor(objMesh: THREE.Mesh) {
-    // @ts-ignore
+    // @ts-expect-error color
     objMesh.material.color.setRGB(
       Math.round(Math.random()),
       Math.round(Math.random()),

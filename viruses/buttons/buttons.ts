@@ -94,8 +94,9 @@ class Buttons {
     });
   }
 
-  bringToTop(el: any) {
-    el.style.zIndex = this.topzIndex += 1;
+  bringToTop(el: EventTarget | null) {
+    const element = el as HTMLElement;
+    element.style.zIndex = `${(this.topzIndex += 1)}`;
   }
 
   getRandomImage(): string {
@@ -158,8 +159,9 @@ const explosions: string[] = [
   "/viruses/buttons/explosions/explosion1.gif",
 ];
 
-document.addEventListener("click", function (e: any) {
+document.addEventListener("click", function (e) {
   if (!e.target) return;
+  // @ts-expect-error ???
   if (e.target.type !== "button") return;
 
   continueAddingButtons = false;

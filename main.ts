@@ -7,7 +7,7 @@ import Flash from "./components/flash/flash";
 import Random from "./utils/random";
 import Playlist from "./components/Playlist";
 
-// @ts-ignore
+// @ts-expect-error gtag
 import gtag from "gtag";
 
 Sentry.init({
@@ -27,7 +27,7 @@ const playlist = new Playlist();
 
 class VirusLoader {
   iframe = document.getElementById("container") as HTMLIFrameElement;
-  loadRandomInterval: any;
+  loadRandomInterval: NodeJS.Timeout;
   loadingAnimEl: HTMLDivElement = document.getElementById(
     "loading-anim"
   ) as HTMLDivElement;

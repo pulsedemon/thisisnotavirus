@@ -3,7 +3,7 @@ import Random from "../../utils/random";
 class RandomBlocks {
   screenWidth!: number;
   screenHeight!: number;
-  locations: any = [];
+  locations: string[] = [];
   count = 0;
   blocksAppended = 0;
   canvas!: HTMLCanvasElement;
@@ -45,21 +45,21 @@ class RandomBlocks {
   }
 
   add(size: number) {
-    const randomXNumber = this.randomXAxis(size);
-    const randomYNumber = this.randomYAxis(size);
+    const randomXNumber = this.randomXAxis(size) as unknown as string;
+    const randomYNumber = this.randomYAxis(size) as unknown as string;
 
-    const position: number[] = [randomXNumber, randomYNumber];
+    const position: string[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
       const randomColor = Random.rgbColor();
-      const xPosition = position[0];
-      const yPosition = position[1];
+      const xPosition = position[0] as unknown as number;
+      const yPosition = position[1] as unknown as number;
 
       this.canvasCtx.fillStyle = "rgb(" + randomColor + ")";
       this.canvasCtx.fillRect(xPosition, yPosition, size, size);
 
       this.blocksAppended++;
 
-      this.locations.push(position);
+      this.locations.push(position as unknown as string);
       this.count++;
     }
   }

@@ -18,6 +18,7 @@ class Faces {
     this.mouth.classList.add(mouthClass);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   blink(eye?: any) {
     if (!eye) eye = this.eyes;
     else eye = [eye];
