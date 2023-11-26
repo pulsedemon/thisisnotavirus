@@ -165,7 +165,7 @@ const colorPalettes = [
     primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
-let colorPalette = Random.itemInArray(colorPalettes);
+const colorPalette = Random.itemInArray(colorPalettes);
 const minSpeed = 10;
 const maxSpeed = 30;
 
@@ -178,7 +178,7 @@ for (let i = 0; i < numInstances; i++) {
     container.clientWidth / 30
   );
 
-  let doorsInstance = new Doors(
+  const doorsInstance = new Doors(
     Math.round(width / numCols),
     colorPalette.primary[0],
     Random.numberBetween(minSpeed, maxSpeed),

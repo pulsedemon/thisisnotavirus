@@ -26,7 +26,7 @@ console.log(
 const playlist = new Playlist();
 
 class VirusLoader {
-  iframe = <HTMLIFrameElement>document.getElementById("container");
+  iframe = document.getElementById("container") as HTMLIFrameElement;
   loadRandomInterval: any;
   loadingAnimEl: HTMLDivElement = document.getElementById(
     "loading-anim"
@@ -83,7 +83,7 @@ class VirusLoader {
   startRandomization(name?: string) {
     clearInterval(this.loadRandomInterval);
 
-    let randomTime = Random.numberBetween(2, 12) * 1000;
+    const randomTime = Random.numberBetween(2, 12) * 1000;
     let virusToLoad: string;
 
     this.loadRandomInterval = setInterval(() => {
@@ -140,8 +140,7 @@ document.getElementById("skip-next")!.onclick = () => {
   resumePlayback();
 };
 
-document.getElementById("info-btn")!.onclick = (e) => {
-  const target = <HTMLElement>e.target;
+document.getElementById("info-btn")!.onclick = () => {
   toggleInfo();
 };
 
@@ -214,7 +213,7 @@ function teleportMenu() {
   const animationClassName = "teleporting";
   const menu = document.getElementById("menu")!;
 
-  let menuPositions = [
+  const menuPositions = [
     "0px auto auto 0px",
     "0px 0px auto auto",
     "auto auto 0px 0px",

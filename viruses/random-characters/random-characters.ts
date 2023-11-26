@@ -31,7 +31,7 @@ class RandomCharacters {
   }
 
   insertRandomEmoji(string: string): string {
-    let pos = Random.int(string.length);
+    const pos = Random.int(string.length);
     string =
       string.slice(0, pos) +
       this.emojis[Random.int(this.emojis.length)] +
@@ -45,7 +45,7 @@ class RandomCharacters {
   }
 
   drawText() {
-    let context = this.canvas.getContext("2d")!;
+    const context = this.canvas.getContext("2d")!;
     context.font = "25px monospace";
     context.fillStyle = "#000000";
     context.textBaseline = "middle";
@@ -60,16 +60,16 @@ const canvasHeight = 28;
 appendCanvases();
 
 function appendCanvases() {
-  let numCanvases = Math.ceil(
+  const numCanvases = Math.ceil(
     document.getElementById("container")!.clientHeight / canvasHeight
   );
   for (let i = 0; i < numCanvases; i++) {
-    let canvas = document.createElement("canvas");
+    const canvas = document.createElement("canvas");
     canvas.height = canvasHeight;
     document.getElementById("container")!.appendChild(canvas);
     canvas.width = canvas.clientWidth;
 
-    let rc = new RandomCharacters(canvas, 15);
+    const rc = new RandomCharacters(canvas, 15);
     rc.doAnimation();
   }
 }

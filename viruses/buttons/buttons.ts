@@ -12,8 +12,8 @@ class Buttons {
   imageGridSize = 55;
   gridCols: number;
   gridRows: number;
-  imagesUsed: Array<string> = [];
-  images: Array<string> = [];
+  imagesUsed: string[] = [];
+  images: string[] = [];
   topzIndex = 2;
   buttonText = [
     "Click Me",
@@ -54,7 +54,7 @@ class Buttons {
 
   addRandomButton() {
     const coords = b.getRandomCoords();
-    let button = document.createElement("button");
+    const button = document.createElement("button");
     button.type = "button";
     button.style.top = `${coords.y}px`;
     button.style.left = `${coords.x}px`;
@@ -75,14 +75,14 @@ class Buttons {
 
   appendImages(): void {
     this.grid.forEach((imgSrc, i) => {
-      let image = document.createElement("img");
+      const image = document.createElement("img");
       image.src = imgSrc;
 
       const coords = this.getRandomCoordsForCell(i + 1);
       image.style.top = `${coords.y}px`;
       image.style.left = `${coords.x}px`;
 
-      let filename = image.src.split("/").slice(-1)[0].split(".")[0];
+      const filename = image.src.split("/").slice(-1)[0].split(".")[0];
       image.classList.add(filename);
       this.container.appendChild(image);
 
@@ -153,7 +153,7 @@ function initButtons() {
 }
 initButtons();
 
-const explosions: Array<string> = [
+const explosions: string[] = [
   "/viruses/buttons/explosions/nukeexplosion1.gif",
   "/viruses/buttons/explosions/explosion1.gif",
 ];
@@ -170,8 +170,8 @@ document.addEventListener("click", function (e: any) {
 
   const buttons = document.querySelectorAll<HTMLElement>("button[type=button]");
   requestAnimationFrame(() => {
-    buttons.forEach((el, key) => {
-      let explode = document.createElement("img");
+    buttons.forEach((el) => {
+      const explode = document.createElement("img");
       explode.src = explosions[0];
       explode.style.top = `${parseInt(el.style.top.replace("px", "")) - 25}px`;
       explode.style.left = `${
@@ -193,7 +193,7 @@ document.addEventListener("click", function (e: any) {
 
   setTimeout(() => {
     const css = "img { z-index: 2; }";
-    let styleSheet = document.createElement("style");
+    const styleSheet = document.createElement("style");
     styleSheet.innerText = css;
     document.head.appendChild(styleSheet);
   }, 1000);

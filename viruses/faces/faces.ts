@@ -22,7 +22,7 @@ class Faces {
     if (!eye) eye = this.eyes;
     else eye = [eye];
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       eye.forEach((el: HTMLElement) => {
         el.classList.add("blink");
       });

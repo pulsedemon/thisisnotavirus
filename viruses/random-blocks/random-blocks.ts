@@ -4,8 +4,8 @@ class RandomBlocks {
   screenWidth!: number;
   screenHeight!: number;
   locations: any = [];
-  count: number = 0;
-  blocksAppended: number = 0;
+  count = 0;
+  blocksAppended = 0;
   canvas!: HTMLCanvasElement;
 
   canvasCtx!: CanvasRenderingContext2D;
@@ -45,14 +45,14 @@ class RandomBlocks {
   }
 
   add(size: number) {
-    let randomXNumber = this.randomXAxis(size);
-    let randomYNumber = this.randomYAxis(size);
+    const randomXNumber = this.randomXAxis(size);
+    const randomYNumber = this.randomYAxis(size);
 
     const position: number[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
-      let randomColor = Random.rgbColor();
-      let xPosition = position[0];
-      let yPosition = position[1];
+      const randomColor = Random.rgbColor();
+      const xPosition = position[0];
+      const yPosition = position[1];
 
       this.canvasCtx.fillStyle = "rgb(" + randomColor + ")";
       this.canvasCtx.fillRect(xPosition, yPosition, size, size);

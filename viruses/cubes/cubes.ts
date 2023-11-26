@@ -51,6 +51,7 @@ class Cubes {
       }
       cube.position.y = yOffset;
       cube.position.x = xDistance * (x % cols) + xOffset;
+      // @ts-expect-error
       cube.useSpeedModifier = Random.bool();
 
       this.scene.add(cube);
@@ -65,8 +66,10 @@ class Cubes {
 
     this.cubes.forEach((cube) => {
       cube.rotation.x +=
+        // @ts-ignore
         0.01 * (cube.useSpeedModifier ? this.speedModifier : 1);
       cube.rotation.y +=
+        // @ts-ignore
         0.01 * (cube.useSpeedModifier ? this.speedModifier : 1);
     });
 
