@@ -22,7 +22,7 @@ export default class Random {
     return Math.random() < 0.5;
   }
 
-  static itemInArray(array: any[]) {
+  static itemInArray(array: unknown[]) {
     return array[Math.floor(Math.random() * array.length)];
   }
 }
