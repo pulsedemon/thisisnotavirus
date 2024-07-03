@@ -7,8 +7,11 @@ import Flash from "./components/flash/flash";
 import Random from "./utils/random";
 import Playlist from "./components/Playlist";
 
-// @ts-expect-error gtag
-import gtag from "gtag";
+declare let gtag: (
+  eventName: string,
+  eventType: string,
+  options?: object
+) => void;
 
 Sentry.init({
   dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
