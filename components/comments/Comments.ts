@@ -44,7 +44,7 @@ export default class Comments {
   buttonLoading() {
     const submitButton = document.querySelector("#comment-form button")!;
     let dotStr = "";
-    let dots = setInterval(() => {
+    const dots = setInterval(() => {
       if (dotStr.length > 2) {
         dotStr = "";
       } else {
@@ -103,7 +103,7 @@ export default class Comments {
   }
 
   async submitComment(data: FormData) {
-    let formDataObject: Comment = { name: "", comment: "" };
+    const formDataObject: Comment = { name: "", comment: "" };
     data.forEach((v, k) => {
       formDataObject[k as keyof Comment] = stripTags(v as string);
     });

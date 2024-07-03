@@ -47,7 +47,7 @@ class Buttons {
       .then((response) => response.json())
       .then((data) => {
         this.images = data.images;
-        this.images!.forEach((i) => preloadImage(i));
+        this.images.forEach((i) => preloadImage(i));
         this.assignImages();
       });
   }
