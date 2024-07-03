@@ -11,10 +11,11 @@ export default class Playlist {
     "doors",
     "emoji",
     "cubes",
+    "random-shapes",
   ];
 
   playlist: string[] = [];
-  currentIndex: number = 0;
+  currentIndex = 0;
 
   constructor() {
     this.generatePlaylist();
