@@ -23,11 +23,11 @@ export default class Playlist {
 
   generatePlaylist() {
     for (let i = 0; i < 10; i++) {
-      let shuffledItems = shuffle(this.viruses);
+      const shuffledItems = shuffle(this.viruses);
       const lastItemInPlaylist = this.playlist[this.playlist.length - 1];
       if (lastItemInPlaylist === shuffledItems[0]) {
         const firstItem = shuffledItems.shift();
-        shuffledItems.push(firstItem);
+        shuffledItems.push(firstItem!);
       }
       this.playlist.push(...shuffledItems);
     }

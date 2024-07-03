@@ -2,7 +2,7 @@ import Random from "../../utils/random";
 
 export default class Flash {
   el: HTMLDivElement;
-  animationInterval: any;
+  animationInterval: ReturnType<typeof setInterval>;
 
   constructor(el: HTMLDivElement) {
     this.el = el;
