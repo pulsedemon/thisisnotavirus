@@ -35,9 +35,7 @@ class VirusLoader {
   loadingRing: HTMLDivElement = document.getElementById(
     "loading-ring"
   ) as HTMLDivElement;
-  sourceCodeLink: HTMLAnchorElement = document.querySelector(
-    "#source-code a"
-  )! as HTMLAnchorElement;
+  sourceCodeLink: HTMLAnchorElement = document.querySelector("#source-code a")!;
 
   constructor() {
     this.loadingAnim = new Flash(this.loadingAnimEl);
