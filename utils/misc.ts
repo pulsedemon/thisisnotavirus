@@ -7,11 +7,11 @@ export const isMobile =
 export const browserName = usparser.getResult().browser.name;
 
 export function preloadImage(url: string) {
-  let img = new Image();
+  const img = new Image();
   img.src = url;
 }
 
-export function shuffle(array: any[]): any[] {
+export function shuffle(array: string[]): string[] {
   let currentIndex = array.length,
     randomIndex;
 
@@ -31,22 +31,28 @@ export function shuffle(array: any[]): any[] {
   return array;
 }
 
-export function draggable(el: any) {
+export function draggable(el: HTMLElement) {
   const downEvent = isMobile ? "touchstart" : "mousedown";
   const upEvent = isMobile ? "touchend" : "mouseup";
   const moveEvent = isMobile ? "touchmove" : "mousemove";
 
-  el.addEventListener(downEvent, function (e: any) {
+  el.addEventListener(downEvent, function (e: MouseEvent | TouchEvent) {
     if (!isMobile) e.preventDefault();
-    const clientY = e.clientY || e.changedTouches[0].clientY;
-    const clientX = e.clientX || e.changedTouches[0].clientX;
-    const offsetX = clientX - parseInt(window.getComputedStyle(e.target).left);
-    const offsetY = clientY - parseInt(window.getComputedStyle(e.target).top);
+    if (!e.target) return;
+    const target = e.target as HTMLElement;
+    const clientY =
+      e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;
+    const clientX =
+      e instanceof MouseEvent ? e.clientX : e.changedTouches[0].clientX;
+    const offsetX = clientX - parseInt(window.getComputedStyle(target).left);
+    const offsetY = clientY - parseInt(window.getComputedStyle(target).top);
 
-    function moveHandler(e: any) {
+    function moveHandler(e: MouseEvent | TouchEvent) {
       if (!isMobile) e.preventDefault();
-      const clientY = e.clientY || e.changedTouches[0].clientY;
-      const clientX = e.clientX || e.changedTouches[0].clientX;
+      const clientY =
+        e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;
+      const clientX =
+        e instanceof MouseEvent ? e.clientX : e.changedTouches[0].clientX;
       el.style.top = clientY - offsetY + "px";
       el.style.left = clientX - offsetX + "px";
     }
