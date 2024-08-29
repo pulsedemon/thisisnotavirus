@@ -238,3 +238,13 @@ body {
     }
   }
 }
+
+#intro {
+  position: fixed;
+  top: 6px;
+  left: 65px;
+  color: white;
+  font-family: sans-serif;
+  font-size: 40px;
+  text-shadow: #00ffff 1px 0 10px;
+}

@@ -71,16 +71,16 @@ export function stripTags(str: string) {
   return str.replace(/(<([^>]+)>)/gi, "");
 }
 
-export async function checkResponse(response: Response) {
-  const status = response.status;
-  if (response.ok) {
-    return response.json();
-  } else {
-    return response.json().then((response) => {
-      throw {
-        error: response.detail,
-        status: status,
-      };
-    });
-  }
-}
+// export async function checkResponse(response: Response) {
+//   const status = response.status;
+//   if (response.ok) {
+//     return response.json();
+//   } else {
+//     return response.json().then((response) => {
+//       throw {
+//         error: response.detail,
+//         status: status,
+//       };
+//     });
+//   }
+// }

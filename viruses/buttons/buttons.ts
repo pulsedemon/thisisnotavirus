@@ -43,9 +43,9 @@ class Buttons {
     this.gridCols = Math.ceil(this.width / this.imageGridSize);
     this.gridRows = Math.ceil(this.height / this.imageGridSize);
 
-    fetch("/viruses/buttons/images.json")
+    void fetch("/viruses/buttons/images.json")
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: { images: string[] }) => {
         this.images = data.images;
         this.images.forEach((i) => preloadImage(i));
         this.assignImages();
@@ -161,8 +161,8 @@ const explosions: string[] = [
 
 document.addEventListener("click", function (e) {
   if (!e.target) return;
-  // @ts-expect-error ???
-  if (e.target.type !== "button") return;
+  const target = e.target as HTMLButtonElement;
+  if (target.type !== "button") return;
 
   continueAddingButtons = false;
 
