@@ -7,7 +7,7 @@ export default class ErrorUI {
   numEls = 700;
   width = window.innerWidth;
   height = window.innerHeight;
-  fillScreenTimeout: any;
+  fillScreenTimeout: ReturnType<typeof setTimeout>;
 
   constructor(el: Element, text?: string) {
     this.el = el;
@@ -29,7 +29,7 @@ export default class ErrorUI {
 
   clearScreen() {
     const errors = this.el.querySelectorAll(".error");
-    errors.forEach((e, i) => {
+    errors.forEach((e) => {
       this.el.removeChild(e);
     });
   }

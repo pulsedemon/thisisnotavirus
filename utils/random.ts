@@ -1,3 +1,5 @@
+import { colorPaletteType } from "../viruses/doors/doors";
+
 export default class Random {
   static int(max: number): number {
     return Math.floor(Math.random() * max);
@@ -22,7 +24,7 @@ export default class Random {
     return Math.random() < 0.5;
   }
 
-  static itemInArray(array: number[]) {
+  static itemInArray(array: number[] | colorPaletteType[]) {
     return array[Math.floor(Math.random() * array.length)];
   }
 }
