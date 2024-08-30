@@ -7,6 +7,7 @@ class RandomBlocks {
   count = 0;
   blocksAppended = 0;
   canvas!: HTMLCanvasElement;
+  maybe = Random.bool();
 
   canvasCtx!: CanvasRenderingContext2D;
   blockSize = Random.numberBetween(10, 30);
@@ -50,8 +51,27 @@ class RandomBlocks {
 
     const position: number[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
-      this.triangle(position);
+      this.maybe ? this.triangle(position) : this.addSquare(position);
     }
+
+    this.blocksAppended++;
+
+    this.locations.push(position as unknown as string);
+    this.count++;
+  }
+
+  addSquare(position: number[]) {
+    const randomColor = Random.rgbColor();
+    const xPosition = position[0];
+    const yPosition = position[1];
+
+    this.canvasCtx.fillStyle = "rgb(" + randomColor + ")";
+    this.canvasCtx.fillRect(
+      xPosition,
+      yPosition,
+      this.blockSize,
+      this.blockSize
+    );
 
     this.blocksAppended++;
 

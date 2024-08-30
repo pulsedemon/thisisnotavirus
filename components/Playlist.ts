@@ -2,7 +2,7 @@ import { shuffle } from "../utils/misc";
 
 export default class Playlist {
   viruses = [
-    "random-blocks",
+    "random-shapes",
     "sphere",
     "uzumaki",
     "random-characters",
@@ -11,7 +11,6 @@ export default class Playlist {
     "doors",
     "emoji",
     "cubes",
-    "random-shapes",
   ];
 
   playlist: string[] = [];
