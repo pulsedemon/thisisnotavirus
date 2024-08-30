@@ -41,7 +41,7 @@ body {
   right: 0;
   cursor: pointer;
   user-select: none;
-  z-index: 4;
+  z-index: 100000;
 
   span {
     padding: 0 5px;
