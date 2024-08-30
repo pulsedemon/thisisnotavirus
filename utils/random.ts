@@ -24,7 +24,7 @@ export default class Random {
     return Math.random() < 0.5;
   }
 
-  static itemInArray(array: number[] | colorPaletteType[]) {
+  static itemInArray(array: number[] | colorPaletteType[] | string[]) {
     return array[Math.floor(Math.random() * array.length)];
   }
 }
