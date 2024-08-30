@@ -9,8 +9,8 @@ class Faces {
   mouthClasses = ["smile", "monster", "bear"];
 
   constructor() {
-    const eyeClass = Random.itemInArray(this.eyeClasses);
-    const mouthClass = Random.itemInArray(this.mouthClasses);
+    const eyeClass = Random.itemInArray(this.eyeClasses) as string;
+    const mouthClass = Random.itemInArray(this.mouthClasses) as string;
     this.eyes.forEach((e) => {
       e.classList.add(eyeClass);
     });
@@ -18,10 +18,9 @@ class Faces {
     this.mouth.classList.add(mouthClass);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  blink(eye?: any) {
-    if (!eye) eye = this.eyes;
-    else eye = [eye];
+  blink(eye?: HTMLElement | HTMLElement[]) {
+    if (!eye) eye = Array.from(this.eyes);
+    else eye = Array.isArray(eye) ? eye : [eye];
 
     return new Promise((resolve) => {
       eye.forEach((el: HTMLElement) => {
@@ -41,17 +40,17 @@ class Faces {
 
 const faces = new Faces();
 setTimeout(() => {
-  faces.blink().then(() => faces.blink());
+  void faces.blink().then(() => faces.blink());
 }, 700);
 
 setInterval(() => {
   setTimeout(() => {
-    faces.blink().then(() => faces.blink());
+    void faces.blink().then(() => faces.blink());
   }, 1000);
 }, 5000);
 
 document.querySelectorAll("#face .eye").forEach((eye) => {
   eye.addEventListener("click", (e) => {
-    faces.blink(e.target);
+    void faces.blink(e.target as HTMLElement);
   });
 });
