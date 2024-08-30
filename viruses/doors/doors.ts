@@ -15,6 +15,7 @@ interface DoorsConfig {
 }
 
 class Doors {
+  maybe = Random.bool();
   canvas: HTMLCanvasElement;
   doorHeight: number;
   doorWidth: number;
@@ -193,7 +194,8 @@ for (let i = 0; i < numInstances; i++) {
   );
 
   for (let x = 0; x < numCols; x++) {
-    colorPalette.primary.push(colorPalette.primary.shift()!);
+    if (!doorsInstance.maybe)
+      colorPalette.primary.push(colorPalette.primary.shift()!);
     doorsInstance.addDoors(
       Math.round(width / numCols) * x,
       colorPalette.primary[0],
