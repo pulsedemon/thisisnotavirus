@@ -193,6 +193,7 @@ for (let i = 0; i < numInstances; i++) {
   );
 
   for (let x = 0; x < numCols; x++) {
+    colorPalette.primary.push(colorPalette.primary.shift()!);
     doorsInstance.addDoors(
       Math.round(width / numCols) * x,
       colorPalette.primary[0],
