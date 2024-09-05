@@ -1,0 +1,5 @@
+customHeaders:
+  - pattern: "**"
+    headers:
+      - key: Document-Policy
+        value: js-profiling

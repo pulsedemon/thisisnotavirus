@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/browser";
-import { BrowserTracing } from "@sentry/browser";
 
 import "./sass/main.scss";
 import { virus } from "./ascii";
@@ -15,8 +14,12 @@ declare let gtag: (
 
 Sentry.init({
   dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
-  integrations: [new BrowserTracing()],
-  tracesSampleRate: 0.5,
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.browserProfilingIntegration(),
+  ],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
 });
 
 console.log(
