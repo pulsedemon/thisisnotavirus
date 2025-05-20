@@ -117,15 +117,6 @@ class VirusLoader {
       if (playlist.isMixedVirus(name)) {
         const mix = playlist.getMixById(name);
         if (mix) {
-          // Log mix details for debugging
-          console.log(
-            "Loading mix:",
-            mix.primary,
-            mix.secondary,
-            "with ratio:",
-            mix.mixRatio
-          );
-
           // Hide the main iframe
           this.iframe.style.display = "none";
 
@@ -158,33 +149,17 @@ class VirusLoader {
           secondaryFrame.style.mixBlendMode = "screen";
           secondaryFrame.className = "secondary-virus";
           secondaryFrame.style.opacity = mix.mixRatio.toString();
-          console.log(
-            "Main view: Set secondary iframe opacity to",
-            secondaryFrame.style.opacity,
-            "mix-blend-mode:",
-            secondaryFrame.style.mixBlendMode
-          );
 
-          // Force mix-blend-mode with inline style and attribute
+          // Force mix-blend-mode with inline style
           secondaryFrame.setAttribute(
             "style",
             `width:100%; height:100%; border:none; position:absolute; top:0; left:0; background:#000; mix-blend-mode:screen; opacity:${mix.mixRatio}`
           );
 
-          // Check computed style
-          setTimeout(() => {
-            const computedStyle = window.getComputedStyle(secondaryFrame);
-            console.log("Computed style for secondary frame:", {
-              mixBlendMode: computedStyle.mixBlendMode,
-              opacity: computedStyle.opacity,
-            });
-          }, 500);
-
           // Track iframe loading
           let loadedFrames = 0;
           const frameLoaded = () => {
             loadedFrames++;
-            console.log(`Iframe loaded: ${loadedFrames}/2`);
             if (loadedFrames === 2) {
               // Both iframes have loaded
               clearTimeout(safetyTimeout);
@@ -258,7 +233,6 @@ class VirusLoader {
     this.sourceCodeLink.classList.remove("hide");
     this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
     this.loadingRing.classList.remove("loading");
-    console.log("Iframe(s) loaded, hiding loading animation");
   }
 
   sourceCodeUrl(virus: string) {

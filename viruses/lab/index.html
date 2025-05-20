@@ -52,18 +52,6 @@
           mix-blend-mode: screen !important;
         }
       }
-      #debug-info {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        background: rgba(0, 0, 0, 0.7);
-        color: #00ffff;
-        padding: 5px 10px;
-        font-family: monospace;
-        font-size: 12px;
-        z-index: 10000;
-        pointer-events: none;
-      }
     </style>
   </head>
   <body>
@@ -71,7 +59,6 @@
       <iframe id="primary-virus"></iframe>
       <iframe id="secondary-virus"></iframe>
     </div>
-    <div id="debug-info"></div>
     <script type="module">
       const urlParams = new URLSearchParams(window.location.search);
       const primary = urlParams.get("primary");
@@ -80,7 +67,6 @@
 
       const primaryFrame = document.getElementById("primary-virus");
       const secondaryFrame = document.getElementById("secondary-virus");
-      const debugInfo = document.getElementById("debug-info");
 
       // Load the viruses
       if (primary) {
@@ -95,17 +81,6 @@
 
       // Force mix-blend-mode
       secondaryFrame.style.mixBlendMode = "screen";
-
-      // Update debug info
-      debugInfo.textContent = `Primary: ${primary}, Secondary: ${secondary}, Ratio: ${ratio}, Mix-Blend-Mode: ${
-        getComputedStyle(secondaryFrame).mixBlendMode
-      }, Opacity: ${getComputedStyle(secondaryFrame).opacity}`;
-
-      // Log the opacity for debugging
-      console.log(
-        "Lab view: Setting secondary frame opacity to",
-        ratio.toString()
-      );
 
       // Handle iframe loading
       let loadedFrames = 0;

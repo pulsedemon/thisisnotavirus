@@ -151,14 +151,6 @@ export default class VirusLab {
       this.currentMix.mixRatio = parseFloat(mixRatio.value);
       this.secondaryIframe.style.mixBlendMode = "screen";
       this.secondaryIframe.style.opacity = this.currentMix.mixRatio.toString();
-      console.log(
-        "VirusLab: Updated mix ratio to",
-        this.currentMix.mixRatio,
-        "opacity value:",
-        this.secondaryIframe.style.opacity,
-        "mix-blend-mode:",
-        this.secondaryIframe.style.mixBlendMode
-      );
     };
     const saveHandler = () => this.saveMix();
 
@@ -205,9 +197,6 @@ export default class VirusLab {
   }
 
   private applyMix() {
-    // Log current mix for debugging
-    console.log("VirusLab: Applying mix", this.currentMix);
-
     // Load both viruses
     this.primaryIframe.src = `/viruses/${this.currentMix.primary}/`;
     this.secondaryIframe.src = `/viruses/${this.currentMix.secondary}/`;
@@ -215,13 +204,6 @@ export default class VirusLab {
     // Set initial opacity and ensure mix-blend-mode is set
     this.secondaryIframe.style.mixBlendMode = "screen";
     this.secondaryIframe.style.opacity = this.currentMix.mixRatio.toString();
-
-    console.log(
-      "VirusLab: Set secondary iframe properties - opacity:",
-      this.secondaryIframe.style.opacity,
-      "mix-blend-mode:",
-      this.secondaryIframe.style.mixBlendMode
-    );
   }
 
   private saveMix() {
@@ -303,7 +285,6 @@ export default class VirusLab {
   }
 
   loadMix(mix: VirusMix) {
-    console.log("VirusLab: Loading mix", mix);
     this.currentMix = { ...mix };
 
     if (!this.displayOnly) {
