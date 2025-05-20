@@ -1,3 +1,4 @@
+import { createStyledIframe } from "../utils/iframe";
 import Playlist from "./Playlist";
 
 interface VirusMix {
@@ -36,25 +37,10 @@ export default class VirusLab {
     this.container.style.height = "100%";
     this.container.style.zIndex = "1";
 
-    // Create iframes
-    this.primaryIframe = document.createElement("iframe");
-    this.secondaryIframe = document.createElement("iframe");
-
-    // Style iframes
-    [this.primaryIframe, this.secondaryIframe].forEach((iframe) => {
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.border = "none";
-      iframe.style.position = "absolute";
-      iframe.style.top = "0";
-      iframe.style.left = "0";
-      iframe.style.background = "#000";
-    });
-
-    // Set specific styles for secondary iframe
-    this.secondaryIframe.style.mixBlendMode = "screen";
+    // Create iframes using utility functions
+    this.primaryIframe = createStyledIframe();
+    this.secondaryIframe = createStyledIframe(true);
     this.secondaryIframe.style.opacity = "0.5"; // Default opacity
-    this.secondaryIframe.className = "secondary-virus";
 
     // Add iframes to container
     this.container.appendChild(this.primaryIframe);
@@ -94,10 +80,14 @@ export default class VirusLab {
     this.container.innerHTML = "";
   }
 
-  private loadSavedMixes() {
-    this.savedMixes = JSON.parse(
+  private loadSavedMixesFromStorage(): VirusMix[] {
+    return JSON.parse(
       localStorage.getItem("savedVirusMixes") || "[]"
     ) as VirusMix[];
+  }
+
+  private loadSavedMixes() {
+    this.savedMixes = this.loadSavedMixesFromStorage();
   }
 
   private initializeUI() {
@@ -207,9 +197,7 @@ export default class VirusLab {
   }
 
   private saveMix() {
-    const savedMixes = JSON.parse(
-      localStorage.getItem("savedVirusMixes") || "[]"
-    ) as VirusMix[];
+    const savedMixes = this.loadSavedMixesFromStorage();
 
     // Format virus names for display
     const formatVirusName = (name: string) => {

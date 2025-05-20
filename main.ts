@@ -5,6 +5,7 @@ import Flash from "./components/flash/flash";
 import Playlist from "./components/Playlist";
 import VirusLab from "./components/VirusLab";
 import "./sass/main.scss";
+import { createStyledIframe } from "./utils/iframe";
 import Random from "./utils/random";
 
 declare let gtag: (
@@ -130,58 +131,26 @@ class VirusLoader {
           mixContainer.style.height = "100%";
           mixContainer.style.zIndex = "1";
 
-          // Create iframes for primary and secondary viruses
-          const primaryFrame = document.createElement("iframe");
-          const secondaryFrame = document.createElement("iframe");
+          // Create a single iframe that uses the lab template
+          const mixFrame = createStyledIframe();
 
-          // Style iframes
-          [primaryFrame, secondaryFrame].forEach((frame) => {
-            frame.style.width = "100%";
-            frame.style.height = "100%";
-            frame.style.border = "none";
-            frame.style.position = "absolute";
-            frame.style.top = "0";
-            frame.style.left = "0";
-            frame.style.background = "#000";
+          // Load the lab template with the mix parameters
+          mixFrame.src = `/viruses/lab/?primary=${mix.primary}&secondary=${mix.secondary}&ratio=${mix.mixRatio}`;
+
+          // Add load event listener
+          mixFrame.addEventListener("load", () => {
+            clearTimeout(safetyTimeout);
+            this.iframeLoaded();
           });
 
-          // Set mix-blend-mode and opacity for secondary frame
-          secondaryFrame.style.mixBlendMode = "screen";
-          secondaryFrame.className = "secondary-virus";
-          secondaryFrame.style.opacity = mix.mixRatio.toString();
+          // Add error handler
+          mixFrame.addEventListener("error", () => {
+            clearTimeout(safetyTimeout);
+            this.iframeLoaded();
+          });
 
-          // Force mix-blend-mode with inline style
-          secondaryFrame.setAttribute(
-            "style",
-            `width:100%; height:100%; border:none; position:absolute; top:0; left:0; background:#000; mix-blend-mode:screen; opacity:${mix.mixRatio}`
-          );
-
-          // Track iframe loading
-          let loadedFrames = 0;
-          const frameLoaded = () => {
-            loadedFrames++;
-            if (loadedFrames === 2) {
-              // Both iframes have loaded
-              clearTimeout(safetyTimeout);
-              this.iframeLoaded();
-            }
-          };
-
-          // Add load event listeners
-          primaryFrame.addEventListener("load", frameLoaded);
-          secondaryFrame.addEventListener("load", frameLoaded);
-
-          // Add error handlers in case a virus fails to load
-          primaryFrame.addEventListener("error", frameLoaded);
-          secondaryFrame.addEventListener("error", frameLoaded);
-
-          // Load viruses
-          primaryFrame.src = `/viruses/${mix.primary}/`;
-          secondaryFrame.src = `/viruses/${mix.secondary}/`;
-
-          // Add iframes to container
-          mixContainer.appendChild(primaryFrame);
-          mixContainer.appendChild(secondaryFrame);
+          // Add iframe to container
+          mixContainer.appendChild(mixFrame);
 
           // Add container to document
           document.body.appendChild(mixContainer);
