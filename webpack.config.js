@@ -1,18 +1,23 @@
-const path = require("path");
-const glob = require("glob");
-const webpack = require("webpack");
+import dotenv from "dotenv";
+import { glob } from "glob";
+import path from "path";
+import { fileURLToPath } from "url";
+import webpack from "webpack";
 
-require("dotenv").config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const jsFiles = glob.sync("./viruses/*/*.[jt]s");
+dotenv.config();
+
+const jsFiles = await glob("./viruses/*/*.[jt]s");
 let entries = {};
 jsFiles.forEach((filepath) => {
   const filename = filepath.split("/").slice(-1)[0].split(".")[0];
-  entries[filename] = filepath;
+  entries[filename] = `./${filepath}`;
 });
 entries["main"] = "./main.ts";
 
-module.exports = {
+export default {
   mode: "development",
   entry: entries,
   output: {
