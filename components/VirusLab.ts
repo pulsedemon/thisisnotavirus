@@ -97,7 +97,7 @@ export default class VirusLab {
   private loadSavedMixes() {
     this.savedMixes = JSON.parse(
       localStorage.getItem("savedVirusMixes") || "[]"
-    );
+    ) as VirusMix[];
   }
 
   private initializeUI() {
@@ -209,7 +209,7 @@ export default class VirusLab {
   private saveMix() {
     const savedMixes = JSON.parse(
       localStorage.getItem("savedVirusMixes") || "[]"
-    );
+    ) as VirusMix[];
 
     // Format virus names for display
     const formatVirusName = (name: string) => {
