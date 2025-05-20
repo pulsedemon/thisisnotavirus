@@ -1,18 +1,19 @@
 {
-    "compilerOptions": {
-      "strict": true,
-      "strictPropertyInitialization": false,
-      "esModuleInterop": true,
-      "module": "esnext",
-      "moduleResolution": "node",
-      "downlevelIteration": true,
-      "lib": [
-        "ESNext",
-        "dom",
-        "dom.iterable"
-      ],
-    },
-    "exclude": ["node_modules", "build"],
-    "include": ["."],
+  "compilerOptions": {
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "lib": ["ESNext", "dom", "dom.iterable", "ES2020"],
+    "target": "es2020",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "exclude": ["node_modules", "build"],
+  "include": ["."]
 }
-  

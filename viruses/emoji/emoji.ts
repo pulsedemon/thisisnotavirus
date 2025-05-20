@@ -1,6 +1,6 @@
-import "./emoji.scss";
 import { isMobile } from "../../utils/misc";
 import Random from "../../utils/random";
+import "./emoji.scss";
 
 const size = isMobile ? 40 : 50;
 const container = document.getElementById("container")!;
@@ -31,11 +31,11 @@ const emojis = [
 
 function forwards() {
   document.body.style.backgroundColor = Random.itemInArray(bgColors) as string;
-  let emoji = Random.itemInArray(emojis);
+  let emoji: string = Random.itemInArray(emojis) as string;
   const useAllEmoji = Random.numberBetween(1, 10) % 2 === 0 ? true : false;
   const interval = setInterval(() => {
     const randomClass = Random.numberBetween(1, 100) % 2 === 0 ? "wider" : "";
-    if (useAllEmoji) emoji = Random.itemInArray(emojis);
+    if (useAllEmoji) emoji = Random.itemInArray(emojis) as string;
     container.innerHTML += `<span class="${String(randomClass)}">${String(
       emoji
     )}</span>`;

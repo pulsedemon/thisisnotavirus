@@ -33,7 +33,7 @@ const playlist = new Playlist();
 
 class VirusLoader {
   iframe = document.getElementById("container") as HTMLIFrameElement;
-  loadRandomInterval: NodeJS.Timeout;
+  loadRandomInterval: ReturnType<typeof setInterval>;
   loadingAnimEl: HTMLDivElement = document.getElementById(
     "loading-anim"
   ) as HTMLDivElement;

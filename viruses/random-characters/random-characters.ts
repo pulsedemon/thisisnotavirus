@@ -1,5 +1,5 @@
-import "./random-characters.scss";
 import Random from "../../utils/random";
+import "./random-characters.scss";
 
 class RandomCharacters {
   text!: string;
@@ -74,7 +74,7 @@ function appendCanvases() {
   }
 }
 
-let resizeStop: NodeJS.Timeout;
+let resizeStop: ReturnType<typeof setTimeout>;
 window.addEventListener(
   "resize",
   () => {

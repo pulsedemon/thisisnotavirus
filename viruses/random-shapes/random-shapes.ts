@@ -51,7 +51,11 @@ class RandomBlocks {
 
     const position: number[] = [randomXNumber, randomYNumber];
     if (!~this.locations.indexOf(position.join(""))) {
-      this.maybe ? this.triangle(position) : this.addSquare(position);
+      if (this.maybe) {
+        this.triangle(position);
+      } else {
+        this.addSquare(position);
+      }
     }
 
     this.blocksAppended++;
