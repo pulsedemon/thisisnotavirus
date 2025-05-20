@@ -1,10 +1,10 @@
 import * as Sentry from "@sentry/browser";
 
-import "./sass/main.scss";
 import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
-import Random from "./utils/random";
 import Playlist from "./components/Playlist";
+import "./sass/main.scss";
+import Random from "./utils/random";
 
 declare let gtag: (
   eventName: string,
@@ -172,7 +172,6 @@ function hideInfo() {
 document.onkeyup = (e) => {
   if (e.key === "Escape") {
     hideInfo();
-    // hideComments();
   } else if (e.key === "ArrowRight") {
     gtag("event", "skip_next_keyboard");
     vl.skipNext();
