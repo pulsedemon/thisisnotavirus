@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale = 1.0, maximum-scale = 1.0"
+    />
+    <link rel="shortcut icon" href="/favicon.png" />
+    <link
+      rel="stylesheet"
+      href="/css/reset.css"
+      type="text/css"
+      media="screen"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+      }
+      #container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #primary-virus,
+      #secondary-virus {
+        width: 100%;
+        height: 100%;
+        border: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #000;
+      }
+      #secondary-virus {
+        mix-blend-mode: screen;
+      }
+      #debug-info {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #00ffff;
+        padding: 5px 10px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 10000;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <iframe id="primary-virus"></iframe>
+      <iframe id="secondary-virus"></iframe>
+    </div>
+    <div id="debug-info"></div>
+    <script type="module">
+      const urlParams = new URLSearchParams(window.location.search);
+      const primary = urlParams.get("primary");
+      const secondary = urlParams.get("secondary");
+      const ratio = parseFloat(urlParams.get("ratio") || "0.5");
+
+      const primaryFrame = document.getElementById("primary-virus");
+      const secondaryFrame = document.getElementById("secondary-virus");
+      const debugInfo = document.getElementById("debug-info");
+
+      // Load the viruses
+      if (primary) {
+        primaryFrame.src = `/viruses/${primary}/`;
+      }
+      if (secondary) {
+        secondaryFrame.src = `/viruses/${secondary}/`;
+      }
+
+      // Apply mix ratio
+      secondaryFrame.style.opacity = ratio.toString();
+
+      // Update debug info
+      debugInfo.textContent = `Primary: ${primary}, Secondary: ${secondary}, Ratio: ${ratio}, Mix-Blend-Mode: ${
+        getComputedStyle(secondaryFrame).mixBlendMode
+      }, Opacity: ${getComputedStyle(secondaryFrame).opacity}`;
+
+      // Log the opacity for debugging
+      console.log(
+        "Mixed view: Setting secondary frame opacity to",
+        ratio.toString()
+      );
+
+      // Handle iframe loading
+      let loadedFrames = 0;
+      const handleFrameLoad = () => {
+        loadedFrames++;
+        if (loadedFrames === 2) {
+          document.body.style.visibility = "visible";
+        }
+      };
+
+      primaryFrame.onload = handleFrameLoad;
+      secondaryFrame.onload = handleFrameLoad;
+
+      // Handle errors
+      const handleError = () => {
+        loadedFrames++;
+        if (loadedFrames === 2) {
+          document.body.style.visibility = "visible";
+        }
+      };
+
+      primaryFrame.onerror = handleError;
+      secondaryFrame.onerror = handleError;
+
+      // Initially hide the body until frames are loaded
+      document.body.style.visibility = "hidden";
+    </script>
+  </body>
+</html>

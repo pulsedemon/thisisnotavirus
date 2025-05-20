@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/browser";
 import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
 import Playlist from "./components/Playlist";
+import VirusLab from "./components/VirusLab";
 import "./sass/main.scss";
 import Random from "./utils/random";
 
@@ -32,7 +33,7 @@ console.log(
 const playlist = new Playlist();
 
 class VirusLoader {
-  iframe = document.getElementById("container") as HTMLIFrameElement;
+  iframe: HTMLIFrameElement;
   loadRandomInterval: ReturnType<typeof setInterval>;
   loadingAnimEl: HTMLDivElement = document.getElementById(
     "loading-anim"
@@ -42,10 +43,22 @@ class VirusLoader {
     "loading-ring"
   ) as HTMLDivElement;
   sourceCodeLink: HTMLAnchorElement = document.querySelector("#source-code a")!;
+  virusLab: VirusLab | null = null;
 
   constructor() {
     this.loadingAnim = new Flash(this.loadingAnimEl);
-    this.iframe.addEventListener("load", this.iframeLoaded.bind(this));
+
+    // Get the container iframe
+    this.iframe = document.getElementById("container") as HTMLIFrameElement;
+    this.iframe.style.width = "100%";
+    this.iframe.style.height = "100%";
+    this.iframe.style.border = "none";
+    this.iframe.style.position = "absolute";
+    this.iframe.style.top = "0";
+    this.iframe.style.left = "0";
+    this.iframe.style.background = "#000";
+
+    // We'll add the load event listener dynamically when loading viruses
     this.loadVirus(playlist.current());
     this.startRandomization();
 
@@ -54,10 +67,190 @@ class VirusLoader {
         animation_name: playlist.current(),
       });
     });
+
+    // Add lab button
+    const labButton = document.createElement("button");
+    labButton.id = "lab-btn";
+    labButton.innerHTML = "🧪";
+    labButton.title = "Virus Lab";
+    labButton.className = "lab-button";
+    labButton.style.position = "fixed";
+    labButton.style.bottom = "20px";
+    labButton.style.right = "20px";
+    labButton.style.width = "50px";
+    labButton.style.height = "50px";
+    labButton.style.borderRadius = "50%";
+    labButton.style.background = "#00ffff";
+    labButton.style.border = "none";
+    labButton.style.color = "#000";
+    labButton.style.fontSize = "24px";
+    labButton.style.cursor = "pointer";
+    labButton.style.zIndex = "2000";
+    labButton.style.transition = "all 0.3s ease";
+    labButton.style.boxShadow = "0 2px 10px rgba(0, 255, 255, 0.3)";
+    document.body.appendChild(labButton);
+
+    labButton.addEventListener("click", () => this.toggleLab());
   }
 
-  sourceCodeUrl(virus: string) {
-    return `https://github.com/pulsedemon/thisisnotavirus/tree/master/viruses/${virus}`;
+  loadVirus(name: string) {
+    console.log("Loading virus:", name);
+    this.loadingAnim.start();
+    this.sourceCodeLink?.classList.add("hide");
+    this.loadingRing.classList.add("loading");
+
+    // Clean up any existing mixed virus
+    const existingMixContainer = document.querySelector(
+      ".mixed-virus-container"
+    );
+    if (existingMixContainer) {
+      existingMixContainer.remove();
+    }
+
+    // Set a safety timeout in case iframe loading fails
+    const safetyTimeout = setTimeout(() => {
+      console.log("Safety timeout: forcing loading animation to stop");
+      this.iframeLoaded();
+    }, 5000);
+
+    try {
+      if (playlist.isMixedVirus(name)) {
+        const mix = playlist.getMixById(name);
+        if (mix) {
+          // Log mix details for debugging
+          console.log(
+            "Loading mix:",
+            mix.primary,
+            mix.secondary,
+            "with ratio:",
+            mix.mixRatio
+          );
+
+          // Hide the main iframe
+          this.iframe.style.display = "none";
+
+          // Create a custom container for the mixed virus display
+          const mixContainer = document.createElement("div");
+          mixContainer.className = "mixed-virus-container";
+          mixContainer.style.position = "absolute";
+          mixContainer.style.top = "0";
+          mixContainer.style.left = "0";
+          mixContainer.style.width = "100%";
+          mixContainer.style.height = "100%";
+          mixContainer.style.zIndex = "1";
+
+          // Create iframes for primary and secondary viruses
+          const primaryFrame = document.createElement("iframe");
+          const secondaryFrame = document.createElement("iframe");
+
+          // Style iframes
+          [primaryFrame, secondaryFrame].forEach((frame) => {
+            frame.style.width = "100%";
+            frame.style.height = "100%";
+            frame.style.border = "none";
+            frame.style.position = "absolute";
+            frame.style.top = "0";
+            frame.style.left = "0";
+            frame.style.background = "#000";
+          });
+
+          // Set mix-blend-mode and opacity for secondary frame
+          secondaryFrame.style.mixBlendMode = "screen";
+          secondaryFrame.className = "secondary-virus";
+          secondaryFrame.style.opacity = mix.mixRatio.toString();
+          console.log(
+            "Main view: Set secondary iframe opacity to",
+            secondaryFrame.style.opacity,
+            "mix-blend-mode:",
+            secondaryFrame.style.mixBlendMode
+          );
+
+          // Force mix-blend-mode with inline style and attribute
+          secondaryFrame.setAttribute(
+            "style",
+            `width:100%; height:100%; border:none; position:absolute; top:0; left:0; background:#000; mix-blend-mode:screen; opacity:${mix.mixRatio}`
+          );
+
+          // Check computed style
+          setTimeout(() => {
+            const computedStyle = window.getComputedStyle(secondaryFrame);
+            console.log("Computed style for secondary frame:", {
+              mixBlendMode: computedStyle.mixBlendMode,
+              opacity: computedStyle.opacity,
+            });
+          }, 500);
+
+          // Track iframe loading
+          let loadedFrames = 0;
+          const frameLoaded = () => {
+            loadedFrames++;
+            console.log(`Iframe loaded: ${loadedFrames}/2`);
+            if (loadedFrames === 2) {
+              // Both iframes have loaded
+              clearTimeout(safetyTimeout);
+              this.iframeLoaded();
+            }
+          };
+
+          // Add load event listeners
+          primaryFrame.addEventListener("load", frameLoaded);
+          secondaryFrame.addEventListener("load", frameLoaded);
+
+          // Add error handlers in case a virus fails to load
+          primaryFrame.addEventListener("error", frameLoaded);
+          secondaryFrame.addEventListener("error", frameLoaded);
+
+          // Load viruses
+          primaryFrame.src = `/viruses/${mix.primary}/`;
+          secondaryFrame.src = `/viruses/${mix.secondary}/`;
+
+          // Add iframes to container
+          mixContainer.appendChild(primaryFrame);
+          mixContainer.appendChild(secondaryFrame);
+
+          // Add container to document
+          document.body.appendChild(mixContainer);
+
+          this.sourceCodeLink.href = this.sourceCodeUrl(name);
+        } else {
+          console.error("Mix not found for ID:", name);
+          this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
+          this.iframe.style.display = "block";
+          this.iframe.addEventListener(
+            "load",
+            () => {
+              clearTimeout(safetyTimeout);
+              this.iframeLoaded();
+            },
+            { once: true }
+          );
+        }
+      } else {
+        // For regular viruses, use the standard iframe
+        this.iframe.src = `/viruses/${name}/`;
+        this.iframe.style.display = "block";
+        this.iframe.addEventListener(
+          "load",
+          () => {
+            clearTimeout(safetyTimeout);
+            this.iframeLoaded();
+          },
+          { once: true }
+        );
+      }
+    } catch (error) {
+      console.error("Error loading virus:", error);
+      this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
+      this.iframe.style.display = "block";
+      this.iframe.addEventListener(
+        "load",
+        () => {
+          clearTimeout(safetyTimeout);
+          this.iframeLoaded();
+        },
+        { once: true }
+      );
+    }
   }
 
   iframeLoaded() {
@@ -65,22 +258,40 @@ class VirusLoader {
     this.sourceCodeLink.classList.remove("hide");
     this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
     this.loadingRing.classList.remove("loading");
+    console.log("Iframe(s) loaded, hiding loading animation");
   }
 
-  loadVirus(name: string) {
-    this.loadingAnim.start();
-    this.sourceCodeLink?.classList.add("hide");
-    this.loadingRing.classList.add("loading");
-    this.iframe.src = `/viruses/${name}/`;
+  sourceCodeUrl(virus: string) {
+    return `https://github.com/pulsedemon/thisisnotavirus/tree/master/viruses/${virus}`;
   }
 
   skipNext() {
-    this.loadVirus(playlist.next());
+    // Clean up any existing mixed virus container
+    const existingMixContainer = document.querySelector(
+      ".mixed-virus-container"
+    );
+    if (existingMixContainer) {
+      existingMixContainer.remove();
+    }
+
+    const nextVirus = playlist.next();
+    console.log("Skipping to next virus:", nextVirus);
+    this.loadVirus(nextVirus);
     this.startRandomization();
   }
 
   skipPrev() {
-    this.loadVirus(playlist.prev());
+    // Clean up any existing mixed virus container
+    const existingMixContainer = document.querySelector(
+      ".mixed-virus-container"
+    );
+    if (existingMixContainer) {
+      existingMixContainer.remove();
+    }
+
+    const prevVirus = playlist.prev();
+    console.log("Skipping to previous virus:", prevVirus);
+    this.loadVirus(prevVirus);
     this.startRandomization();
   }
 
@@ -91,6 +302,14 @@ class VirusLoader {
     let virusToLoad: string;
 
     this.loadRandomInterval = setInterval(() => {
+      // Clean up any existing mixed virus container
+      const existingMixContainer = document.querySelector(
+        ".mixed-virus-container"
+      );
+      if (existingMixContainer) {
+        existingMixContainer.remove();
+      }
+
       if (name) {
         virusToLoad = name;
       } else {
@@ -99,6 +318,74 @@ class VirusLoader {
       this.loadVirus(virusToLoad);
       this.startRandomization();
     }, randomTime);
+  }
+
+  private hideModals() {
+    document.querySelectorAll(".modal.show").forEach((modal) => {
+      modal.classList.remove("show");
+    });
+  }
+
+  toggleLab() {
+    if (this.virusLab) {
+      // Close lab
+      const labContainer = document.getElementById("virus-lab");
+      if (labContainer) {
+        labContainer.remove();
+      }
+      this.virusLab = null;
+      this.iframe.style.display = "block";
+      document.getElementById("menu")!.style.display = "inline-block";
+
+      const labButton = document.getElementById("lab-btn")!;
+      labButton.innerHTML = "🧪";
+      labButton.title = "Virus Lab";
+      gtag("event", "close_lab");
+
+      // Resume playlist if it was playing
+      const playPauseBtn = document.getElementById("play-pause")!;
+      if (playPauseBtn.innerText === "play_arrow") {
+        playPauseBtn.innerText = "pause";
+        this.skipNext();
+      }
+    } else {
+      // Open lab
+      this.iframe.style.display = "none";
+      document.getElementById("menu")!.style.display = "none";
+      this.hideModals();
+
+      // Clean up any existing mixed virus container
+      const existingMixContainer = document.querySelector(
+        ".mixed-virus-container"
+      );
+      if (existingMixContainer) {
+        existingMixContainer.remove();
+      }
+
+      // Pause playlist
+      const playPauseBtn = document.getElementById("play-pause")!;
+      if (playPauseBtn.innerText === "pause") {
+        playPauseBtn.innerText = "play_arrow";
+        clearInterval(this.loadRandomInterval);
+      }
+
+      const labContainer = document.createElement("div");
+      labContainer.id = "virus-lab";
+      labContainer.style.position = "absolute";
+      labContainer.style.top = "0";
+      labContainer.style.left = "0";
+      labContainer.style.width = "100%";
+      labContainer.style.height = "100%";
+      labContainer.style.zIndex = "1000";
+
+      document.body.appendChild(labContainer);
+      this.virusLab = new VirusLab(labContainer, playlist);
+
+      const labButton = document.getElementById("lab-btn")!;
+      labButton.innerHTML = "✕";
+      labButton.title = "Close Virus Lab";
+      gtag("event", "open_lab");
+    }
   }
 }
 
