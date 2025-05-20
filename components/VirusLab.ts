@@ -306,6 +306,14 @@ export default class VirusLab {
     this.applyMix();
   }
 
+  getCurrentMix(): VirusMix | undefined {
+    // Return a copy of the current mix, ensuring it has an ID
+    if (this.currentMix && this.currentMix.id) {
+      return { ...this.currentMix };
+    }
+    return undefined;
+  }
+
   private deleteMix(mixId: number) {
     const savedMixes = this.savedMixes.filter((mix) => mix.id !== mixId);
     localStorage.setItem("savedVirusMixes", JSON.stringify(savedMixes));

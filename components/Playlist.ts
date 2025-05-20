@@ -33,7 +33,7 @@ export default class Playlist {
   loadSavedMixes() {
     const savedMixesStr = localStorage.getItem("savedVirusMixes");
     try {
-      this.savedMixes = JSON.parse(savedMixesStr || "[]");
+      this.savedMixes = JSON.parse(savedMixesStr || "[]") as VirusMix[];
     } catch (e) {
       console.error("Error parsing saved mixes:", e);
       this.savedMixes = [];
@@ -109,5 +109,22 @@ export default class Playlist {
     const mixId = parseInt(id.replace("mixed:", ""));
     const mix = this.savedMixes.find((mix) => mix.id === mixId);
     return mix;
+  }
+
+  /**
+   * Sets the current virus in the playlist directly
+   * This allows the mix to be properly referenced by playlist.current()
+   */
+  setCurrentVirus(virusId: string): void {
+    // Find the index of this virus in the playlist
+    const index = this.playlist.indexOf(virusId);
+
+    if (index !== -1) {
+      // If the virus is in the playlist, set the current index to it
+      this.currentIndex = index;
+    } else {
+      // If not found, add it to the playlist at the current position
+      this.playlist.splice(this.currentIndex, 0, virusId);
+    }
   }
 }
