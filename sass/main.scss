@@ -304,6 +304,16 @@ body {
   }
 }
 
+#thumbnail-btn {
+  &[title] {
+    &::after {
+      right: unset;
+      left: 100%;
+      margin-left: 10px;
+    }
+  }
+}
+
 #secondary-virus,
 iframe.secondary-virus,
 iframe[id*="secondary"] {

@@ -106,7 +106,7 @@ class VirusLoader {
     thumbBtn.id = "thumbnail-btn";
     thumbBtn.innerHTML =
       "<span class='material-symbols-outlined'>grid_view</span>";
-    thumbBtn.title = "Show Virus Thumbnails";
+    thumbBtn.title = "Gallery";
     thumbBtn.className = "lab-button";
     thumbBtn.style.position = "fixed";
     thumbBtn.style.bottom = "20px";
