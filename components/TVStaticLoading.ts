@@ -306,7 +306,7 @@ export default class TVStaticLoading {
     }
     this._drawScanlines();
     // Draw watermark on top of everything
-    this._drawBackgroundVirusText(0.3);
+    this._drawBackgroundVirusText(0.18);
     // Draw buffer to main canvas, scaled up
     const mainCtx = this.canvas.getContext("2d")!;
     mainCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
