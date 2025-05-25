@@ -1,6 +1,7 @@
 import { createStyledIframe } from "../utils/iframe";
 import { formatVirusName } from "../utils/misc";
 import Playlist from "./Playlist";
+import controlsTemplate from "./templates/virus-lab-controls.hbs";
 
 interface VirusMix {
   primary: string;
@@ -94,25 +95,7 @@ export default class VirusLab {
   private initializeUI() {
     const controls = document.createElement("div");
     controls.className = "virus-lab-controls";
-    controls.innerHTML = `
-      <div class="control-group">
-        <label>Primary Virus</label>
-        <select id="primary-virus"></select>
-      </div>
-      <div class="control-group">
-        <label>Secondary Virus</label>
-        <select id="secondary-virus"></select>
-      </div>
-      <div class="control-group">
-        <label>Mix Ratio</label>
-        <input type="range" id="mix-ratio" min="0" max="1" step="0.1" value="0.5">
-      </div>
-      <button id="save-mix">Save Mix</button>
-      <div class="saved-mixes">
-        <h3>Saved Mixes</h3>
-        <div id="saved-mixes-list"></div>
-      </div>
-    `;
+    controls.innerHTML = controlsTemplate();
 
     this.container.appendChild(controls);
     this.setupEventListeners();

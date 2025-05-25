@@ -70,6 +70,10 @@ export default {
           "sass-loader",
         ],
       },
+      {
+        test: /\.hbs$/,
+        loader: "handlebars-loader",
+      },
     ],
   },
 };
