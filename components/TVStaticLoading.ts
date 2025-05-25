@@ -244,14 +244,12 @@ export default class TVStaticLoading {
     this._lastFrameTime = now;
     const ctx = this._bufferCtx;
     ctx.clearRect(0, 0, this._bufferW, this._bufferH);
-    let colorStatic = Math.random() < 0.15;
-    let blocky = false;
+    const colorStatic = Math.random() < 0.15;
 
     // Handle effects
     if (this._effect) {
       this._effectProgress++;
       if (this._effect === "scramble") {
-        blocky = true;
         this._drawStatic(true, true);
         this._drawBandShift();
         this._drawWavyDistortion();
@@ -295,10 +293,9 @@ export default class TVStaticLoading {
       this._drawStatic(colorStatic);
       if (!this._effectTimer) {
         this._effectTimer = window.setTimeout(() => {
-          const effects = ["roll", "flash", "bar", "glitch", "scramble"];
-          this._effect = effects[
-            Math.floor(Math.random() * effects.length)
-          ] as any;
+          const effects: ("roll" | "flash" | "bar" | "glitch" | "scramble")[] =
+            ["roll", "flash", "bar", "glitch", "scramble"];
+          this._effect = effects[Math.floor(Math.random() * effects.length)];
           this._effectProgress = 0;
           this._effectTimer = null;
         }, 1000 + Math.random() * 1000);
