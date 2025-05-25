@@ -91,19 +91,19 @@ export default class TVStaticLoading {
           this.watermark.fade;
       ctx.globalAlpha = alpha;
       let fontSize = height;
-      ctx.font = `bold ${fontSize}px monospace`;
+      ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
       let metrics = ctx.measureText("VIRUS");
       const textWidth = metrics.width;
       if (textWidth > width * 0.98) {
         fontSize = (fontSize * (width * 0.98)) / textWidth;
-        ctx.font = `bold ${fontSize}px monospace`;
+        ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
         metrics = ctx.measureText("VIRUS");
       }
       const actualHeight =
         metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       if (actualHeight > height * 0.98) {
         fontSize = (fontSize * (height * 0.98)) / actualHeight;
-        ctx.font = `bold ${fontSize}px monospace`;
+        ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
         metrics = ctx.measureText("VIRUS");
       }
       ctx.textAlign = "center";
