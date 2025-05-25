@@ -146,13 +146,11 @@ class VirusLoader {
     };
   }
 
-  private showSourceCode() {
-    this.sourceCodeDiv?.classList.remove("hide");
+  private showSourceCodeLink() {
     this.sourceCodeLink?.classList.remove("hide");
   }
 
-  private hideSourceCode() {
-    this.sourceCodeDiv?.classList.add("hide");
+  private hideSourceCodeLink() {
     this.sourceCodeLink?.classList.add("hide");
   }
 
@@ -171,7 +169,7 @@ class VirusLoader {
     console.log("Loading virus:", name);
     this.loadingAnim.start();
     this.loadingAnimStartTime = Date.now();
-    this.hideSourceCode();
+    this.hideSourceCodeLink();
     this.loadingRing.classList.add("loading");
 
     // Clean up any existing mixed virus
@@ -195,7 +193,7 @@ class VirusLoader {
           // Hide the main iframe
           this.iframe.style.display = "none";
           // Hide the source code element for mixes
-          this.hideSourceCode();
+          this.hideSourceCodeLink();
 
           // Create a custom container for the mixed virus display
           const mixContainer = document.createElement("div");
@@ -236,7 +234,6 @@ class VirusLoader {
           console.error("Mix not found for ID:", name);
           this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
           this.iframe.style.display = "block";
-          this.showSourceCode();
           this.iframe.addEventListener(
             "load",
             () => {
@@ -250,7 +247,6 @@ class VirusLoader {
         // For regular viruses, use the standard iframe
         this.iframe.src = `/viruses/${name}/`;
         this.iframe.style.display = "block";
-        this.showSourceCode();
         this.iframe.addEventListener(
           "load",
           () => {
@@ -264,7 +260,6 @@ class VirusLoader {
       console.error("Error loading virus:", error);
       this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
       this.iframe.style.display = "block";
-      this.showSourceCode();
       this.iframe.addEventListener(
         "load",
         () => {
@@ -288,9 +283,14 @@ class VirusLoader {
 
   iframeLoaded() {
     this.loadingAnim.stop();
+    // Failsafe: Remove any lingering static canvas that could block UI
+    document.querySelectorAll(".tv-static-canvas").forEach((el) => {
+      (el as HTMLElement).style.pointerEvents = "none";
+      el.parentNode?.removeChild(el);
+    });
     // Only show source code if not a mix
     if (!playlist.isMixedVirus(playlist.current())) {
-      this.showSourceCode();
+      this.showSourceCodeLink();
     }
     this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
     this.loadingRing.classList.remove("loading");

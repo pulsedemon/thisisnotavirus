@@ -56,7 +56,9 @@ export default class TVStaticLoading {
     this._buffer = document.createElement("canvas");
     this._buffer.width = this.config.bufferW;
     this._buffer.height = this.config.bufferH;
-    this._bufferCtx = this._buffer.getContext("2d")!;
+    this._bufferCtx = this._buffer.getContext("2d", {
+      willReadFrequently: true,
+    })!;
     this.watermark.baseAlpha = this.config.watermarkBaseAlpha;
     this.watermark.revealAlpha = this.config.watermarkRevealAlpha;
     this.watermark.step = this.config.watermarkStep;
