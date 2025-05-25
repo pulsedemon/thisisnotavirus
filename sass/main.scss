@@ -333,14 +333,19 @@ iframe[id*="secondary"] {
   width: 100vw;
   max-width: 100vw;
   height: 100%;
-  max-height: 100%;
   margin: 0;
-  padding: 0 40px;
+  padding: 70px 40px;
   justify-items: center;
   align-items: center;
-  overflow-y: auto;
-  overflow-x: hidden;
   box-sizing: border-box;
+  overflow: auto;
+
+  @media (max-width: 430px) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
 }
 
 .virus-thumbnail-item {
@@ -353,7 +358,8 @@ iframe[id*="secondary"] {
   border-radius: 12px;
   padding: 8px 8px 16px 8px;
   transition: transform 0.15s, box-shadow 0.15s;
-  overflow: hidden;
+  // overflow: hidden;
+  // height: auto;
   box-sizing: border-box;
 }
 .virus-thumbnail-item:hover {
@@ -398,80 +404,4 @@ iframe[id*="secondary"] {
 }
 .virus-thumbnail-close:hover {
   background: #00cccc;
-}
-
-// Responsive Virus Thumbnail Overlay
-@media (max-width: 600px) {
-  #virus-thumbnail-overlay {
-    padding: 0;
-  }
-  .virus-thumbnail-grid {
-    grid-template-columns: repeat(2, 1fr);
-    row-gap: 12px;
-    column-gap: 6px;
-    width: 100vw;
-    max-width: 100vw;
-    height: 100%;
-    max-height: 100%;
-    padding: 0 8px;
-  }
-  .virus-thumbnail-item {
-    padding: 2px !important;
-    margin: 0 !important;
-    min-width: 0;
-    max-width: 100%;
-    border-radius: 8px;
-  }
-  .virus-thumbnail-item iframe {
-    margin-bottom: 2px !important;
-    height: 36px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  .virus-thumbnail-item div {
-    margin-top: 2px !important;
-    font-size: 0.95rem !important;
-    word-break: break-word;
-  }
-}
-
-@media (min-width: 601px) and (max-width: 900px) {
-  .virus-thumbnail-grid {
-    grid-template-columns: repeat(3, 1fr);
-    row-gap: 20px;
-    column-gap: 12px;
-    padding: 0 24px;
-  }
-  .virus-thumbnail-item {
-    padding: 6px 4px 10px 4px;
-    border-radius: 10px;
-  }
-  .virus-thumbnail-item iframe {
-    height: 60px !important;
-    width: 100% !important;
-    max-width: 180px !important;
-  }
-  .virus-thumbnail-item div {
-    font-size: 1rem !important;
-  }
-}
-
-@media (min-width: 901px) {
-  .virus-thumbnail-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-    padding: 0 40px;
-  }
-  .virus-thumbnail-item {
-    padding: 8px 8px 16px 8px;
-    border-radius: 12px;
-  }
-  .virus-thumbnail-item iframe {
-    height: 90px !important;
-    width: 150px !important;
-    max-width: 100%;
-  }
-  .virus-thumbnail-item div {
-    font-size: 1.1rem !important;
-  }
 }
