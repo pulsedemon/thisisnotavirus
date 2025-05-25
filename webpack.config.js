@@ -16,6 +16,7 @@ jsFiles.forEach((filepath) => {
   entries[filename] = `./${filepath}`;
 });
 entries["main"] = "./main.ts";
+entries["static"] = "./viruses/static/static.ts";
 
 export default {
   mode: "development",

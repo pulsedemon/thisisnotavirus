@@ -571,3 +571,5 @@ function teleportMenu() {
 
   gtag("event", "v_icon_click");
 }
+
+(window as any).TVStaticLoading = TVStaticLoading;

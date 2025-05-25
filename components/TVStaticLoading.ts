@@ -46,10 +46,47 @@ export default class TVStaticLoading {
     this.canvas.height = window.innerHeight;
   }
 
+  _drawBackgroundVirusText(alpha = 0.13) {
+    const ctx = this._bufferCtx;
+    const width = this._bufferW;
+    const height = this._bufferH;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    // Dynamically size font to fill buffer
+    let fontSize = height; // Start with height
+    ctx.font = `bold ${fontSize}px monospace`;
+    let metrics = ctx.measureText("VIRUS");
+    // Adjust font size to fit width as well
+    const textWidth = metrics.width;
+    if (textWidth > width * 0.98) {
+      fontSize = (fontSize * (width * 0.98)) / textWidth;
+      ctx.font = `bold ${fontSize}px monospace`;
+      metrics = ctx.measureText("VIRUS");
+    }
+    // If text is still too tall, shrink to fit height
+    const actualHeight =
+      metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    if (actualHeight > height * 0.98) {
+      fontSize = (fontSize * (height * 0.98)) / actualHeight;
+      ctx.font = `bold ${fontSize}px monospace`;
+      metrics = ctx.measureText("VIRUS");
+    }
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#fff";
+    // Calculate perfect vertical center using bounding box
+    const y =
+      height / 2 +
+      (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2;
+    ctx.fillText("VIRUS", width / 2, y);
+    ctx.restore();
+  }
+
   _drawStatic(color = false, blocky = false) {
     const ctx = this._bufferCtx;
     const width = this._bufferW;
     const height = this._bufferH;
+    // Remove watermark from here
     let pixelSize = blocky ? Math.floor(Math.random() * 3) + 2 : 1;
     for (let y = 0; y < height; y += pixelSize) {
       for (let x = 0; x < width; x += pixelSize) {
@@ -268,6 +305,8 @@ export default class TVStaticLoading {
       }
     }
     this._drawScanlines();
+    // Draw watermark on top of everything
+    this._drawBackgroundVirusText(0.3);
     // Draw buffer to main canvas, scaled up
     const mainCtx = this.canvas.getContext("2d")!;
     mainCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);

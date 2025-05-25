@@ -19,6 +19,7 @@ export default class Playlist {
     "doors",
     "emoji",
     "cubes",
+    "static",
   ];
 
   playlist: string[] = [];
