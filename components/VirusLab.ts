@@ -1,4 +1,5 @@
 import { createStyledIframe } from "../utils/iframe";
+import { formatVirusName } from "../utils/misc";
 import Playlist from "./Playlist";
 
 interface VirusMix {
@@ -174,9 +175,7 @@ export default class VirusLab {
     this.playlist.viruses.forEach((virus) => {
       const option = document.createElement("option");
       option.value = virus;
-      option.textContent = virus
-        .replace(/-/g, " ")
-        .replace(/\b\w/g, (l) => l.toUpperCase());
+      option.textContent = formatVirusName(virus);
 
       primarySelect.appendChild(option.cloneNode(true));
       secondarySelect.appendChild(option);
@@ -198,11 +197,6 @@ export default class VirusLab {
 
   private saveMix() {
     const savedMixes = this.loadSavedMixesFromStorage();
-
-    // Format virus names for display
-    const formatVirusName = (name: string) => {
-      return name.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-    };
 
     // Check for duplicates
     const isDuplicate = savedMixes.some(

@@ -84,3 +84,7 @@ export function stripTags(str: string) {
 //     });
 //   }
 // }
+
+export function formatVirusName(name: string) {
+  return name.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}

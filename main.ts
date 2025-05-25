@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/browser";
 import { virus } from "./ascii";
 import Flash from "./components/flash/flash";
 import Playlist from "./components/Playlist";
+import TVStaticLoading from "./components/TVStaticLoading";
 import VirusLab from "./components/VirusLab";
 import "./sass/main.scss";
 import { createStyledIframe } from "./utils/iframe";
@@ -13,6 +14,12 @@ declare let gtag: (
   eventType: string,
   options?: object
 ) => void;
+
+declare global {
+  interface Window {
+    TVStaticLoading?: any;
+  }
+}
 
 Sentry.init({
   dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
@@ -39,7 +46,8 @@ class VirusLoader {
   loadingAnimEl: HTMLDivElement = document.getElementById(
     "loading-anim"
   ) as HTMLDivElement;
-  loadingAnim;
+  loadingAnimStartTime = 0;
+  loadingAnim: { start: () => void; stop: () => void };
   loadingRing: HTMLDivElement = document.getElementById(
     "loading-ring"
   ) as HTMLDivElement;
@@ -48,8 +56,6 @@ class VirusLoader {
   virusLab: VirusLab | null = null;
 
   constructor() {
-    this.loadingAnim = new Flash(this.loadingAnimEl);
-
     // Get the container iframe
     this.iframe = document.getElementById("container") as HTMLIFrameElement;
     this.iframe.style.width = "100%";
@@ -106,8 +112,20 @@ class VirusLoader {
   }
 
   loadVirus(name: string) {
+    // Randomly choose the loading animation for each load
+    if (Math.random() < 0.5) {
+      const tvStatic = new TVStaticLoading();
+      this.loadingAnim = {
+        start: () => tvStatic.show(),
+        stop: () => tvStatic.hide(),
+      };
+    } else {
+      this.loadingAnim = new Flash(this.loadingAnimEl);
+    }
+
     console.log("Loading virus:", name);
     this.loadingAnim.start();
+    this.loadingAnimStartTime = Date.now();
     this.hideSourceCode();
     this.loadingRing.classList.add("loading");
 
@@ -122,7 +140,7 @@ class VirusLoader {
     // Set a safety timeout in case iframe loading fails
     const safetyTimeout = setTimeout(() => {
       console.log("Safety timeout: forcing loading animation to stop");
-      this.iframeLoaded();
+      this._delayedIframeLoaded();
     }, 5000);
 
     try {
@@ -153,13 +171,13 @@ class VirusLoader {
           // Add load event listener
           mixFrame.addEventListener("load", () => {
             clearTimeout(safetyTimeout);
-            this.iframeLoaded();
+            this._delayedIframeLoaded();
           });
 
           // Add error handler
           mixFrame.addEventListener("error", () => {
             clearTimeout(safetyTimeout);
-            this.iframeLoaded();
+            this._delayedIframeLoaded();
           });
 
           // Add iframe to container
@@ -178,7 +196,7 @@ class VirusLoader {
             "load",
             () => {
               clearTimeout(safetyTimeout);
-              this.iframeLoaded();
+              this._delayedIframeLoaded();
             },
             { once: true }
           );
@@ -192,7 +210,7 @@ class VirusLoader {
           "load",
           () => {
             clearTimeout(safetyTimeout);
-            this.iframeLoaded();
+            this._delayedIframeLoaded();
           },
           { once: true }
         );
@@ -206,10 +224,20 @@ class VirusLoader {
         "load",
         () => {
           clearTimeout(safetyTimeout);
-          this.iframeLoaded();
+          this._delayedIframeLoaded();
         },
         { once: true }
       );
+    }
+  }
+
+  _delayedIframeLoaded() {
+    const minDuration = 500; // 0.5 second
+    const elapsed = Date.now() - this.loadingAnimStartTime;
+    if (elapsed >= minDuration) {
+      this.iframeLoaded();
+    } else {
+      setTimeout(() => this.iframeLoaded(), minDuration - elapsed);
     }
   }
 
