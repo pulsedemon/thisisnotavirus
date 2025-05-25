@@ -5,6 +5,7 @@ import Flash from "./components/flash/flash";
 import Playlist from "./components/Playlist";
 import TVStaticLoading from "./components/TVStaticLoading";
 import VirusLab from "./components/VirusLab";
+import { showVirusThumbnailOverlay } from "./components/VirusThumbnailOverlay";
 import "./sass/main.scss";
 import { createStyledIframe } from "./utils/iframe";
 import Random from "./utils/random";
@@ -99,6 +100,50 @@ class VirusLoader {
     document.body.appendChild(labButton);
 
     labButton.addEventListener("click", () => this.toggleLab());
+
+    // Add a floating button to open the overlay in the bottom left
+    const thumbBtn = document.createElement("button");
+    thumbBtn.id = "thumbnail-btn";
+    thumbBtn.innerHTML =
+      "<span class='material-symbols-outlined'>grid_view</span>";
+    thumbBtn.title = "Show Virus Thumbnails";
+    thumbBtn.className = "lab-button";
+    thumbBtn.style.position = "fixed";
+    thumbBtn.style.bottom = "20px";
+    thumbBtn.style.left = "20px";
+    thumbBtn.style.right = "";
+    thumbBtn.style.background = "#00ffff";
+    thumbBtn.style.color = "#000";
+    thumbBtn.style.border = "none";
+    thumbBtn.style.borderRadius = "50%";
+    thumbBtn.style.width = "50px";
+    thumbBtn.style.height = "50px";
+    thumbBtn.style.cursor = "pointer";
+    thumbBtn.style.fontSize = "24px";
+    thumbBtn.style.zIndex = "2000";
+    thumbBtn.style.transition = "all 0.3s ease";
+    thumbBtn.style.boxShadow = "0 2px 10px rgba(0, 255, 255, 0.3)";
+    thumbBtn.style.display = "flex";
+    thumbBtn.style.alignItems = "center";
+    thumbBtn.style.justifyContent = "center";
+    document.body.appendChild(thumbBtn);
+
+    thumbBtn.onclick = () => {
+      showVirusThumbnailOverlay({
+        onSelect: (virus) => {
+          // Pause playlist
+          const playPauseBtn = document.getElementById("play-pause");
+          if (playPauseBtn) playPauseBtn.innerText = "play_arrow";
+          clearInterval(this.loadRandomInterval);
+          // Set playlist current virus and load selected virus
+          playlist.setCurrentVirus(virus);
+          this.loadVirus(virus);
+        },
+        onClose: () => {
+          // No-op for now
+        },
+      });
+    };
   }
 
   private showSourceCode() {

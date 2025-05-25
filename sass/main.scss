@@ -312,3 +312,116 @@ iframe.secondary-virus,
 iframe[id*="secondary"] {
   mix-blend-mode: screen !important;
 }
+
+// Virus Thumbnail Overlay Styles
+#virus-thumbnail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.96);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.virus-thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0 40px;
+  justify-items: center;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.virus-thumbnail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  background: #111;
+  border: 2px solid #00ffff;
+  border-radius: 12px;
+  padding: 8px 8px 16px 8px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.virus-thumbnail-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 16px #00ffff88;
+}
+.virus-thumbnail-item iframe {
+  width: 150px;
+  height: 70px !important;
+  border: none;
+  background: #000;
+  border-radius: 8px;
+  pointer-events: none;
+  margin-bottom: 8px;
+}
+.virus-thumbnail-item div {
+  color: #00ffff;
+  font-family: monospace;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.virus-thumbnail-close {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  font-size: 2.5rem;
+  background: #00ffff;
+  color: #000;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+  transition: background 0.2s;
+}
+.virus-thumbnail-close:hover {
+  background: #00cccc;
+}
+
+@media (max-width: 600px) {
+  #virus-thumbnail-overlay {
+    padding: 0;
+  }
+  .virus-thumbnail-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100%;
+    max-height: 100%;
+    padding: 0 4px;
+  }
+  .virus-thumbnail-close {
+    top: 12px !important;
+    right: auto !important;
+    left: 12px !important;
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 2.2rem !important;
+  }
+}
