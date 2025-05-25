@@ -1,6 +1,11 @@
 @use "./animations.scss";
 @use "./_virus-lab.scss";
 
+// Global hide class
+.hide {
+  display: none !important;
+}
+
 #loading-anim {
   width: 100vw;
   height: 100vh;

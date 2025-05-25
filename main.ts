@@ -44,6 +44,7 @@ class VirusLoader {
     "loading-ring"
   ) as HTMLDivElement;
   sourceCodeLink: HTMLAnchorElement = document.querySelector("#source-code a")!;
+  sourceCodeDiv: HTMLElement = document.getElementById("source-code")!;
   virusLab: VirusLab | null = null;
 
   constructor() {
@@ -94,10 +95,20 @@ class VirusLoader {
     labButton.addEventListener("click", () => this.toggleLab());
   }
 
+  private showSourceCode() {
+    this.sourceCodeDiv?.classList.remove("hide");
+    this.sourceCodeLink?.classList.remove("hide");
+  }
+
+  private hideSourceCode() {
+    this.sourceCodeDiv?.classList.add("hide");
+    this.sourceCodeLink?.classList.add("hide");
+  }
+
   loadVirus(name: string) {
     console.log("Loading virus:", name);
     this.loadingAnim.start();
-    this.sourceCodeLink?.classList.add("hide");
+    this.hideSourceCode();
     this.loadingRing.classList.add("loading");
 
     // Clean up any existing mixed virus
@@ -120,6 +131,8 @@ class VirusLoader {
         if (mix) {
           // Hide the main iframe
           this.iframe.style.display = "none";
+          // Hide the source code element for mixes
+          this.hideSourceCode();
 
           // Create a custom container for the mixed virus display
           const mixContainer = document.createElement("div");
@@ -160,6 +173,7 @@ class VirusLoader {
           console.error("Mix not found for ID:", name);
           this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
           this.iframe.style.display = "block";
+          this.showSourceCode();
           this.iframe.addEventListener(
             "load",
             () => {
@@ -173,6 +187,7 @@ class VirusLoader {
         // For regular viruses, use the standard iframe
         this.iframe.src = `/viruses/${name}/`;
         this.iframe.style.display = "block";
+        this.showSourceCode();
         this.iframe.addEventListener(
           "load",
           () => {
@@ -186,6 +201,7 @@ class VirusLoader {
       console.error("Error loading virus:", error);
       this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
       this.iframe.style.display = "block";
+      this.showSourceCode();
       this.iframe.addEventListener(
         "load",
         () => {
@@ -199,7 +215,10 @@ class VirusLoader {
 
   iframeLoaded() {
     this.loadingAnim.stop();
-    this.sourceCodeLink.classList.remove("hide");
+    // Only show source code if not a mix
+    if (!playlist.isMixedVirus(playlist.current())) {
+      this.showSourceCode();
+    }
     this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
     this.loadingRing.classList.remove("loading");
   }
