@@ -327,23 +327,58 @@ iframe[id*="secondary"] {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.98);
   display: flex;
   flex-direction: column;
   z-index: 200000;
-  animation: overlayFadeIn 0.3s ease-out;
+  animation: overlayGlitchIn 0.5s ease-out;
   overflow: hidden;
+  font-family: monospace;
+
+  // Add subtle scanlines effect
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(0, 255, 255, 0.03) 51%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
-@keyframes overlayFadeIn {
-  from {
+@keyframes overlayGlitchIn {
+  0% {
     opacity: 0;
-    backdrop-filter: blur(0px);
+    transform: scale(1.02);
+    filter: hue-rotate(0deg);
   }
-  to {
+  20% {
+    opacity: 0.8;
+    transform: scale(0.98);
+    filter: hue-rotate(90deg);
+  }
+  40% {
     opacity: 1;
-    backdrop-filter: blur(10px);
+    transform: scale(1.01);
+    filter: hue-rotate(0deg);
+  }
+  60% {
+    opacity: 0.9;
+    transform: scale(0.99);
+    filter: hue-rotate(45deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: hue-rotate(0deg);
   }
 }
 
@@ -351,172 +386,11 @@ iframe[id*="secondary"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 255, 255, 0.1),
-    rgba(255, 0, 255, 0.1)
-  );
-  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-  backdrop-filter: blur(20px);
-}
-
-.virus-overlay-title {
-  color: #00ffff;
-  font-family: "Roboto", sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-  letter-spacing: 1px;
-}
-
-.virus-overlay-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px 30px;
-  overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.virus-search-container {
+  padding: 15px 20px;
+  background: #000;
+  border-bottom: 2px solid #00ffff;
   position: relative;
-  margin-bottom: 30px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.virus-search {
-  width: 100%;
-  padding: 15px 50px 15px 20px;
-  background: rgba(17, 17, 17, 0.9);
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 16px;
-  font-family: "Roboto", sans-serif;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #00ffff;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-    background: rgba(17, 17, 17, 0.95);
-  }
-}
-
-.virus-search-icon {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(0, 255, 255, 0.7);
-  font-size: 18px;
-  pointer-events: none;
-  transition: color 0.3s ease;
-}
-
-.virus-thumbnail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 25px;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 10px;
-  scrollbar-width: thin;
-  scrollbar-color: #00ffff rgba(255, 255, 255, 0.1);
-  align-items: start;
-  justify-items: center;
-  grid-auto-rows: max-content;
-  width: 100%;
-  box-sizing: border-box;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #00ffff;
-    border-radius: 4px;
-    transition: background 0.3s ease;
-
-    &:hover {
-      background: #00cccc;
-    }
-  }
-
-  &.mobile {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    padding: 15px 10px;
-    justify-items: stretch;
-  }
-}
-
-.virus-thumbnail-item {
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  background: linear-gradient(
-    145deg,
-    rgba(17, 17, 17, 0.9),
-    rgba(34, 34, 34, 0.9)
-  );
-  border: 2px solid rgba(0, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 15px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-  animation: itemFadeIn 0.5s ease-out;
-  animation-fill-mode: both;
-  height: fit-content;
-  max-height: 200px;
-  min-height: 160px;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-
-  &.filtered-out {
-    display: none;
-  }
-
-  &:nth-child(1) {
-    animation-delay: 0.1s;
-  }
-  &:nth-child(2) {
-    animation-delay: 0.15s;
-  }
-  &:nth-child(3) {
-    animation-delay: 0.2s;
-  }
-  &:nth-child(4) {
-    animation-delay: 0.25s;
-  }
-  &:nth-child(5) {
-    animation-delay: 0.3s;
-  }
-  &:nth-child(6) {
-    animation-delay: 0.35s;
-  }
-  &:nth-child(n + 7) {
-    animation-delay: 0.4s;
-  }
+  z-index: 2;
 
   &::before {
     content: "";
@@ -526,25 +400,206 @@ iframe[id*="secondary"] {
     right: 0;
     bottom: 0;
     background: linear-gradient(
-      45deg,
+      90deg,
       transparent,
       rgba(0, 255, 255, 0.1),
       transparent
     );
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    animation: scanlineMove 2s linear infinite;
+  }
+}
+
+@keyframes scanlineMove {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.virus-overlay-title {
+  color: #00ffff;
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+
+  &::before,
+  &::after {
+    content: "SELECT VIRUS";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    background: #000;
+    clip: rect(0, 900px, 0, 0);
+  }
+
+  &::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff00ff;
+    animation: glitch-effect 3s infinite linear alternate-reverse;
+  }
+
+  &::after {
+    left: -2px;
+    text-shadow: 2px 0 #00ff00;
+    animation: glitch-effect 2s infinite linear alternate-reverse;
+  }
+}
+
+.virus-overlay-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+.virus-search-container {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.virus-search {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  background: #000;
+  border: 2px solid #00ffff;
+  border-radius: 0;
+  color: #00ffff;
+  font-size: 14px;
+  font-family: monospace;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  &::placeholder {
+    color: rgba(0, 255, 255, 0.5);
+    text-transform: uppercase;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    background: #000;
+    animation: inputGlitch 0.1s ease-in-out;
+  }
+}
+
+@keyframes inputGlitch {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+.virus-search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00ffff;
+  font-size: 16px;
+  pointer-events: none;
+  font-family: monospace;
+}
+
+.virus-thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #00ffff #000;
+  align-items: start;
+  justify-items: center;
+  grid-auto-rows: max-content;
+  width: 100%;
+  box-sizing: border-box;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #000;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00ffff;
+    border-radius: 0;
+
+    &:hover {
+      background: #fff;
+    }
+  }
+
+  &.mobile {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    justify-items: stretch;
+  }
+}
+
+.virus-thumbnail-item {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  background: #000;
+  border: 1px solid #00ffff;
+  border-radius: 0;
+  padding: 10px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  animation: itemGlitchIn 0.3s ease-out;
+  animation-fill-mode: both;
+  height: fit-content;
+  min-height: 140px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+
+  &.filtered-out {
+    display: none;
+  }
+
+  &:nth-child(odd) {
+    animation-delay: 0.05s;
+  }
+  &:nth-child(even) {
+    animation-delay: 0.1s;
   }
 
   &:hover,
   &:focus {
-    transform: translateY(-8px) scale(1.02);
-    border-color: #00ffff;
-    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2),
-      0 0 0 1px rgba(0, 255, 255, 0.1);
-
-    &::before {
-      opacity: 1;
-    }
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    animation: itemHoverGlitch 0.2s ease-in-out;
 
     .virus-thumbnail-overlay-hover {
       opacity: 1;
@@ -554,43 +609,104 @@ iframe[id*="secondary"] {
     .virus-label {
       color: #fff;
       text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+      animation: textGlitch 0.1s ease-in-out;
     }
   }
 
   &:focus {
-    outline: 2px solid #00ffff;
+    outline: 2px solid #fff;
     outline-offset: 2px;
   }
 }
 
-@keyframes itemFadeIn {
-  from {
+@keyframes itemGlitchIn {
+  0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px) scale(0.95);
+    filter: hue-rotate(180deg);
   }
-  to {
+  50% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(1.02);
+    filter: hue-rotate(90deg);
+  }
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: hue-rotate(0deg);
+  }
+}
+
+@keyframes itemHoverGlitch {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1px);
+  }
+  75% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes textGlitch {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(1px);
   }
 }
 
 .virus-thumbnail-preview {
   position: relative;
   width: 100%;
-  margin-bottom: 12px;
-  border-radius: 12px;
+  margin-bottom: 8px;
+  border-radius: 0;
   overflow: hidden;
   background: #000;
   flex-shrink: 0;
+  border: 1px solid rgba(0, 255, 255, 0.3);
 }
 
 .virus-thumbnail-item iframe {
   width: 100%;
-  height: 90px;
+  height: 80px;
   border: none;
   background: #000;
   pointer-events: none;
   display: block;
+  transition: all 0.2s ease;
+}
+
+.virus-thumbnail-item:hover iframe {
+  animation: subtleGlitch 0.3s ease-in-out;
+}
+
+@keyframes subtleGlitch {
+  0%,
+  100% {
+    transform: translateX(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translateX(-1px);
+    filter: hue-rotate(90deg);
+  }
+  40% {
+    transform: translateX(1px);
+    filter: hue-rotate(180deg);
+  }
+  60% {
+    transform: translateX(-1px);
+    filter: hue-rotate(270deg);
+  }
+  80% {
+    transform: translateX(1px);
+    filter: hue-rotate(360deg);
+  }
 }
 
 .virus-thumbnail-overlay-hover {
@@ -604,95 +720,70 @@ iframe[id*="secondary"] {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(2px);
+  transform: scale(0.9);
+  transition: all 0.2s ease;
 }
 
 .play-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #00ffff;
   text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  font-family: monospace;
 }
 
 .virus-label {
-  color: rgba(0, 255, 255, 0.9);
-  font-family: "Roboto", sans-serif;
-  font-size: 0.95rem;
-  font-weight: 500;
+  color: #00ffff;
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: bold;
   text-align: center;
-  transition: all 0.3s ease;
-  line-height: 1.3;
-  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .virus-thumbnail-close {
-  background: linear-gradient(135deg, #00ffff, #00cccc);
-  color: #000;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  background: #000;
+  color: #00ffff;
+  border: 2px solid #00ffff;
+  border-radius: 0;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: bold;
 
   &:hover {
-    transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
-
-    &::before {
-      opacity: 1;
-    }
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    animation: buttonGlitch 0.1s ease-in-out;
   }
 
   &:active {
-    transform: scale(0.95) rotate(90deg);
+    transform: scale(0.95);
   }
 }
 
-.close-icon {
-  font-size: 1.5rem;
-  font-weight: bold;
-  transition: transform 0.3s ease;
-}
-
-.virus-overlay-footer {
-  padding: 15px 40px;
-  background: rgba(0, 0, 0, 0.5);
-  border-top: 1px solid rgba(0, 255, 255, 0.2);
-  text-align: center;
-}
-
-.virus-count {
-  color: rgba(0, 255, 255, 0.7);
-  font-family: "Roboto", sans-serif;
-  font-size: 0.9rem;
-  margin: 0;
-  letter-spacing: 0.5px;
+@keyframes buttonGlitch {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1px);
+  }
+  75% {
+    transform: translateX(1px);
+  }
 }
 
 // Mobile responsive adjustments
