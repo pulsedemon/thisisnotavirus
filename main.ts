@@ -509,7 +509,9 @@ function resumePlayback() {
 }
 
 document.getElementById("skip-next")!.onclick = () => {
-  gtag("event", "skip_next");
+  gtag("event", "skip-next", {
+    animation_name: playlist.current(),
+  });
   vl.skipNext();
 
   resumePlayback();

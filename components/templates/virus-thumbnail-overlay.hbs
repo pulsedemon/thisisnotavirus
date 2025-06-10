@@ -1,11 +1,39 @@
-<div id="virus-thumbnail-overlay">
-  <button class="virus-thumbnail-close">✕</button>
-  <div class="virus-thumbnail-grid">
-    {{#each viruses}}
-      <div class="virus-thumbnail-item" data-virus="{{value}}">
-        <iframe src="/viruses/{{value}}/" title="{{value}}" frameborder="0"></iframe>
-        <div class="virus-label">{{label}}</div>
-      </div>
-    {{/each}}
+<div id="virus-thumbnail-overlay" class="virus-overlay">
+  <div class="virus-overlay-header">
+    <h2 class="virus-overlay-title">Select Virus</h2>
+    <button class="virus-thumbnail-close" aria-label="Close overlay">
+      <span class="close-icon">✕</span>
+    </button>
+  </div>
+  
+  <div class="virus-overlay-content">
+    <div class="virus-search-container">
+      <input 
+        type="text" 
+        class="virus-search" 
+        placeholder="Search viruses..." 
+        aria-label="Search viruses"
+      />
+      <span class="virus-search-icon">🔍</span>
+    </div>
+    
+    <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
+      {{#each viruses}}
+        <div class="virus-thumbnail-item" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} virus">
+          <div class="virus-thumbnail-preview">
+            <iframe 
+              src="/viruses/{{value}}/" 
+              title="{{label}} preview" 
+              frameborder="0"
+              loading="lazy"
+            ></iframe>
+            <div class="virus-thumbnail-overlay-hover">
+              <span class="play-icon">▶</span>
+            </div>
+          </div>
+          <div class="virus-label">{{label}}</div>
+        </div>
+      {{/each}}
+    </div>
   </div>
 </div> 

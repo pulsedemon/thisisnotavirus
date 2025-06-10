@@ -17,17 +17,36 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width, height=device-height, initial-scale = 1.0, maximum-scale = 1.0"
+      content="width=device-width, height=device-height, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=no"
     />
     <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="theme-color" content="#00ffff" />
     <meta
       name="description"
-      content="THISISNOTAVIRUS, created by Michael Squashic.  Experimental JavaScript/CSS animations."
+      content="THISISNOTAVIRUS - Experimental JavaScript/CSS viruses by Michael Squashic. Interactive virus-themed visual effects and viruses."
     />
+    <meta
+      name="keywords"
+      content="virus, javascript, css, experimental, visual effects, interactive art"
+    />
+    <meta name="author" content="Michael Squashic" />
 
     <title>THISISNOTAVIRUS</title>
     <link rel="shortcut icon" href="favicon.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
 
     <link
       rel="preload"
@@ -43,16 +62,39 @@
       media="screen"
     />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Performance and accessibility improvements -->
+    <style>
+      /* Critical CSS for overlay loading */
+      .virus-overlay {
+        font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      /* Smooth scrolling for better UX */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Reduce motion for users who prefer it */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* High contrast mode support */
+      @media (prefers-contrast: high) {
+        .virus-thumbnail-item {
+          border-width: 3px !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="loading-anim"></div>
-    <iframe id="container" title="animation"></iframe>
+    <iframe id="container" title="virus"></iframe>
     <div id="menu">
       <div class="controls">
         <span class="material-symbols-outlined" id="skip-previous"
@@ -70,11 +112,11 @@
           <ul>
             <li>
               <span class="material-symbols-outlined">skip_previous</span> -
-              skip to previous animation
+              skip to previous virus
             </li>
             <li>
               <span class="material-symbols-outlined">pause</span> - pause
-              randomization of animatons
+              randomization of viruses
             </li>
             <li>
               <span class="material-symbols-outlined">play_arrow</span> - resume
@@ -82,7 +124,7 @@
             </li>
             <li>
               <span class="material-symbols-outlined">skip_next</span> - skip to
-              next animation
+              next virus
             </li>
           </ul>
         </div>
@@ -92,12 +134,7 @@
             like this.
           </p>
           <p>
-            <a
-              href="mailto:
-  hi@thisisnotavirus.com"
-            >
-              hi@thisisnotavirus.com</a
-            >
+            <a href="mailto:hi@thisisnotavirus.com"> hi@thisisnotavirus.com</a>
           </p>
 
           <p>
@@ -105,6 +142,7 @@
               href="https://github.com/pulsedemon/thisisnotavirus"
               target="_blank"
               class="link-icon github-icon"
+              rel="noopener noreferrer"
               >GitHub</a
             >
           </p>

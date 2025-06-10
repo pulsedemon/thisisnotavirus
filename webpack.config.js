@@ -9,71 +9,75 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-const jsFiles = await glob("./viruses/*/*.[jt]s");
-let entries = {};
-jsFiles.forEach((filepath) => {
-  const filename = filepath.split("/").slice(-1)[0].split(".")[0];
-  entries[filename] = `./${filepath}`;
-});
-entries["main"] = "./main.ts";
-entries["static"] = "./viruses/static/static.ts";
+// Create a function that returns a Promise with the config
+const getConfig = async () => {
+  const jsFiles = await glob("./viruses/*/*.[jt]s");
+  let entries = {};
+  jsFiles.forEach((filepath) => {
+    const filename = filepath.split("/").slice(-1)[0].split(".")[0];
+    entries[filename] = `./${filepath}`;
+  });
+  entries["main"] = "./main.ts";
 
-export default {
-  mode: "development",
-  entry: entries,
-  output: {
-    filename: "[name].js",
-    path: path.resolve(__dirname, "build"),
-    publicPath: "",
-  },
-  resolve: {
-    extensions: [".ts", ".tsx", ".js", ".json"],
-  },
-  externals: {
-    gtag: "gtag",
-  },
-  plugins: [
-    new webpack.DefinePlugin({
-      "process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL),
-    }),
-  ],
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        enforce: "pre",
-        use: ["source-map-loader"],
-      },
-      {
-        test: /\.m?[jt]sx?$/,
-        exclude: /node_modules/,
-        loader: "babel-loader",
-      },
-      {
-        test: /\.s[ac]ss$/i,
-        use: [
-          "style-loader",
-          {
-            loader: "css-loader",
-            options: {
-              url: {
-                filter: (url) => {
-                  if (/png|svg|webp/.test(url)) {
-                    return false;
-                  }
-
-                  return true;
+  return {
+    mode: "development",
+    entry: entries,
+    output: {
+      filename: "[name].js",
+      path: path.resolve(__dirname, "build"),
+      publicPath: "",
+    },
+    resolve: {
+      extensions: [".ts", ".tsx", ".js", ".json"],
+    },
+    externals: {
+      gtag: "gtag",
+    },
+    plugins: [
+      new webpack.DefinePlugin({
+        "process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL),
+      }),
+    ],
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          enforce: "pre",
+          use: ["source-map-loader"],
+        },
+        {
+          test: /\.m?[jt]sx?$/,
+          exclude: /node_modules/,
+          loader: "babel-loader",
+        },
+        {
+          test: /\.s[ac]ss$/i,
+          use: [
+            "style-loader",
+            {
+              loader: "css-loader",
+              options: {
+                url: {
+                  filter: (url) => {
+                    if (/png|svg|webp/.test(url)) {
+                      return false;
+                    }
+                    return true;
+                  },
                 },
               },
             },
-          },
-          "sass-loader",
-        ],
-      },
-      {
-        test: /\.hbs$/,
-        loader: "handlebars-loader",
-      },
-    ],
-  },
+            "sass-loader",
+          ],
+        },
+        {
+          test: /\.hbs$/,
+          loader: "handlebars-loader",
+        },
+      ],
+    },
+  };
 };
+
+// Export the config function
+export default getConfig();
