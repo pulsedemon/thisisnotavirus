@@ -17,23 +17,56 @@
       <span class="virus-search-icon">🔍</span>
     </div>
     
-    <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
-      {{#each viruses}}
-        <div class="virus-thumbnail-item" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} virus">
-          <div class="virus-thumbnail-preview">
-            <iframe 
-              src="/viruses/{{value}}/" 
-              title="{{label}} preview" 
-              frameborder="0"
-              loading="lazy"
-            ></iframe>
-            <div class="virus-thumbnail-overlay-hover">
-              <span class="play-icon">▶</span>
+    <div class="virus-sections">
+      <div class="virus-section">
+        <h3 class="virus-section-title">Built-in Viruses</h3>
+        <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
+          {{#each viruses}}
+            <div class="virus-thumbnail-item" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} virus">
+              <div class="virus-thumbnail-preview">
+                <iframe 
+                  src="/viruses/{{value}}/" 
+                  title="{{label}} preview" 
+                  frameborder="0"
+                  loading="lazy"
+                ></iframe>
+                <div class="virus-thumbnail-overlay-hover">
+                  <span class="play-icon">▶</span>
+                </div>
+              </div>
+              <div class="virus-label">{{label}}</div>
             </div>
-          </div>
-          <div class="virus-label">{{label}}</div>
+          {{/each}}
         </div>
-      {{/each}}
+      </div>
+
+      {{#if hasCustomViruses}}
+      <div class="virus-section custom-viruses">
+        <h3 class="virus-section-title">Custom Viruses</h3>
+        <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
+          {{#each customViruses}}
+            <div class="virus-thumbnail-item custom-virus" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} custom virus">
+              <div class="virus-thumbnail-preview custom-preview">
+                <div class="custom-virus-display">
+                  <div class="custom-virus-info">
+                    <div class="custom-virus-components">
+                      <span class="primary-virus">{{mix.primary}}</span>
+                      <span class="mix-symbol">⚡</span>
+                      <span class="secondary-virus">{{mix.secondary}}</span>
+                    </div>
+                    <div class="mix-ratio">{{mix.mixRatioPercent}}%</div>
+                  </div>
+                </div>
+                <div class="virus-thumbnail-overlay-hover">
+                  <span class="play-icon">▶</span>
+                </div>
+              </div>
+              <div class="virus-label custom-label">{{label}}</div>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/if}}
     </div>
   </div>
 </div> 

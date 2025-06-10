@@ -948,3 +948,259 @@ iframe[id*="secondary"] {
     font-size: 14px;
   }
 }
+
+// Virus Sections Styles
+.virus-sections {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #00ffff #000;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #000;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00ffff;
+    border-radius: 0;
+
+    &:hover {
+      background: #fff;
+    }
+  }
+}
+
+.virus-section {
+  margin-bottom: 30px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.virus-section-title {
+  color: #00ffff;
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  position: relative;
+  padding-bottom: 8px;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #00ffff, transparent);
+  }
+}
+
+// Custom Virus Styles
+.custom-viruses {
+  .virus-section-title {
+    color: #ff00ff;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+
+    &::after {
+      background: linear-gradient(90deg, #ff00ff, transparent);
+    }
+  }
+}
+
+.virus-thumbnail-item.custom-virus {
+  border-color: #ff00ff;
+  background: linear-gradient(135deg, #000 0%, #1a0a1a 100%);
+
+  // Disable iframe hover effects for custom viruses since they don't have iframes
+  &:hover .custom-preview {
+    animation: none;
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+    animation: itemHoverGlitch 0.2s ease-in-out;
+
+    .virus-thumbnail-overlay-hover {
+      opacity: 1;
+      transform: scale(1);
+      background: rgba(255, 0, 255, 0.1);
+
+      .play-icon {
+        color: #ff00ff;
+        text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+      }
+    }
+
+    .custom-label {
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+      animation: textGlitch 0.1s ease-in-out;
+    }
+
+    .custom-virus-info {
+      animation: textGlitch 0.1s ease-in-out;
+    }
+
+    .mix-symbol {
+      animation: pulse 1s infinite, textGlitch 0.1s ease-in-out;
+    }
+  }
+
+  &:focus {
+    outline: 2px solid #ff00ff;
+    outline-offset: 2px;
+  }
+}
+
+.custom-preview {
+  background: linear-gradient(135deg, #1a0a1a 0%, #2a0a2a 100%);
+  border-color: rgba(255, 0, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  transition: transform 0.2s ease;
+}
+
+.custom-virus-display {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.custom-virus-info {
+  text-align: center;
+  color: #ff00ff;
+  font-family: monospace;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.custom-virus-components {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.primary-virus,
+.secondary-virus {
+  color: #00ffff;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  max-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondary-virus {
+  color: #ff00ff;
+}
+
+.mix-symbol {
+  color: #fff;
+  font-size: 0.8rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.mix-ratio {
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.custom-label {
+  color: #ff00ff;
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+}
+
+// Mobile adjustments for custom viruses
+@media (max-width: 768px) {
+  .virus-section {
+    margin-bottom: 25px;
+  }
+
+  .virus-section-title {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .custom-virus-info {
+    font-size: 0.65rem;
+  }
+
+  .primary-virus,
+  .secondary-virus {
+    font-size: 0.55rem;
+    max-width: 35px;
+  }
+
+  .mix-ratio {
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .virus-section {
+    margin-bottom: 20px;
+  }
+
+  .virus-section-title {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .custom-virus-info {
+    font-size: 0.6rem;
+  }
+
+  .primary-virus,
+  .secondary-virus {
+    font-size: 0.5rem;
+    max-width: 30px;
+  }
+
+  .mix-ratio {
+    font-size: 0.5rem;
+  }
+
+  .mix-symbol {
+    font-size: 0.7rem;
+  }
+}

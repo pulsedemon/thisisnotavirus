@@ -135,6 +135,8 @@ class VirusLoader {
           const playPauseBtn = document.getElementById("play-pause");
           if (playPauseBtn) playPauseBtn.innerText = "play_arrow";
           clearInterval(this.loadRandomInterval);
+          // Reload saved mixes to ensure playlist has latest data
+          playlist.loadSavedMixes();
           // Set playlist current virus and load selected virus
           playlist.setCurrentVirus(virus);
           this.loadVirus(virus);
@@ -188,6 +190,8 @@ class VirusLoader {
 
     try {
       if (playlist.isMixedVirus(name)) {
+        // Reload saved mixes to ensure we have the latest data
+        playlist.loadSavedMixes();
         const mix = playlist.getMixById(name);
         if (mix) {
           // Hide the main iframe

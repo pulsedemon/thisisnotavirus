@@ -35,11 +35,30 @@ export function showVirusThumbnailOverlay({
   const viruses = playlist.viruses.map((virus) => ({
     value: virus,
     label: formatVirusName(virus),
+    type: "builtin",
+  }));
+
+  // Get custom viruses (saved mixes)
+  const customViruses = playlist.savedMixes.map((mix) => ({
+    value: `mixed:${mix.id}`,
+    label:
+      mix.name ||
+      `${formatVirusName(mix.primary)} / ${formatVirusName(mix.secondary)}`,
+    type: "custom",
+    mix: {
+      ...mix,
+      mixRatioPercent: Math.round(mix.mixRatio * 100),
+    },
   }));
 
   // Render overlay HTML using Handlebars template
   const overlayDiv = document.createElement("div");
-  overlayDiv.innerHTML = overlayTemplate({ viruses, isMobile });
+  overlayDiv.innerHTML = overlayTemplate({
+    viruses,
+    customViruses,
+    hasCustomViruses: customViruses.length > 0,
+    isMobile,
+  });
   const overlay = overlayDiv.firstElementChild as HTMLElement;
 
   // Get references to key elements
@@ -61,9 +80,32 @@ export function showVirusThumbnailOverlay({
     thumbnailItems.forEach((item) => {
       const htmlItem = item as HTMLElement;
       const virus = htmlItem.getAttribute("data-virus")!;
-      const label = formatVirusName(virus).toLowerCase();
-      const matches =
-        label.includes(term) || virus.toLowerCase().includes(term);
+      let matches = false;
+
+      if (virus.startsWith("mixed:")) {
+        // For custom viruses, search in the label and component virus names
+        const customVirus = customViruses.find((cv) => cv.value === virus);
+        if (customVirus) {
+          const label = customVirus.label.toLowerCase();
+          const primaryVirus = formatVirusName(
+            customVirus.mix.primary
+          ).toLowerCase();
+          const secondaryVirus = formatVirusName(
+            customVirus.mix.secondary
+          ).toLowerCase();
+
+          matches =
+            label.includes(term) ||
+            primaryVirus.includes(term) ||
+            secondaryVirus.includes(term) ||
+            customVirus.mix.primary.toLowerCase().includes(term) ||
+            customVirus.mix.secondary.toLowerCase().includes(term);
+        }
+      } else {
+        // For built-in viruses, search in formatted name and virus name
+        const label = formatVirusName(virus).toLowerCase();
+        matches = label.includes(term) || virus.toLowerCase().includes(term);
+      }
 
       if (matches) {
         htmlItem.classList.remove("filtered-out");
