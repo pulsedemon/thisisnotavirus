@@ -117,27 +117,13 @@ export function showVirusThumbnailOverlay({
     });
   }
 
-  // Search input event listener
-  searchInput.addEventListener("input", (e) => {
+  // Event handler functions
+  const handleSearchInput = (e: Event) => {
     const target = e.target as HTMLInputElement;
     filterItems(target.value);
-  });
+  };
 
-  // Keyboard navigation
-  let currentFocusIndex = -1;
-
-  function updateFocus(index: number) {
-    // Remove focus from all items
-    filteredItems.forEach((item, i) => {
-      if (i === index) {
-        item.focus();
-        item.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-    });
-    currentFocusIndex = index;
-  }
-
-  function handleKeyNavigation(e: KeyboardEvent) {
+  const handleKeyNavigation = (e: KeyboardEvent) => {
     if (filteredItems.length === 0) return;
 
     switch (e.key) {
@@ -178,7 +164,7 @@ export function showVirusThumbnailOverlay({
         if (currentFocusIndex >= 0 && filteredItems[currentFocusIndex]) {
           const virus =
             filteredItems[currentFocusIndex].getAttribute("data-virus")!;
-          overlay.remove();
+          cleanup();
 
           // Track keyboard Enter selection
           if (typeof gtag !== "undefined") {
@@ -193,7 +179,7 @@ export function showVirusThumbnailOverlay({
         }
         break;
       case "Escape":
-        overlay.remove();
+        cleanup();
 
         // Track Escape key close
         if (typeof gtag !== "undefined") {
@@ -212,12 +198,11 @@ export function showVirusThumbnailOverlay({
         }
         break;
     }
-  }
+  };
 
-  // Close button event
-  closeBtn.onclick = (e) => {
+  const handleCloseClick = (e: MouseEvent) => {
     e.stopPropagation();
-    overlay.remove();
+    cleanup();
 
     // Track close button click
     if (typeof gtag !== "undefined") {
@@ -230,51 +215,9 @@ export function showVirusThumbnailOverlay({
     onClose();
   };
 
-  // Add click events for each thumbnail
-  thumbnailItems.forEach((thumbWrapper) => {
-    const htmlWrapper = thumbWrapper as HTMLElement;
-    htmlWrapper.addEventListener("click", (e) => {
-      e.stopPropagation();
-      overlay.remove();
-      const virus = htmlWrapper.getAttribute("data-virus")!;
-
-      // Track virus selection
-      if (typeof gtag !== "undefined") {
-        gtag("event", "virus_select", {
-          event_category: "engagement",
-          event_label: "thumbnail_click",
-          animation_name: virus,
-        });
-      }
-
-      onSelect(virus);
-    });
-
-    // Add keyboard support for individual items
-    htmlWrapper.addEventListener("keydown", (e: KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        const virus = htmlWrapper.getAttribute("data-virus")!;
-        overlay.remove();
-
-        // Track keyboard virus selection
-        if (typeof gtag !== "undefined") {
-          gtag("event", "virus_select", {
-            event_category: "engagement",
-            event_label: "keyboard_select",
-            animation_name: virus,
-          });
-        }
-
-        onSelect(virus);
-      }
-    });
-  });
-
-  // Close overlay on background click
-  overlay.onclick = (e) => {
+  const handleBackgroundClick = (e: MouseEvent) => {
     if (e.target === overlay) {
-      overlay.remove();
+      cleanup();
 
       // Track background click close
       if (typeof gtag !== "undefined") {
@@ -288,8 +231,85 @@ export function showVirusThumbnailOverlay({
     }
   };
 
-  // Add keyboard event listeners
+  const handleThumbnailClick = (e: MouseEvent, htmlWrapper: HTMLElement) => {
+    e.stopPropagation();
+    cleanup();
+    const virus = htmlWrapper.getAttribute("data-virus")!;
+
+    // Track virus selection
+    if (typeof gtag !== "undefined") {
+      gtag("event", "virus_select", {
+        event_category: "engagement",
+        event_label: "thumbnail_click",
+        animation_name: virus,
+      });
+    }
+
+    onSelect(virus);
+  };
+
+  const handleThumbnailKeydown = (
+    e: KeyboardEvent,
+    htmlWrapper: HTMLElement
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      const virus = htmlWrapper.getAttribute("data-virus")!;
+      cleanup();
+
+      // Track keyboard virus selection
+      if (typeof gtag !== "undefined") {
+        gtag("event", "virus_select", {
+          event_category: "engagement",
+          event_label: "keyboard_select",
+          animation_name: virus,
+        });
+      }
+
+      onSelect(virus);
+    }
+  };
+
+  // Keyboard navigation
+  let currentFocusIndex = -1;
+
+  function updateFocus(index: number) {
+    // Remove focus from all items
+    filteredItems.forEach((item, i) => {
+      if (i === index) {
+        item.focus();
+        item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+    currentFocusIndex = index;
+  }
+
+  // Add event listeners
+  searchInput.addEventListener("input", handleSearchInput);
   overlay.addEventListener("keydown", handleKeyNavigation);
+  closeBtn.addEventListener("click", handleCloseClick);
+  overlay.addEventListener("click", handleBackgroundClick);
+
+  // Add click events for each thumbnail
+  const thumbnailHandlers = new Map<
+    HTMLElement,
+    {
+      click: (e: MouseEvent) => void;
+      keydown: (e: KeyboardEvent) => void;
+    }
+  >();
+
+  thumbnailItems.forEach((thumbWrapper) => {
+    const htmlWrapper = thumbWrapper as HTMLElement;
+    const handlers = {
+      click: (e: MouseEvent) => handleThumbnailClick(e, htmlWrapper),
+      keydown: (e: KeyboardEvent) => handleThumbnailKeydown(e, htmlWrapper),
+    };
+
+    thumbnailHandlers.set(htmlWrapper, handlers);
+    htmlWrapper.addEventListener("click", handlers.click);
+    htmlWrapper.addEventListener("keydown", handlers.keydown);
+  });
 
   // Focus search input initially
   setTimeout(() => {
@@ -302,11 +322,23 @@ export function showVirusThumbnailOverlay({
   // Prevent body scroll when overlay is open
   document.body.style.overflow = "hidden";
 
-  // Cleanup function to restore body scroll
-  const cleanup = () => {
+  // Cleanup function to restore body scroll and remove event listeners
+  function cleanup() {
     document.body.style.overflow = "";
     overlay.removeEventListener("keydown", handleKeyNavigation);
-  };
+    searchInput.removeEventListener("input", handleSearchInput);
+    closeBtn.removeEventListener("click", handleCloseClick);
+    overlay.removeEventListener("click", handleBackgroundClick);
+
+    // Clean up thumbnail event listeners using stored handlers
+    thumbnailHandlers.forEach((handlers, element) => {
+      element.removeEventListener("click", handlers.click);
+      element.removeEventListener("keydown", handlers.keydown);
+    });
+    thumbnailHandlers.clear();
+
+    overlay.remove();
+  }
 
   // Store cleanup function on overlay for potential external cleanup
   (overlay as HTMLElement & { cleanup: () => void }).cleanup = cleanup;
