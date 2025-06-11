@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import Random from "../../utils/random";
 import "./shitstorm.scss";
 
 class ShitstormVirus {
@@ -8,7 +7,7 @@ class ShitstormVirus {
   private renderer: THREE.WebGLRenderer;
   private toiletBowl: THREE.Group;
   private waterSurface: THREE.Mesh;
-  private particles: THREE.Points;
+  private particles: THREE.InstancedMesh;
   private soundWaves: THREE.Group;
   private animationId = 0;
   private cameraShake = { x: 0, y: 0, z: 0 };
@@ -142,7 +141,7 @@ class ShitstormVirus {
     for (let i = 0; i < 20; i++) {
       const shape = shapes[Math.floor(Math.random() * shapes.length)];
       const material = new THREE.MeshPhongMaterial({
-        color: Random.itemInArray([0xff00ff, 0x00ffff, 0xffff00]),
+        color: 0xff00ff as THREE.ColorRepresentation,
         transparent: true,
         opacity: 0.6,
         wireframe: true,
@@ -180,11 +179,43 @@ class ShitstormVirus {
     }
   }
 
+  private createPoopGeometry(): THREE.BufferGeometry {
+    // Create a more complex poop shape using a single geometry
+    const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 64, 32, 2, 3);
+
+    // Modify the geometry to make it more poop-like
+    const positions = geometry.attributes.position.array;
+    const normals = geometry.attributes.normal.array;
+
+    // Add some randomness to the vertices to make it look more organic
+    for (let i = 0; i < positions.length; i += 3) {
+      // Add some noise to the position
+      positions[i] += (Math.random() - 0.5) * 0.1;
+      positions[i + 1] += (Math.random() - 0.5) * 0.1;
+      positions[i + 2] += (Math.random() - 0.5) * 0.1;
+
+      // Adjust the normal for better lighting
+      normals[i] += (Math.random() - 0.5) * 0.2;
+      normals[i + 1] += (Math.random() - 0.5) * 0.2;
+      normals[i + 2] += (Math.random() - 0.5) * 0.2;
+    }
+
+    // Update the attributes
+    geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.normal.needsUpdate = true;
+
+    // Scale the geometry to make it more poop-like
+    geometry.scale(1, 1.5, 1);
+
+    return geometry;
+  }
+
   private createParticles() {
-    const particleCount = 1000; // Increased particle count
+    const particleCount = 1000;
     const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
     const velocities = new Float32Array(particleCount * 3);
+    const rotations = new Float32Array(particleCount * 3);
+    const scales = new Float32Array(particleCount);
 
     // Enhanced poop colors with more variety
     const poopColors = [
@@ -192,10 +223,32 @@ class ShitstormVirus {
       new THREE.Color(0xa0522d), // Sienna
       new THREE.Color(0x654321), // Dark brown
       new THREE.Color(0x964b00), // Brown
-      new THREE.Color(0xff00ff), // Magenta
-      new THREE.Color(0x00ffff), // Cyan
-      new THREE.Color(0xffff00), // Yellow
     ];
+
+    // Create poop geometry
+    const poopGeometry = this.createPoopGeometry();
+    const poopMaterial = new THREE.MeshPhongMaterial({
+      color: 0x8b4513,
+      shininess: 30,
+      specular: 0x444444,
+      flatShading: true, // Add flat shading for more texture
+    });
+
+    // Create instanced meshes for poop emojis
+    this.particles = new THREE.InstancedMesh(
+      poopGeometry,
+      poopMaterial,
+      particleCount
+    );
+    this.scene.add(this.particles);
+
+    // Store animation data
+    this.particles.userData = {
+      positions,
+      velocities,
+      rotations,
+      scales,
+    };
 
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
@@ -212,37 +265,27 @@ class ShitstormVirus {
       velocities[i3 + 1] = -Math.random() * 0.2 - 0.05;
       velocities[i3 + 2] = (Math.random() - 0.5) * 0.1;
 
+      // Random rotations
+      rotations[i3] = Math.random() * Math.PI * 2;
+      rotations[i3 + 1] = Math.random() * Math.PI * 2;
+      rotations[i3 + 2] = Math.random() * Math.PI * 2;
+
+      // Random scales
+      scales[i] = 0.2 + Math.random() * 0.3;
+
+      // Set instance matrix
+      const matrix = new THREE.Matrix4();
+      matrix.makeRotationFromEuler(
+        new THREE.Euler(rotations[i3], rotations[i3 + 1], rotations[i3 + 2])
+      );
+      matrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+      matrix.scale(new THREE.Vector3(scales[i], scales[i], scales[i]));
+      this.particles.setMatrixAt(i, matrix);
+
       // Random poop colors
       const color = poopColors[Math.floor(Math.random() * poopColors.length)];
-      colors[i3] = color.r;
-      colors[i3 + 1] = color.g;
-      colors[i3 + 2] = color.b;
+      this.particles.setColorAt(i, color);
     }
-
-    const particleGeometry = new THREE.BufferGeometry();
-    particleGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(positions, 3)
-    );
-    particleGeometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(colors, 3)
-    );
-    particleGeometry.setAttribute(
-      "velocity",
-      new THREE.BufferAttribute(velocities, 3)
-    );
-
-    const particleMaterial = new THREE.PointsMaterial({
-      size: 0.15,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
-    });
-
-    this.particles = new THREE.Points(particleGeometry, particleMaterial);
-    this.scene.add(this.particles);
   }
 
   private createSoundWaves() {
@@ -252,7 +295,7 @@ class ShitstormVirus {
     for (let i = 0; i < 3; i++) {
       const waveGeometry = new THREE.RingGeometry(0.1, 0.2, 32);
       const waveMaterial = new THREE.MeshBasicMaterial({
-        color: Random.itemInArray([0x00ffff, 0xff00ff, 0xffff00]),
+        color: 0x00ffff as THREE.ColorRepresentation,
         transparent: true,
         opacity: 0.3,
         side: THREE.DoubleSide,
@@ -303,37 +346,58 @@ class ShitstormVirus {
   }
 
   private updateParticles() {
-    const positions = this.particles.geometry.attributes.position
-      .array as Float32Array;
-    const velocities = this.particles.geometry.attributes.velocity
-      .array as Float32Array;
+    const { positions, velocities, rotations, scales } =
+      this.particles.userData;
+    const matrix = new THREE.Matrix4();
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Euler();
+    const scale = new THREE.Vector3();
 
-    for (let i = 0; i < positions.length; i += 3) {
+    for (let i = 0; i < positions.length / 3; i++) {
+      const i3 = i * 3;
+
       // Update positions
-      positions[i] += velocities[i];
-      positions[i + 1] += velocities[i + 1];
-      positions[i + 2] += velocities[i + 2];
+      positions[i3] += velocities[i3];
+      positions[i3 + 1] += velocities[i3 + 1];
+      positions[i3 + 2] += velocities[i3 + 2];
 
       // Add swirling motion
       const angle = Date.now() * 0.001 + i * 0.1;
-      positions[i] += Math.cos(angle) * 0.01;
-      positions[i + 2] += Math.sin(angle) * 0.01;
+      positions[i3] += Math.cos(angle) * 0.01;
+      positions[i3 + 2] += Math.sin(angle) * 0.01;
+
+      // Update rotations
+      rotations[i3] += 0.01;
+      rotations[i3 + 1] += 0.01;
+      rotations[i3 + 2] += 0.01;
 
       // Reset particles that fall too low
-      if (positions[i + 1] < -3) {
+      if (positions[i3 + 1] < -3) {
         const angle = Math.random() * Math.PI * 2;
         const radius = Math.random() * 1.2;
-        positions[i] = Math.cos(angle) * radius;
-        positions[i + 1] = Math.random() * 2 + 3;
-        positions[i + 2] = Math.sin(angle) * radius;
+        positions[i3] = Math.cos(angle) * radius;
+        positions[i3 + 1] = Math.random() * 2 + 3;
+        positions[i3 + 2] = Math.sin(angle) * radius;
 
-        velocities[i] = (Math.random() - 0.5) * 0.02;
-        velocities[i + 1] = -Math.random() * 0.05 - 0.02;
-        velocities[i + 2] = (Math.random() - 0.5) * 0.02;
+        velocities[i3] = (Math.random() - 0.5) * 0.02;
+        velocities[i3 + 1] = -Math.random() * 0.05 - 0.02;
+        velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
       }
+
+      // Update instance matrix
+      position.set(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+      rotation.set(rotations[i3], rotations[i3 + 1], rotations[i3 + 2]);
+      scale.setScalar(scales[i]);
+
+      matrix.compose(
+        position,
+        new THREE.Quaternion().setFromEuler(rotation),
+        scale
+      );
+      this.particles.setMatrixAt(i, matrix);
     }
 
-    this.particles.geometry.attributes.position.needsUpdate = true;
+    this.particles.instanceMatrix.needsUpdate = true;
   }
 
   private updateSoundWaves() {
