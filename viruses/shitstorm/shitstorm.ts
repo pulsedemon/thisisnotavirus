@@ -26,7 +26,7 @@ class ShitstormVirus {
   private init() {
     // Scene setup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x1a1a1a);
+    this.scene.background = new THREE.Color(0x2d1b4d);
 
     // Camera setup with proper aspect ratio
     const aspect = window.innerWidth / window.innerHeight;
