@@ -20,6 +20,7 @@ export default class Playlist {
     "emoji",
     "cubes",
     "static",
+    "shitstorm",
   ];
 
   playlist: string[] = [];
