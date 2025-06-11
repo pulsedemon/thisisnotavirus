@@ -19,7 +19,7 @@
     
     <div class="virus-sections">
       <div class="virus-section">
-        <h3 class="virus-section-title">Built-in Viruses</h3>
+        <h3 class="virus-section-title">Viruses</h3>
         <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
           {{#each viruses}}
             <div class="virus-thumbnail-item" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} virus">
@@ -42,7 +42,7 @@
 
       {{#if hasCustomViruses}}
       <div class="virus-section custom-viruses">
-        <h3 class="virus-section-title">Custom Viruses</h3>
+        <h3 class="virus-section-title">Mixes</h3>
         <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
           {{#each customViruses}}
             <div class="virus-thumbnail-item custom-virus" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} custom virus">

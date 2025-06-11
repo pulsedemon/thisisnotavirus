@@ -41,9 +41,9 @@ export function showVirusThumbnailOverlay({
   // Get custom viruses (saved mixes)
   const customViruses = playlist.savedMixes.map((mix) => ({
     value: `mixed:${mix.id}`,
-    label:
-      mix.name ||
-      `${formatVirusName(mix.primary)} / ${formatVirusName(mix.secondary)}`,
+    label: `${formatVirusName(mix.primary)} / ${formatVirusName(
+      mix.secondary
+    )} (${Math.round(mix.mixRatio * 100)}%)`,
     type: "custom",
     mix: {
       ...mix,
