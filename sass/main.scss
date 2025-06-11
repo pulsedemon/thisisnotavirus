@@ -37,9 +37,12 @@ body {
   max-height: 50px;
   box-sizing: border-box;
 
-  display: inline-block;
-  background-color: #000;
-  font-family: serif;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  font-family: monospace;
   font-size: 30px;
   padding: 10px;
   color: #fff;
@@ -49,6 +52,12 @@ body {
   cursor: pointer;
   user-select: none;
   z-index: 100000;
+
+  .controls {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+  }
 
   span {
     padding: 0 5px;
@@ -64,19 +73,10 @@ body {
     }
   }
 
-  .controls {
-    display: inline-block;
-    position: relative;
-    top: 2px;
-  }
-
-  #skip-previous {
-    display: inline-block;
-  }
-
   #icon {
     position: relative;
     transform: scale3d(1, 1, 1);
+    order: 2;
 
     &::before,
     &::after {
@@ -86,7 +86,7 @@ body {
       left: 0;
       right: 0;
       overflow: hidden;
-      background: #000;
+      background: transparent;
       color: #00ffff;
       clip: rect(0, 900px, 0, 0);
     }

@@ -536,6 +536,60 @@ document.getElementById("reload")!.onclick = () => {
   vl.loadVirus(playlist.current());
 };
 
+// Add fullscreen button
+const fullscreenBtn = document.createElement("span");
+fullscreenBtn.id = "fullscreen";
+fullscreenBtn.className = "material-symbols-outlined";
+fullscreenBtn.innerHTML = "fullscreen";
+fullscreenBtn.title = "Toggle Fullscreen";
+document.querySelector("#menu .controls")!.appendChild(fullscreenBtn);
+
+fullscreenBtn.onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch((err) => {
+      console.error(`Error attempting to enable fullscreen: ${err.message}`);
+    });
+    fullscreenBtn.innerHTML = "fullscreen_exit";
+    gtag("event", "enter_fullscreen");
+  } else {
+    document.exitFullscreen();
+    fullscreenBtn.innerHTML = "fullscreen";
+    gtag("event", "exit_fullscreen");
+  }
+};
+
+// Update fullscreen button icon when fullscreen state changes
+document.addEventListener("fullscreenchange", () => {
+  const menu = document.getElementById("menu")!;
+  const labBtn = document.getElementById("lab-btn")!;
+  const thumbBtn = document.getElementById("thumbnail-btn")!;
+  const sourceCode = document.getElementById("source-code")!;
+
+  if (document.fullscreenElement) {
+    fullscreenBtn.innerHTML = "fullscreen_exit";
+    // Hide UI elements in fullscreen
+    menu.style.opacity = "0";
+    menu.style.pointerEvents = "none";
+    labBtn.style.opacity = "0";
+    labBtn.style.pointerEvents = "none";
+    thumbBtn.style.opacity = "0";
+    thumbBtn.style.pointerEvents = "none";
+    sourceCode.style.opacity = "0";
+    sourceCode.style.pointerEvents = "none";
+  } else {
+    fullscreenBtn.innerHTML = "fullscreen";
+    // Show UI elements when exiting fullscreen
+    menu.style.opacity = "1";
+    menu.style.pointerEvents = "auto";
+    labBtn.style.opacity = "1";
+    labBtn.style.pointerEvents = "auto";
+    thumbBtn.style.opacity = "1";
+    thumbBtn.style.pointerEvents = "auto";
+    sourceCode.style.opacity = "1";
+    sourceCode.style.pointerEvents = "auto";
+  }
+});
+
 document.getElementById("info-btn")!.onclick = () => {
   toggleInfo();
 };
