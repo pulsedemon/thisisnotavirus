@@ -174,6 +174,10 @@ class VirusLoader {
     this.hideSourceCodeLink();
     this.loadingRing.classList.add("loading");
 
+    // Add spinning animation to reload button
+    const reloadBtn = document.getElementById("reload");
+    if (reloadBtn) reloadBtn.classList.add("spinning");
+
     // Clean up any existing mixed virus
     const existingMixContainer = document.querySelector(
       ".mixed-virus-container"
@@ -298,6 +302,10 @@ class VirusLoader {
     }
     this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
     this.loadingRing.classList.remove("loading");
+
+    // Remove spinning animation from reload button
+    const reloadBtn = document.getElementById("reload");
+    if (reloadBtn) reloadBtn.classList.remove("spinning");
   }
 
   sourceCodeUrl(virus: string) {
@@ -521,6 +529,13 @@ document.getElementById("skip-next")!.onclick = () => {
   resumePlayback();
 };
 
+document.getElementById("reload")!.onclick = () => {
+  gtag("event", "reload", {
+    animation_name: playlist.current(),
+  });
+  vl.loadVirus(playlist.current());
+};
+
 document.getElementById("info-btn")!.onclick = () => {
   toggleInfo();
 };
@@ -560,6 +575,11 @@ document.onkeyup = (e) => {
     togglePlayPause();
   } else if (e.key === "?") {
     toggleInfo();
+  } else if (e.key === "r" || e.key === "R") {
+    gtag("event", "reload_keyboard", {
+      animation_name: playlist.current(),
+    });
+    vl.loadVirus(playlist.current());
   }
 };
 

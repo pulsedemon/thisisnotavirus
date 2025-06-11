@@ -58,6 +58,12 @@ body {
     }
   }
 
+  #reload {
+    &.spinning {
+      animation: spin 1s linear infinite;
+    }
+  }
+
   .controls {
     display: inline-block;
     position: relative;
@@ -1202,5 +1208,14 @@ iframe[id*="secondary"] {
 
   .mix-symbol {
     font-size: 0.7rem;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
