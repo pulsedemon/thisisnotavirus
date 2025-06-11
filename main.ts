@@ -545,14 +545,34 @@ fullscreenBtn.title = "Toggle Fullscreen";
 document.querySelector("#menu .controls")!.appendChild(fullscreenBtn);
 
 fullscreenBtn.onclick = () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch((err) => {
-      console.error(`Error attempting to enable fullscreen: ${err.message}`);
-    });
+  const doc = document.documentElement;
+  if (
+    !document.fullscreenElement &&
+    !(document as any).webkitFullscreenElement &&
+    !(document as any).mozFullScreenElement &&
+    !(document as any).msFullscreenElement
+  ) {
+    if (doc.requestFullscreen) {
+      doc.requestFullscreen();
+    } else if ((doc as any).webkitRequestFullscreen) {
+      (doc as any).webkitRequestFullscreen();
+    } else if ((doc as any).mozRequestFullScreen) {
+      (doc as any).mozRequestFullScreen();
+    } else if ((doc as any).msRequestFullscreen) {
+      (doc as any).msRequestFullscreen();
+    }
     fullscreenBtn.innerHTML = "fullscreen_exit";
     gtag("event", "enter_fullscreen");
   } else {
-    document.exitFullscreen();
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if ((document as any).webkitExitFullscreen) {
+      (document as any).webkitExitFullscreen();
+    } else if ((document as any).mozCancelFullScreen) {
+      (document as any).mozCancelFullScreen();
+    } else if ((document as any).msExitFullscreen) {
+      (document as any).msExitFullscreen();
+    }
     fullscreenBtn.innerHTML = "fullscreen";
     gtag("event", "exit_fullscreen");
   }
@@ -565,7 +585,12 @@ document.addEventListener("fullscreenchange", () => {
   const thumbBtn = document.getElementById("thumbnail-btn")!;
   const sourceCode = document.getElementById("source-code")!;
 
-  if (document.fullscreenElement) {
+  if (
+    document.fullscreenElement ||
+    (document as any).webkitFullscreenElement ||
+    (document as any).mozFullScreenElement ||
+    (document as any).msFullscreenElement
+  ) {
     fullscreenBtn.innerHTML = "fullscreen_exit";
     // Hide UI elements in fullscreen
     menu.style.opacity = "0";
