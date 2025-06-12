@@ -30,8 +30,14 @@ class ShitstormVirus {
 
     // Camera setup with proper aspect ratio
     const aspect = window.innerWidth / window.innerHeight;
-    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
-    this.camera.position.set(0, 2, 5);
+    const isMobile = window.innerWidth <= 768;
+    this.camera = new THREE.PerspectiveCamera(
+      isMobile ? 120 : 75,
+      aspect,
+      0.1,
+      1000
+    );
+    this.camera.position.set(0, 2, isMobile ? 80 : 5);
     this.camera.lookAt(0, 0, 0);
 
     // Renderer setup with pixel ratio
