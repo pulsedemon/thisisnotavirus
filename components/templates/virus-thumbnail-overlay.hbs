@@ -13,6 +13,10 @@
         class="virus-search" 
         placeholder="Search viruses..." 
         aria-label="Search viruses"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
       />
       <span class="virus-search-icon">🔍</span>
     </div>
@@ -29,6 +33,7 @@
                   title="{{label}} preview" 
                   frameborder="0"
                   loading="lazy"
+                  importance="low"
                 ></iframe>
                 <div class="virus-thumbnail-overlay-hover">
                   <span class="play-icon">▶</span>

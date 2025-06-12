@@ -72,6 +72,8 @@ export function showVirusThumbnailOverlay({
 
   // Search functionality
   let filteredItems = Array.from(thumbnailItems) as HTMLElement[];
+  let touchStartY = 0;
+  let isScrolling = false;
 
   function filterItems(searchTerm: string) {
     const term = searchTerm.toLowerCase().trim();
@@ -121,6 +123,39 @@ export function showVirusThumbnailOverlay({
   const handleSearchInput = (e: Event) => {
     const target = e.target as HTMLInputElement;
     filterItems(target.value);
+  };
+
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartY = e.touches[0].clientY;
+    isScrolling = false;
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    const touchY = e.touches[0].clientY;
+    const diff = touchStartY - touchY;
+
+    // If scrolling more than 10px vertically, consider it a scroll
+    if (Math.abs(diff) > 10) {
+      isScrolling = true;
+    }
+  };
+
+  const handleTouchEnd = (e: TouchEvent, htmlWrapper: HTMLElement) => {
+    if (!isScrolling) {
+      const virus = htmlWrapper.getAttribute("data-virus")!;
+      cleanup();
+
+      // Track touch selection
+      if (typeof gtag !== "undefined") {
+        gtag("event", "virus_select", {
+          event_category: "engagement",
+          event_label: "touch_select",
+          animation_name: virus,
+        });
+      }
+
+      onSelect(virus);
+    }
   };
 
   const handleKeyNavigation = (e: KeyboardEvent) => {
@@ -290,12 +325,15 @@ export function showVirusThumbnailOverlay({
   closeBtn.addEventListener("click", handleCloseClick);
   overlay.addEventListener("click", handleBackgroundClick);
 
-  // Add click events for each thumbnail
+  // Add click and touch events for each thumbnail
   const thumbnailHandlers = new Map<
     HTMLElement,
     {
       click: (e: MouseEvent) => void;
       keydown: (e: KeyboardEvent) => void;
+      touchstart: (e: TouchEvent) => void;
+      touchmove: (e: TouchEvent) => void;
+      touchend: (e: TouchEvent) => void;
     }
   >();
 
@@ -304,11 +342,17 @@ export function showVirusThumbnailOverlay({
     const handlers = {
       click: (e: MouseEvent) => handleThumbnailClick(e, htmlWrapper),
       keydown: (e: KeyboardEvent) => handleThumbnailKeydown(e, htmlWrapper),
+      touchstart: (e: TouchEvent) => handleTouchStart(e),
+      touchmove: (e: TouchEvent) => handleTouchMove(e),
+      touchend: (e: TouchEvent) => handleTouchEnd(e, htmlWrapper),
     };
 
     thumbnailHandlers.set(htmlWrapper, handlers);
     htmlWrapper.addEventListener("click", handlers.click);
     htmlWrapper.addEventListener("keydown", handlers.keydown);
+    htmlWrapper.addEventListener("touchstart", handlers.touchstart);
+    htmlWrapper.addEventListener("touchmove", handlers.touchmove);
+    htmlWrapper.addEventListener("touchend", handlers.touchend);
   });
 
   // Focus search input initially
@@ -334,6 +378,9 @@ export function showVirusThumbnailOverlay({
     thumbnailHandlers.forEach((handlers, element) => {
       element.removeEventListener("click", handlers.click);
       element.removeEventListener("keydown", handlers.keydown);
+      element.removeEventListener("touchstart", handlers.touchstart);
+      element.removeEventListener("touchmove", handlers.touchmove);
+      element.removeEventListener("touchend", handlers.touchend);
     });
     thumbnailHandlers.clear();
 
