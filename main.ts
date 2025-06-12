@@ -387,7 +387,7 @@ class VirusLoader {
       }
       this.virusLab = null;
 
-      document.getElementById("menu")!.style.display = "inline-block";
+      document.getElementById("menu")!.style.display = "flex";
 
       const labButton = document.getElementById("lab-btn")!;
       labButton.innerHTML = "🧪";
