@@ -193,22 +193,29 @@ class ShitstormVirus {
     const positions = geometry.attributes.position.array;
     const normals = geometry.attributes.normal.array;
 
+    // Create mutable arrays
+    const newPositions = new Float32Array(positions);
+    const newNormals = new Float32Array(normals);
+
     // Add some randomness to the vertices to make it look more organic
     for (let i = 0; i < positions.length; i += 3) {
       // Add some noise to the position
-      positions[i] += (Math.random() - 0.5) * 0.1;
-      positions[i + 1] += (Math.random() - 0.5) * 0.1;
-      positions[i + 2] += (Math.random() - 0.5) * 0.1;
+      newPositions[i] += (Math.random() - 0.5) * 0.1;
+      newPositions[i + 1] += (Math.random() - 0.5) * 0.1;
+      newPositions[i + 2] += (Math.random() - 0.5) * 0.1;
 
       // Adjust the normal for better lighting
-      normals[i] += (Math.random() - 0.5) * 0.2;
-      normals[i + 1] += (Math.random() - 0.5) * 0.2;
-      normals[i + 2] += (Math.random() - 0.5) * 0.2;
+      newNormals[i] += (Math.random() - 0.5) * 0.2;
+      newNormals[i + 1] += (Math.random() - 0.5) * 0.2;
+      newNormals[i + 2] += (Math.random() - 0.5) * 0.2;
     }
 
-    // Update the attributes
-    geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.normal.needsUpdate = true;
+    // Update the attributes with new arrays
+    geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(newPositions, 3)
+    );
+    geometry.setAttribute("normal", new THREE.BufferAttribute(newNormals, 3));
 
     // Scale the geometry to make it more poop-like
     geometry.scale(1, 1.5, 1);
