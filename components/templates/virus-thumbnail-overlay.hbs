@@ -23,7 +23,9 @@
     
     <div class="virus-sections">
       <div class="virus-section">
-        <h3 class="virus-section-title">Viruses</h3>
+        <div class="virus-section-title-wrapper">
+          <h3 class="virus-section-title">Viruses</h3>
+        </div>
         <div class="virus-thumbnail-grid {{#if isMobile}}mobile{{/if}}">
           {{#each viruses}}
             <div class="virus-thumbnail-item" data-virus="{{value}}" tabindex="0" role="button" aria-label="Select {{label}} virus">
