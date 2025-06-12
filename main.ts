@@ -536,131 +536,113 @@ document.getElementById("reload")!.onclick = () => {
   vl.loadVirus(playlist.current());
 };
 
-// Add fullscreen button
-const fullscreenBtn = document.createElement("span");
-fullscreenBtn.id = "fullscreen";
-fullscreenBtn.className = "material-symbols-outlined";
-fullscreenBtn.innerHTML = "fullscreen";
-fullscreenBtn.title = "Toggle Fullscreen";
-document.querySelector("#menu .controls")!.appendChild(fullscreenBtn);
-
-// Fullscreen constants
-const FULLSCREEN_APIS = {
-  standard: {
-    enter: "requestFullscreen",
-    exit: "exitFullscreen",
-    element: "fullscreenElement",
-  },
-  webkit: {
-    enter: "webkitRequestFullscreen",
-    exit: "webkitExitFullscreen",
-    element: "webkitFullscreenElement",
-  },
-  moz: {
-    enter: "mozRequestFullScreen",
-    exit: "mozCancelFullScreen",
-    element: "mozFullScreenElement",
-  },
-  ms: {
-    enter: "msRequestFullscreen",
-    exit: "msExitFullscreen",
-    element: "msFullscreenElement",
-  },
-  ios: {
-    enter: "webkitEnterFullscreen",
-    exit: "webkitExitFullscreen",
+// Device detection
+const DEVICE = {
+  isMobile: (): boolean => {
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) || window.innerWidth <= 768
+    );
   },
 } as const;
 
-// UI elements to hide/show during fullscreen
-const FULLSCREEN_UI_ELEMENTS = [
-  "menu",
-  "lab-btn",
-  "thumbnail-btn",
-  "source-code",
-] as const;
+// Fullscreen functionality
+const FULLSCREEN = {
+  APIS: {
+    standard: {
+      enter: "requestFullscreen",
+      exit: "exitFullscreen",
+      element: "fullscreenElement",
+    },
+    webkit: {
+      enter: "webkitRequestFullscreen",
+      exit: "webkitExitFullscreen",
+      element: "webkitFullscreenElement",
+    },
+    moz: {
+      enter: "mozRequestFullScreen",
+      exit: "mozCancelFullScreen",
+      element: "mozFullScreenElement",
+    },
+    ms: {
+      enter: "msRequestFullscreen",
+      exit: "msExitFullscreen",
+      element: "msFullscreenElement",
+    },
+  } as const,
 
-// Helper function to check if any fullscreen mode is active
-const isFullscreenActive = (): boolean => {
-  return Object.values(FULLSCREEN_APIS).some(
-    (api) => (document as any)[api.element] || false
-  );
-};
+  UI_ELEMENTS: ["menu", "lab-btn", "thumbnail-btn", "source-code"] as const,
 
-// Helper function to toggle UI elements visibility
-const toggleUIElements = (show: boolean) => {
-  FULLSCREEN_UI_ELEMENTS.forEach((id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.style.opacity = show ? "1" : "0";
-      element.style.pointerEvents = show ? "auto" : "none";
+  isActive: (): boolean => {
+    return Object.values(FULLSCREEN.APIS).some(
+      (api) => (document as any)[api.element] || false
+    );
+  },
+
+  toggleUI: (show: boolean) => {
+    FULLSCREEN.UI_ELEMENTS.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.style.opacity = show ? "1" : "0";
+        element.style.pointerEvents = show ? "auto" : "none";
+      }
+    });
+  },
+
+  async enter(doc: HTMLElement): Promise<void> {
+    for (const api of Object.values(FULLSCREEN.APIS)) {
+      if ((doc as any)[api.enter]) {
+        await (doc as any)[api.enter]();
+        break;
+      }
     }
+  },
+
+  async exit(): Promise<void> {
+    for (const api of Object.values(FULLSCREEN.APIS)) {
+      if ((document as any)[api.exit]) {
+        await (document as any)[api.exit]();
+        break;
+      }
+    }
+  },
+} as const;
+
+// Initialize fullscreen functionality only for desktop
+if (!DEVICE.isMobile()) {
+  const fullscreenBtn = document.createElement("span");
+  fullscreenBtn.id = "fullscreen";
+  fullscreenBtn.className = "material-symbols-outlined";
+  fullscreenBtn.innerHTML = "fullscreen";
+  fullscreenBtn.title = "Toggle Fullscreen";
+  document.querySelector("#menu .controls")!.appendChild(fullscreenBtn);
+
+  fullscreenBtn.onclick = async () => {
+    const doc = document.documentElement;
+
+    try {
+      if (!FULLSCREEN.isActive()) {
+        await FULLSCREEN.enter(doc);
+        fullscreenBtn.innerHTML = "fullscreen_exit";
+        gtag("event", "enter_fullscreen");
+      } else {
+        await FULLSCREEN.exit();
+        fullscreenBtn.innerHTML = "fullscreen";
+        gtag("event", "exit_fullscreen");
+      }
+    } catch (error) {
+      console.error("Fullscreen error:", error);
+    }
+  };
+
+  // Update fullscreen button icon when fullscreen state changes
+  document.addEventListener("fullscreenchange", () => {
+    const isFullscreen = FULLSCREEN.isActive();
+    fullscreenBtn.innerHTML = isFullscreen ? "fullscreen_exit" : "fullscreen";
+    FULLSCREEN.toggleUI(!isFullscreen);
   });
-};
-
-// Helper function to handle orientation
-const handleOrientation = async (lock: boolean) => {
-  if (!window.screen.orientation) return;
-
-  try {
-    if (lock) {
-      await window.screen.orientation.lock("landscape");
-    } else {
-      await window.screen.orientation.unlock();
-    }
-  } catch (error) {
-    // Ignore orientation errors silently
-    console.debug("Orientation change failed:", error);
-  }
-};
-
-fullscreenBtn.onclick = async () => {
-  const doc = document.documentElement;
-
-  try {
-    if (!isFullscreenActive()) {
-      // Try to enter fullscreen
-      for (const api of Object.values(FULLSCREEN_APIS)) {
-        if ((doc as any)[api.enter]) {
-          await (doc as any)[api.enter]();
-          break;
-        }
-      }
-
-      fullscreenBtn.innerHTML = "fullscreen_exit";
-      gtag("event", "enter_fullscreen");
-    } else {
-      // Try to exit fullscreen
-      for (const api of Object.values(FULLSCREEN_APIS)) {
-        if ((document as any)[api.exit]) {
-          await (document as any)[api.exit]();
-          break;
-        }
-      }
-
-      fullscreenBtn.innerHTML = "fullscreen";
-      gtag("event", "exit_fullscreen");
-    }
-  } catch (error) {
-    console.error("Fullscreen error:", error);
-    // Fallback for devices that don't support fullscreen
-    if (window.screen.orientation) {
-      const isPortrait = window.screen.orientation.type.includes("portrait");
-      await handleOrientation(isPortrait);
-    }
-  }
-};
-
-// Update fullscreen button icon when fullscreen state changes
-document.addEventListener("fullscreenchange", () => {
-  const isFullscreen = isFullscreenActive();
-
-  fullscreenBtn.innerHTML = isFullscreen ? "fullscreen_exit" : "fullscreen";
-  toggleUIElements(!isFullscreen);
-
-  // Handle orientation
-  handleOrientation(isFullscreen);
-});
+}
 
 document.getElementById("info-btn")!.onclick = () => {
   toggleInfo();
