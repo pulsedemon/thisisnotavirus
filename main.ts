@@ -55,6 +55,7 @@ class VirusLoader {
   sourceCodeLink: HTMLAnchorElement = document.querySelector("#source-code a")!;
   sourceCodeDiv: HTMLElement = document.getElementById("source-code")!;
   virusLab: VirusLab | null = null;
+  isNavigating = false;
 
   constructor() {
     // Get the container iframe
@@ -313,6 +314,9 @@ class VirusLoader {
   }
 
   skipNext() {
+    if (this.isNavigating) return;
+    this.isNavigating = true;
+
     // Clean up any existing mixed virus container
     const existingMixContainer = document.querySelector(
       ".mixed-virus-container"
@@ -325,9 +329,16 @@ class VirusLoader {
     console.log("Skipping to next virus:", nextVirus);
     this.loadVirus(nextVirus);
     this.startRandomization();
+
+    setTimeout(() => {
+      this.isNavigating = false;
+    }, 300);
   }
 
   skipPrev() {
+    if (this.isNavigating) return;
+    this.isNavigating = true;
+
     // Clean up any existing mixed virus container
     const existingMixContainer = document.querySelector(
       ".mixed-virus-container"
@@ -340,6 +351,10 @@ class VirusLoader {
     console.log("Skipping to previous virus:", prevVirus);
     this.loadVirus(prevVirus);
     this.startRandomization();
+
+    setTimeout(() => {
+      this.isNavigating = false;
+    }, 300);
   }
 
   /**
@@ -352,7 +367,7 @@ class VirusLoader {
     // Set random time between 2-12 seconds
     const randomTime = Random.numberBetween(2, 12) * 1000;
 
-    // Create a new interval
+    // Create a new interval - simplified without recursive calls
     this.loadRandomInterval = setInterval(() => {
       // Clean up any existing mixed virus container
       const existingMixContainer = document.querySelector(
@@ -365,9 +380,6 @@ class VirusLoader {
       // Get next virus and load it
       const nextVirus = playlist.next();
       this.loadVirus(nextVirus);
-
-      // Create a new interval after loading
-      this.startRandomization();
     }, randomTime);
   }
 
@@ -394,56 +406,29 @@ class VirusLoader {
       labButton.title = "Virus Lab";
       gtag("event", "close_lab");
 
-      // Make sure the current mix is visible when lab is closed
-      if (currentMix && currentMix.id) {
-        // First, clear any existing interval so we don't have conflicts
-        clearInterval(this.loadRandomInterval);
+      // Simplified lab closing logic
+      clearInterval(this.loadRandomInterval);
 
+      if (currentMix && currentMix.id) {
         // Load the current mix from the lab
         this.loadVirus(`mixed:${currentMix.id}`);
-
-        // Update the play/pause button to ensure it's in the right state
-        const playPauseBtn = document.getElementById("play-pause")!;
-        if (playPauseBtn.innerText === "play_arrow") {
-          // If it was paused before, resume playback
-          playPauseBtn.innerText = "pause";
-        }
-
-        // Create a new interval that will keep the current mix displayed for a full cycle
-        // before advancing to the next virus in the playlist
-        const randomTime = Random.numberBetween(5, 12) * 1000; // Longer time for custom mixes
-        this.loadRandomInterval = setInterval(() => {
-          const nextVirus = playlist.next();
-          this.loadVirus(nextVirus);
-          this.startRandomization(); // Continue with normal playlist after this
-        }, randomTime);
-
-        // Update playlist's current index to point to our mix so "next" works properly
+        // Update playlist's current index to point to our mix
         const mixId = `mixed:${currentMix.id}`;
         playlist.setCurrentVirus(mixId);
       } else {
         // If no saved mix, just show the current virus
         this.iframe.style.display = "block";
-
-        // Reset the animation interval with the current virus from playlist
-        const playPauseBtn = document.getElementById("play-pause")!;
-        if (playPauseBtn.innerText === "play_arrow") {
-          playPauseBtn.innerText = "pause";
-        }
-
-        // Clear any existing interval
-        clearInterval(this.loadRandomInterval);
-
-        // Create a new interval that will display the current virus for a full cycle
-        const randomTime = Random.numberBetween(2, 12) * 1000;
-        this.loadVirus(playlist.current()); // Make sure we're showing the current virus
-
-        this.loadRandomInterval = setInterval(() => {
-          const nextVirus = playlist.next();
-          this.loadVirus(nextVirus);
-          this.startRandomization(); // Continue with normal playlist
-        }, randomTime);
+        this.loadVirus(playlist.current());
       }
+
+      // Update play/pause button state
+      const playPauseBtn = document.getElementById("play-pause")!;
+      if (playPauseBtn.innerText === "play_arrow") {
+        playPauseBtn.innerText = "pause";
+      }
+
+      // Start randomization
+      this.startRandomization();
     } else {
       // Open lab
       this.iframe.style.display = "none";
@@ -482,6 +467,29 @@ class VirusLoader {
       labButton.title = "Close Virus Lab";
       gtag("event", "open_lab");
     }
+  }
+
+  reloadCurrent() {
+    if (this.isNavigating) return; // Prevent rapid clicks
+    this.isNavigating = true;
+
+    // Clean up any existing mixed virus container
+    const existingMixContainer = document.querySelector(
+      ".mixed-virus-container"
+    );
+    if (existingMixContainer) {
+      existingMixContainer.remove();
+    }
+
+    const currentVirus = playlist.current();
+    console.log("Reloading current virus:", currentVirus);
+    this.loadVirus(currentVirus);
+    this.startRandomization();
+
+    // Reset navigation flag after a short delay
+    setTimeout(() => {
+      this.isNavigating = false;
+    }, 300);
   }
 }
 
@@ -533,7 +541,7 @@ document.getElementById("reload")!.onclick = () => {
   gtag("event", "reload", {
     animation_name: playlist.current(),
   });
-  vl.loadVirus(playlist.current());
+  vl.reloadCurrent();
 };
 
 // Device detection
@@ -687,7 +695,7 @@ document.onkeyup = (e) => {
     gtag("event", "reload_keyboard", {
       animation_name: playlist.current(),
     });
-    vl.loadVirus(playlist.current());
+    vl.reloadCurrent();
   }
 };
 

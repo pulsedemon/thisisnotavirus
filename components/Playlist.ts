@@ -76,6 +76,9 @@ export default class Playlist {
   }
 
   current(): string {
+    if (this.playlist.length === 0) {
+      this.generatePlaylist();
+    }
     if (typeof this.playlist[this.currentIndex] === "undefined") {
       this.currentIndex = 0;
     }
@@ -84,6 +87,9 @@ export default class Playlist {
   }
 
   prev(): string {
+    if (this.playlist.length === 0) {
+      this.generatePlaylist();
+    }
     let prevIndex = this.currentIndex - 1;
     if (prevIndex === -1) {
       prevIndex = this.playlist.length - 1;
@@ -93,6 +99,9 @@ export default class Playlist {
   }
 
   next(): string {
+    if (this.playlist.length === 0) {
+      this.generatePlaylist();
+    }
     const nextIndex = this.currentIndex + 1;
     if (nextIndex >= this.playlist.length) {
       this.currentIndex = 0;
@@ -127,6 +136,10 @@ export default class Playlist {
     } else {
       // If not found, add it to the playlist at the current position
       this.playlist.splice(this.currentIndex, 0, virusId);
+      // Ensure we don't go out of bounds
+      if (this.currentIndex >= this.playlist.length) {
+        this.currentIndex = 0;
+      }
     }
   }
 }
