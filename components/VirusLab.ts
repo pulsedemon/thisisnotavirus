@@ -83,9 +83,13 @@ export default class VirusLab {
   }
 
   private loadSavedMixesFromStorage(): VirusMix[] {
-    return JSON.parse(
-      localStorage.getItem("savedVirusMixes") || "[]"
-    ) as VirusMix[];
+    try {
+      return JSON.parse(
+        localStorage.getItem("savedVirusMixes") || "[]"
+      ) as VirusMix[];
+    } catch {
+      return [];
+    }
   }
 
   private loadSavedMixes() {
@@ -112,6 +116,8 @@ export default class VirusLab {
     ) as HTMLSelectElement;
     const mixRatio = document.getElementById("mix-ratio") as HTMLInputElement;
     const saveButton = document.getElementById("save-mix");
+
+    if (!primarySelect || !secondarySelect || !mixRatio) return;
 
     const primaryHandler = () => {
       this.currentMix.primary = primarySelect.value;
@@ -154,6 +160,8 @@ export default class VirusLab {
     const secondarySelect = document.getElementById(
       "secondary-virus"
     ) as HTMLSelectElement;
+
+    if (!primarySelect || !secondarySelect) return;
 
     this.playlist.viruses.forEach((virus) => {
       const option = document.createElement("option");
@@ -238,7 +246,6 @@ export default class VirusLab {
         </div>
       `;
 
-      // Add event listeners
       const loadButton = mixElement.querySelector(".load-mix");
       const deleteButton = mixElement.querySelector(".delete-mix");
 
@@ -253,7 +260,6 @@ export default class VirusLab {
     this.currentMix = { ...mix };
 
     if (!this.displayOnly) {
-      // Update UI
       const primarySelect = document.getElementById(
         "primary-virus"
       ) as HTMLSelectElement;
@@ -262,12 +268,11 @@ export default class VirusLab {
       ) as HTMLSelectElement;
       const mixRatio = document.getElementById("mix-ratio") as HTMLInputElement;
 
-      primarySelect.value = mix.primary;
-      secondarySelect.value = mix.secondary;
-      mixRatio.value = mix.mixRatio.toString();
+      if (primarySelect) primarySelect.value = mix.primary;
+      if (secondarySelect) secondarySelect.value = mix.secondary;
+      if (mixRatio) mixRatio.value = mix.mixRatio.toString();
     }
 
-    // Apply the mix
     this.applyMix();
   }
 
