@@ -1,6 +1,6 @@
 import "./buttons.scss";
 
-import { isMobile, shuffle, preloadImage, draggable } from "../../utils/misc";
+import { draggable, isMobile, preloadImage, shuffle } from "../../utils/misc";
 import Random from "../../utils/random";
 
 class Buttons {
@@ -189,7 +189,7 @@ document.addEventListener("click", function (e) {
       setTimeout(function () {
         b.container.removeChild(explode);
         buttons.forEach((buttonEl) => buttonEl.remove());
-      }, 1500);
+      }, 1000);
     });
   });
 
