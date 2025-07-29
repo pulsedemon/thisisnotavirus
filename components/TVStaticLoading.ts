@@ -30,15 +30,17 @@ export default class TVStaticLoading {
     currentWord: "",
   };
 
-  private readonly STRANGE_WORDS = [
+  private readonly WORDS = [
     "VIRUS",
     "404",
-    "CRASH",
-    "VOID",
+    "HELLO",
     "混沌",
+    "FAKE",
     "PAIN",
+    "DANCE",
     "DEATH",
     "666",
+    "NUMBERS",
     "悪魔",
     "ANIMAL",
     "THIS",
@@ -112,10 +114,8 @@ export default class TVStaticLoading {
       ctx.globalAlpha = alpha;
 
       if (!this.watermark.currentWord) {
-        const randomIndex = Math.floor(
-          Math.random() * this.STRANGE_WORDS.length
-        );
-        this.watermark.currentWord = this.STRANGE_WORDS[randomIndex];
+        const randomIndex = Math.floor(Math.random() * this.WORDS.length);
+        this.watermark.currentWord = this.WORDS[randomIndex];
         console.log(`Your fortune: "${this.watermark.currentWord}" `);
       }
       const randomWord = this.watermark.currentWord;
