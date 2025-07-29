@@ -27,7 +27,25 @@ export default class TVStaticLoading {
     baseAlpha: 0.18,
     revealAlpha: 0.7,
     step: 0.1,
+    currentWord: "",
   };
+
+  private readonly STRANGE_WORDS = [
+    "VIRUS",
+    "404",
+    "CRASH",
+    "VOID",
+    "CHAOS",
+    "PAIN",
+    "DEATH",
+    "666",
+    "SATAN",
+    "ANIMAL",
+    "THIS",
+    "SHOULD",
+    "BE",
+    "RANDOM",
+  ];
 
   private readonly DEFAULTS = {
     bufferW: 320,
@@ -92,21 +110,31 @@ export default class TVStaticLoading {
         (this.watermark.revealAlpha - this.watermark.baseAlpha) *
           this.watermark.fade;
       ctx.globalAlpha = alpha;
+
+      if (!this.watermark.currentWord) {
+        const randomIndex = Math.floor(
+          Math.random() * this.STRANGE_WORDS.length
+        );
+        this.watermark.currentWord = this.STRANGE_WORDS[randomIndex];
+        console.log(`Your fortune: "${this.watermark.currentWord}" `);
+      }
+      const randomWord = this.watermark.currentWord;
+
       let fontSize = height;
       ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
-      let metrics = ctx.measureText("VIRUS");
+      let metrics = ctx.measureText(randomWord);
       const textWidth = metrics.width;
       if (textWidth > width * 0.98) {
         fontSize = (fontSize * (width * 0.98)) / textWidth;
         ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
-        metrics = ctx.measureText("VIRUS");
+        metrics = ctx.measureText(randomWord);
       }
       const actualHeight =
         metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       if (actualHeight > height * 0.98) {
         fontSize = (fontSize * (height * 0.98)) / actualHeight;
         ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
-        metrics = ctx.measureText("VIRUS");
+        metrics = ctx.measureText(randomWord);
       }
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
@@ -119,7 +147,7 @@ export default class TVStaticLoading {
         height / 2 +
         (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) /
           2;
-      ctx.fillText("VIRUS", width / 2, y);
+      ctx.fillText(randomWord, width / 2, y);
     });
   }
 
@@ -365,7 +393,10 @@ export default class TVStaticLoading {
         0,
         this.watermark.fade - this.config.fadeSpeed
       );
-      if (this.watermark.fade === 0) this.watermark.clickCount = 0;
+      if (this.watermark.fade === 0) {
+        this.watermark.clickCount = 0;
+        this.watermark.currentWord = "";
+      }
     }
     const ctx = this._bufferCtx;
     ctx.clearRect(0, 0, this.config.bufferW, this.config.bufferH);
