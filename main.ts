@@ -145,6 +145,7 @@ class VirusLoader {
         onClose: () => {
           // No-op for now
         },
+        virusLoader: this,
       });
     };
   }

@@ -8,12 +8,19 @@ declare let gtag: (
   config?: Record<string, any>
 ) => void;
 
+interface VirusLoader {
+  virusLab: unknown;
+  toggleLab(): void;
+}
+
 export function showVirusThumbnailOverlay({
   onSelect,
   onClose,
+  virusLoader,
 }: {
   onSelect: (virus: string) => void;
   onClose: () => void;
+  virusLoader?: VirusLoader; // VirusLoader instance to close lab if open
 }) {
   // Track overlay open event
   if (typeof gtag !== "undefined") {
@@ -145,6 +152,11 @@ export function showVirusThumbnailOverlay({
       const virus = htmlWrapper.getAttribute("data-virus")!;
       cleanup();
 
+      // Close lab if it's open
+      if (virusLoader && virusLoader.virusLab) {
+        virusLoader.toggleLab();
+      }
+
       // Track touch selection
       if (typeof gtag !== "undefined") {
         gtag("event", "virus_select", {
@@ -271,6 +283,11 @@ export function showVirusThumbnailOverlay({
     cleanup();
     const virus = htmlWrapper.getAttribute("data-virus")!;
 
+    // Close lab if it's open
+    if (virusLoader && virusLoader.virusLab) {
+      virusLoader.toggleLab();
+    }
+
     // Track virus selection
     if (typeof gtag !== "undefined") {
       gtag("event", "virus_select", {
@@ -291,6 +308,11 @@ export function showVirusThumbnailOverlay({
       e.preventDefault();
       const virus = htmlWrapper.getAttribute("data-virus")!;
       cleanup();
+
+      // Close lab if it's open
+      if (virusLoader && virusLoader.virusLab) {
+        virusLoader.toggleLab();
+      }
 
       // Track keyboard virus selection
       if (typeof gtag !== "undefined") {
