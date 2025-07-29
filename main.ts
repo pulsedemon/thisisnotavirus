@@ -455,9 +455,13 @@ class VirusLoader {
       labContainer.style.position = "absolute";
       labContainer.style.top = "0";
       labContainer.style.left = "0";
+      labContainer.style.right = "0";
+      labContainer.style.bottom = "0";
       labContainer.style.width = "100%";
       labContainer.style.height = "100%";
       labContainer.style.zIndex = "1000";
+      labContainer.style.overflow = "visible";
+      labContainer.style.pointerEvents = "auto";
 
       document.body.appendChild(labContainer);
       this.virusLab = new VirusLab(labContainer, playlist);

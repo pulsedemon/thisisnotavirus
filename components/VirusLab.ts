@@ -30,19 +30,29 @@ export default class VirusLab {
     this.playlist = playlist;
     this.displayOnly = displayOnly;
 
-    // Set container styles
+    // Set container styles for perfect alignment
     this.container.className = "virus-lab";
     this.container.style.position = "absolute";
     this.container.style.top = "0";
     this.container.style.left = "0";
+    this.container.style.right = "0";
+    this.container.style.bottom = "0";
     this.container.style.width = "100%";
     this.container.style.height = "100%";
-    this.container.style.zIndex = "1";
+    this.container.style.margin = "0";
+    this.container.style.padding = "0";
+    this.container.style.boxSizing = "border-box";
+    this.container.style.overflow = "visible";
+    this.container.style.pointerEvents = "auto";
 
     // Create iframes using utility functions
     this.primaryIframe = createStyledIframe();
     this.secondaryIframe = createStyledIframe(true);
     this.secondaryIframe.style.opacity = "0.5"; // Default opacity
+
+    // Ensure iframes don't block interactions
+    this.primaryIframe.style.pointerEvents = "none";
+    this.secondaryIframe.style.pointerEvents = "none";
 
     // Add iframes to container
     this.container.appendChild(this.primaryIframe);
@@ -100,6 +110,11 @@ export default class VirusLab {
     const controls = document.createElement("div");
     controls.className = "virus-lab-controls";
     controls.innerHTML = controlsTemplate();
+
+    // Ensure controls are interactive and properly positioned
+    controls.style.pointerEvents = "auto";
+    controls.style.zIndex = "1000";
+    controls.style.position = "absolute";
 
     this.container.appendChild(controls);
     this.setupEventListeners();

@@ -5,18 +5,57 @@
   background: #000;
   color: #fff;
   font-family: monospace;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: visible;
+  z-index: 0;
+  pointer-events: auto;
+
+  // Ensure iframes are perfectly aligned
+  iframe {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    border: none !important;
+    background: #000 !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    pointer-events: none !important;
+  }
+
+  // Primary iframe (base virus)
+  iframe:not(.secondary-virus) {
+    z-index: 0 !important;
+  }
+
+  // Secondary iframe (overlay virus)
+  iframe.secondary-virus {
+    z-index: 1 !important;
+    mix-blend-mode: screen !important;
+  }
 
   .virus-lab-controls {
-    position: absolute;
-    bottom: 90px;
-    right: 20px;
+    position: absolute !important;
+    bottom: 90px !important;
+    right: 20px !important;
     background: rgba(0, 0, 0, 0.8);
     padding: 20px;
     border-radius: 8px;
     width: 300px;
-    z-index: 1000;
+    z-index: 1000 !important;
     border: 1px solid #00ffff;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    pointer-events: auto !important;
 
     .control-group {
       margin-bottom: 15px;
@@ -37,6 +76,7 @@
         color: #fff;
         border-radius: 4px;
         font-family: monospace;
+        pointer-events: auto;
 
         &:focus {
           outline: none;
@@ -51,6 +91,7 @@
         background: #2a2a2a;
         border-radius: 2px;
         padding: 0;
+        pointer-events: auto;
 
         &::-webkit-slider-thumb {
           -webkit-appearance: none;
@@ -60,6 +101,7 @@
           border-radius: 50%;
           cursor: pointer;
           transition: all 0.2s ease;
+          pointer-events: auto;
 
           &:hover {
             transform: scale(1.2);
@@ -80,6 +122,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       font-family: monospace;
+      pointer-events: auto;
 
       &:hover {
         background: #00cccc;
@@ -133,6 +176,7 @@
             padding: 4px 8px;
             margin: 0;
             font-size: 12px;
+            pointer-events: auto;
 
             &.load-mix {
               background: #00ffff;
