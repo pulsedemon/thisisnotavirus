@@ -137,9 +137,9 @@ export default defineConfig(async () => {
       // Multi-entry build configuration
       rollupOptions: {
         input: {
-          // Include index.html as the main entry point (this will include main.ts automatically)
+          // Include index.html as the main entry point
           index: resolve(__dirname, 'index.html'),
-          // Add all virus entries (excluding main since it's handled by index.html)
+          // Add all virus entries
           ...Object.fromEntries(
             Object.entries(entries).filter(([key]) => key !== 'main')
           )
