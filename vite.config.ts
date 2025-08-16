@@ -86,6 +86,7 @@ export default defineConfig(async () => {
       // Custom plugin to copy virus HTML files to dist structure
       {
         name: 'copy-virus-html',
+        apply: 'build', // Only run during build, not dev
         async closeBundle() {
           const virusFiles = await glob('./viruses/*/index.html');
           console.log('Found virus files:', virusFiles);
@@ -142,7 +143,11 @@ export default defineConfig(async () => {
     
     // Development server configuration
     server: {
-      open: true
+      open: true,
+      // Ensure virus directories are served correctly in development
+      fs: {
+        strict: false
+      }
     },
     
     // Build configuration
