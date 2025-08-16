@@ -10,7 +10,7 @@ frontend:
         - yarn run build:prod
 
   artifacts:
-    baseDirectory: /
+    baseDirectory: dist
     files:
       - "**/*"
   cache:

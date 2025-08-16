@@ -1,4 +1,4 @@
-import UAParser from "ua-parser-js";
+import { UAParser } from "ua-parser-js";
 import Random from "./random";
 
 const usparser = new UAParser();
