@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import { glob } from 'glob';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import Handlebars from 'handlebars';
 
 // Function to discover all virus entry points (same logic as webpack config)
 async function getEntryPoints() {
@@ -58,9 +59,11 @@ export default defineConfig(async () => {
         name: 'handlebars-loader',
         transform(code: string, id: string) {
           if (id.endsWith('.hbs')) {
-            // Simple approach: return the template as a string
+            // Read and compile the handlebars template
             const template = readFileSync(id, 'utf-8');
-            return `export default ${JSON.stringify(template)};`;
+            const compiled = Handlebars.compile(template);
+            // Return the compiled template as a function
+            return `export default ${compiled.toString()};`;
           }
         }
       },
