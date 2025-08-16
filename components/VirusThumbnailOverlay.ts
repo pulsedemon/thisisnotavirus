@@ -1,6 +1,5 @@
 import { formatVirusName } from "../utils/misc";
 import Playlist from "./Playlist";
-import overlayTemplate from "./templates/virus-thumbnail-overlay.hbs";
 
 declare let gtag: (
   command: "config" | "event",
@@ -58,15 +57,90 @@ export function showVirusThumbnailOverlay({
     },
   }));
 
-  // Render overlay HTML using Handlebars template
-  const overlayDiv = document.createElement("div");
-  overlayDiv.innerHTML = overlayTemplate({
-    viruses,
-    customViruses,
-    hasCustomViruses: customViruses.length > 0,
-    isMobile,
-  });
-  const overlay = overlayDiv.firstElementChild as HTMLElement;
+  // Create overlay HTML directly
+  const overlay = document.createElement("div");
+  overlay.id = "virus-thumbnail-overlay";
+  overlay.className = "virus-overlay";
+  
+  overlay.innerHTML = `
+    <div class="virus-overlay-header">
+      <h2 class="virus-overlay-title">Select Virus</h2>
+      <button class="virus-thumbnail-close" aria-label="Close overlay">
+        X
+      </button>
+    </div>
+    
+    <div class="virus-overlay-content">
+      <div class="virus-search-container">
+        <input 
+          type="text" 
+          class="virus-search" 
+          placeholder="Search viruses..." 
+          aria-label="Search viruses"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <span class="virus-search-icon">🔍</span>
+      </div>
+      
+      <div class="virus-sections">
+        <div class="virus-section">
+          <div class="virus-section-title-wrapper">
+            <h3 class="virus-section-title">Viruses</h3>
+          </div>
+          <div class="virus-thumbnail-grid ${isMobile ? 'mobile' : ''}">
+            ${viruses.map(virus => `
+              <div class="virus-thumbnail-item" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} virus">
+                <div class="virus-thumbnail-preview">
+                  <iframe 
+                    src="/viruses/${virus.value}/" 
+                    title="${virus.label} preview" 
+                    frameborder="0"
+                    loading="lazy"
+                    importance="low"
+                  ></iframe>
+                  <div class="virus-thumbnail-overlay-hover">
+                    <span class="play-icon">▶</span>
+                  </div>
+                </div>
+                <div class="virus-label">${virus.label}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        ${customViruses.length > 0 ? `
+        <div class="virus-section custom-viruses">
+          <h3 class="virus-section-title">Mixes</h3>
+          <div class="virus-thumbnail-grid ${isMobile ? 'mobile' : ''}">
+            ${customViruses.map(virus => `
+              <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} custom virus">
+                <div class="virus-thumbnail-preview custom-preview">
+                  <div class="custom-virus-display">
+                    <div class="custom-virus-info">
+                      <div class="custom-virus-components">
+                        <span class="primary-virus">${virus.mix.primary}</span>
+                        <span class="mix-symbol">⚡</span>
+                        <span class="secondary-virus">${virus.mix.secondary}</span>
+                      </div>
+                      <div class="mix-ratio">${virus.mix.mixRatioPercent}%</div>
+                    </div>
+                  </div>
+                  <div class="virus-thumbnail-overlay-hover">
+                    <span class="play-icon">▶</span>
+                  </div>
+                </div>
+                <div class="virus-label custom-label">${virus.label}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
 
   // Get references to key elements
   const searchInput = overlay.querySelector(
