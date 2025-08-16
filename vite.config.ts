@@ -51,6 +51,22 @@ export default defineConfig(async () => {
           {
             src: 'images/*',
             dest: 'images'
+          },
+          {
+            src: 'viruses/*/images.json',
+            dest: 'viruses'
+          },
+          {
+            src: 'viruses/*/images/*',
+            dest: 'viruses'
+          },
+          {
+            src: 'viruses/*/explosions/*',
+            dest: 'viruses'
+          },
+          {
+            src: 'viruses/*/*.{png,webp,gif,jpg,jpeg}',
+            dest: 'viruses'
           }
         ]
       }),
