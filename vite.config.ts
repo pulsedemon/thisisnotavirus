@@ -3,11 +3,12 @@ import { resolve } from 'path';
 import { glob } from 'glob';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import Handlebars from 'handlebars';
+
+
 
 // Function to discover all virus entry points (same logic as webpack config)
-async function getEntryPoints() {
-  const jsFiles = await glob('./viruses/*/*.[jt]s');
+function getEntryPoints() {
+  const jsFiles = glob.sync('./viruses/*/*.[jt]s');
   const entries: Record<string, string> = {};
   
   jsFiles.forEach((filepath) => {
@@ -21,8 +22,8 @@ async function getEntryPoints() {
   return entries;
 }
 
-export default defineConfig(async () => {
-  const entries = await getEntryPoints();
+export default defineConfig(() => {
+  const entries = getEntryPoints();
   
   return {
     // Enable TypeScript support
@@ -75,20 +76,18 @@ export default defineConfig(async () => {
         name: 'handlebars-loader',
         transform(code: string, id: string) {
           if (id.endsWith('.hbs')) {
-            // Read and compile the handlebars template
             const template = readFileSync(id, 'utf-8');
-            const compiled = Handlebars.compile(template);
-            // Return the compiled template as a function
-            return `export default ${compiled.toString()};`;
+            return `export default function() { return ${JSON.stringify(template)}; }`;
           }
+          return null;
         }
       },
       // Custom plugin to copy virus HTML files to dist structure
       {
         name: 'copy-virus-html',
         apply: 'build', // Only run during build, not dev
-        async closeBundle() {
-          const virusFiles = await glob('./viruses/*/index.html');
+        closeBundle() {
+          const virusFiles = glob.sync('./viruses/*/index.html');
           console.log('Found virus files:', virusFiles);
           
           virusFiles.forEach((htmlFile) => {
