@@ -22,15 +22,17 @@ declare global {
   }
 }
 
-Sentry.init({
-  dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.browserProfilingIntegration(),
-  ],
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
-});
+if (import.meta.env.PROD) {
+  Sentry.init({
+    dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.browserProfilingIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+}
 
 console.log(
   `%c

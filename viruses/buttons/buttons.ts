@@ -44,11 +44,15 @@ class Buttons {
     this.gridRows = Math.ceil(this.height / this.imageGridSize);
 
     void fetch("/viruses/buttons/images.json")
-      .then((response) => response.json())
-      .then((data: { images: string[] }) => {
+      .then((response) => (response.ok ? response.json() : undefined))
+      .then((data?: { images: string[] }) => {
+        if (!data || !Array.isArray(data.images)) return;
         this.images = data.images;
         this.images.forEach((i) => preloadImage(i));
         this.assignImages();
+      })
+      .catch(() => {
+        // Silently ignore missing JSON in preview/dev
       });
   }
 

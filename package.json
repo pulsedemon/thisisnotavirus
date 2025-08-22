@@ -32,7 +32,7 @@
     "start": "vite",
     "build": "vite build",
     "build:prod": "vite build",
-    "preview": "vite preview",
+    "preview": "vite build && vite preview",
     "lint": "eslint . --ext ts"
   }
 }

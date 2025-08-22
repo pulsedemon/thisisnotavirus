@@ -1,31 +1,35 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { glob } from 'glob';
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 
 
-// Function to discover all virus entry points (same logic as webpack config)
-function getEntryPoints() {
-  const jsFiles = glob.sync('./viruses/*/*.[jt]s');
-  const entries: Record<string, string> = {};
-  
-  jsFiles.forEach((filepath) => {
-    const filename = filepath.split('/').slice(-1)[0].split('.')[0];
-    entries[filename] = resolve(__dirname, filepath);
-  });
-  
-  // Add main entry point
-  entries['main'] = resolve(__dirname, './main.ts');
-  
-  return entries;
-}
-
 export default defineConfig(() => {
-  const entries = getEntryPoints();
-  
+  const virusTargets = glob.sync('viruses/*/').flatMap((dir) => {
+    const name = dir.split('/')[1];
+    const base = dir.replace(/\/$/, '');
+    const targets: { src: string; dest: string }[] = [];
+    if (existsSync(`${base}/images.json`)) {
+      targets.push({ src: `${base}/images.json`, dest: `viruses/${name}` });
+    }
+    if (existsSync(`${base}/images`)) {
+      targets.push({ src: `${base}/images/**`, dest: `viruses/${name}/images` });
+    }
+    if (existsSync(`${base}/explosions`)) {
+      targets.push({ src: `${base}/explosions/**`, dest: `viruses/${name}/explosions` });
+    }
+    const extraFiles = glob.sync(`${base}/*.{png,webp,gif,jpg,jpeg,svg,mp3,mp4,webm,ogg}`);
+    if (extraFiles.length > 0) {
+      targets.push({ src: `${base}/*.{png,webp,gif,jpg,jpeg,svg,mp3,mp4,webm,ogg}`, dest: `viruses/${name}` });
+    }
+    return targets;
+  });
+
   return {
+    // Multi-page app setup
+    appType: 'mpa',
     // Enable TypeScript support
     esbuild: {
       target: 'es2020'
@@ -42,33 +46,27 @@ export default defineConfig(() => {
     
     // Plugin configuration
     plugins: [
+      // Dev-only guard to prevent serving build artifacts
+      {
+        name: 'block-build-artifacts-in-dev',
+        apply: 'serve',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && (req.url.startsWith('/build') || req.url.startsWith('/dist'))) {
+              res.statusCode = 404;
+              res.end('Not Found');
+              return;
+            }
+            next();
+          });
+        }
+      },
       // Official plugin for copying static assets
       viteStaticCopy({
         targets: [
-          {
-            src: 'css/reset.css',
-            dest: 'css'
-          },
-          {
-            src: 'images/*',
-            dest: 'images'
-          },
-          {
-            src: 'viruses/*/images.json',
-            dest: 'viruses'
-          },
-          {
-            src: 'viruses/*/images/*',
-            dest: 'viruses'
-          },
-          {
-            src: 'viruses/*/explosions/*',
-            dest: 'viruses'
-          },
-          {
-            src: 'viruses/*/*.{png,webp,gif,jpg,jpeg}',
-            dest: 'viruses'
-          }
+          { src: 'css/reset.css', dest: 'css' },
+          { src: 'images/*', dest: 'images' },
+          ...virusTargets
         ]
       }),
       // Custom plugin to handle .hbs files
@@ -81,62 +79,6 @@ export default defineConfig(() => {
           }
           return null;
         }
-      },
-      // Custom plugin to copy virus HTML files to dist structure
-      {
-        name: 'copy-virus-html',
-        apply: 'build', // Only run during build, not dev
-        closeBundle() {
-          const virusFiles = glob.sync('./viruses/*/index.html');
-          console.log('Found virus files:', virusFiles);
-          
-          virusFiles.forEach((htmlFile) => {
-            // Extract virus name from path like ./viruses/buttons/index.html
-            const pathParts = htmlFile.replace('./', '').split('/');
-            const virusName = pathParts[1]; // viruses/NAME/index.html -> NAME
-            console.log(`Processing virus: ${virusName} from ${htmlFile}`);
-            
-            const destDir = resolve(__dirname, 'dist/viruses', virusName);
-            const destFile = resolve(destDir, 'index.html');
-            
-            try {
-              mkdirSync(destDir, { recursive: true });
-              
-              // Read the original HTML and update script path to point to the built JS file
-              let htmlContent = readFileSync(htmlFile, 'utf-8');
-              
-              // Replace the script source to point to the root-level built JS file
-              htmlContent = htmlContent.replace(
-                `src="/build/${virusName}.js"`,
-                `src="/${virusName}.js" type="module"`
-              );
-              
-              // Also handle potential variations and ensure type="module" is present
-              htmlContent = htmlContent.replace(
-                `/build/${virusName}.js`,
-                `/${virusName}.js" type="module`
-              );
-              
-              // Handle cases where type="module" might already exist
-              htmlContent = htmlContent.replace(
-                `src="/${virusName}.js" type="module" type="module"`,
-                `src="/${virusName}.js" type="module"`
-              );
-              
-              // Add virus-specific CSS file link before the closing </head> tag
-              htmlContent = htmlContent.replace(
-                '</head>',
-                `    <link rel="stylesheet" href="/${virusName}.css" type="text/css" media="screen" />\n  </head>`
-              );
-              
-              // Write the updated HTML
-              writeFileSync(destFile, htmlContent);
-              console.log(`✅ Copied virus HTML: ${virusName} -> ${destFile}`);
-            } catch (error) {
-              console.warn(`❌ Failed to copy ${htmlFile}:`, error);
-            }
-          });
-        }
       }
     ],
     
@@ -145,7 +87,7 @@ export default defineConfig(() => {
       open: true,
       // Ensure virus directories are served correctly in development
       fs: {
-        strict: false
+        strict: true
       }
     },
     
@@ -159,14 +101,10 @@ export default defineConfig(() => {
       
       // Multi-entry build configuration
       rollupOptions: {
-        input: {
-          // Include index.html as the main entry point
-          index: resolve(__dirname, 'index.html'),
-          // Add all virus entries
-          ...Object.fromEntries(
-            Object.entries(entries).filter(([key]) => key !== 'main')
-          )
-        },
+        input: [
+          resolve(__dirname, 'index.html'),
+          ...glob.sync('./viruses/*/index.html').map((p) => resolve(__dirname, p))
+        ],
         output: {
           // Keep the same naming pattern as webpack
           entryFileNames: '[name].js',
