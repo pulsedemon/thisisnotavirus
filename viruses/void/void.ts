@@ -320,16 +320,16 @@ class Void {
       let waveType;
 
       if (frequencyBand === 0) {
-        // Bass rings - deep red/purple
-        baseColor = new THREE.Color(0x660000);
+        // Bass rings - deep crimson/burgundy
+        baseColor = new THREE.Color(0x8b0000); // Dark red
         waveType = "bass";
       } else if (frequencyBand === 1) {
-        // Mid rings - orange/red
-        baseColor = new THREE.Color(0x883300);
+        // Mid rings - bright red (no orange)
+        baseColor = new THREE.Color(0xdc143c); // Crimson red
         waveType = "mid";
       } else {
-        // Treble rings - bright red/white
-        baseColor = new THREE.Color(0xaa0033);
+        // Treble rings - bright pink/magenta
+        baseColor = new THREE.Color(0xff1493); // Deep pink
         waveType = "treble";
       }
 
@@ -1295,38 +1295,45 @@ class Void {
     const coreMaterial = this.flowingSphere
       .material as THREE.MeshStandardMaterial;
     const corruption = Math.min(totalEnergy * 2, 1);
-    const rageIntensity = this.rageBuildupLevel;
 
-    // Audio-driven color shifts
-    const bassColorShift = this.audioBassLevel * 0.5; // Bass shifts to deeper reds
-    const midColorShift = this.audioMidLevel * 0.3; // Mids add orange/yellow tints
-    const trebleColorShift = this.audioTrebleLevel * 0.4; // Treble adds brightness/white
+    // Audio-driven red spectrum color shifts
+    const bassRedIntensity = this.audioBassLevel * 0.8; // Deep crimson/burgundy
+    const midRedIntensity = this.audioMidLevel * 0.6; // Bright scarlet/fire red
+    const trebleRedIntensity = this.audioTrebleLevel * 0.5; // Pink/coral highlights
 
     // Dynamic color mixing based on audio frequencies and calm state
     const calmEffect = this.calmLevel * 0.6;
     const contentEffect = this.contentmentLevel * 0.4;
 
-    // When calm, shift toward cooler, more soothing colors
-    const audioRed = (1 - midColorShift * 0.3) * (1 - calmEffect * 0.7);
+    // Red spectrum audio coloring with different red tones
+    const baseRed = 0.8 + corruption * 0.2; // Base evil red
+    const audioRed = Math.min(
+      1,
+      baseRed +
+        bassRedIntensity * 0.2 + // Deep crimson from bass
+        midRedIntensity * 0.4 + // Bright scarlet from mids
+        trebleRedIntensity * 0.3 - // Pink highlights from treble
+        calmEffect * 0.4, // Slightly less red when calm
+    );
+
     const audioGreen = Math.max(
       0,
-      0.2 -
-        corruption * 0.2 -
-        rageIntensity * 0.2 +
-        midColorShift * 0.6 -
-        bassColorShift * 0.4 +
-        calmEffect * 0.8 + // More green when calm
-        contentEffect * 0.3,
+      0.05 + // Very minimal base green
+        midRedIntensity * 0.1 + // Slight red warmth from mids (less orange)
+        trebleRedIntensity * 0.2 + // Pink from treble
+        calmEffect * 0.6 + // More green when calm (soothing)
+        contentEffect * 0.2 -
+        bassRedIntensity * 0.3, // Much less green with deep bass
     );
+
     const audioBlue = Math.max(
       0,
-      0.2 -
-        corruption * 0.2 -
-        rageIntensity * 0.3 +
-        trebleColorShift * 0.3 -
-        bassColorShift * 0.5 +
-        calmEffect * 1.2 + // More blue when calm (soothing)
-        contentEffect * 0.6,
+      0.05 + // Minimal base blue
+        trebleRedIntensity * 0.5 + // Pink/magenta from treble
+        calmEffect * 0.8 + // More blue when calm (soothing)
+        contentEffect * 0.4 -
+        bassRedIntensity * 0.3 - // Less blue with deep bass
+        midRedIntensity * 0.1, // Less blue with bright mids
     );
 
     coreMaterial.color.setRGB(audioRed, audioGreen, audioBlue);
@@ -1344,14 +1351,33 @@ class Void {
       baseEmissiveIntensity > 0 ||
       this.calmLevel > 0.2
     ) {
-      // Bass makes it glow deep red, treble makes it glow bright, calmness adds soft blue glow
-      const emissiveRed =
-        (0.3 + this.audioBassLevel * 0.5) * (1 - this.calmLevel * 0.6);
-      const emissiveGreen = this.audioTrebleLevel * 0.3 + this.calmLevel * 0.2;
-      const emissiveBlue =
-        this.audioMidLevel * 0.2 +
-        this.calmLevel * 0.4 +
-        this.contentmentLevel * 0.3;
+      // Red spectrum emissive glow with different red tones
+      const emissiveRed = Math.min(
+        1,
+        0.4 +
+          bassRedIntensity * 0.6 + // Deep crimson glow from bass
+          midRedIntensity * 0.5 + // Bright scarlet glow from mids
+          trebleRedIntensity * 0.3 - // Reduced for pink balance
+          this.calmLevel * 0.3, // Less intense when calm
+      );
+
+      const emissiveGreen = Math.max(
+        0,
+        midRedIntensity * 0.2 + // Slight warmth from mids (reduced orange)
+          trebleRedIntensity * 0.3 + // Pink glow from treble
+          this.calmLevel * 0.3 + // Soothing green when calm
+          this.contentmentLevel * 0.2 -
+          bassRedIntensity * 0.3, // Much less green with deep bass
+      );
+
+      const emissiveBlue = Math.max(
+        0,
+        trebleRedIntensity * 0.6 + // Pink/magenta glow from treble
+          this.calmLevel * 0.5 + // Soothing blue when calm
+          this.contentmentLevel * 0.4 -
+          bassRedIntensity * 0.3 - // Less blue with deep bass
+          midRedIntensity * 0.1, // Less blue with bright mids
+      );
 
       coreMaterial.emissive = new THREE.Color(
         emissiveRed,
@@ -1467,29 +1493,27 @@ class Void {
 
       // Dynamic color shifting based on audio intensity
       const baseColor = userData.baseColor;
-      const intensityMultiplier = 1 + audioIntensity * 2;
 
       if (userData.frequencyBand === "bass") {
-        // Bass rings get deeper and more purple with intensity
+        // Bass rings: deep crimson gets richer and darker with intensity
         material.color.setRGB(
-          baseColor.r * intensityMultiplier,
-          baseColor.g * 0.5,
-          Math.min(baseColor.b + audioIntensity * 0.8, 1),
+          Math.min(baseColor.r + audioIntensity * 0.3, 1), // Richer red
+          baseColor.g * (0.3 + audioIntensity * 0.2), // Minimal green for depth
+          baseColor.b * (0.2 + audioIntensity * 0.3), // Subtle blue for crimson
         );
       } else if (userData.frequencyBand === "mid") {
-        // Mid rings get more orange/yellow with intensity
+        // Mid rings: bright scarlet gets more intense red (no orange)
         material.color.setRGB(
-          Math.min(baseColor.r * intensityMultiplier, 1),
-          Math.min(baseColor.g + audioIntensity * 0.6, 1),
-          baseColor.b * 0.3,
+          Math.min(baseColor.r + audioIntensity * 0.3, 1), // Bright red
+          Math.min(baseColor.g + audioIntensity * 0.1, 1), // Minimal green (no orange)
+          baseColor.b * (0.1 + audioIntensity * 0.1), // Minimal blue
         );
       } else {
-        // Treble rings get brighter and whiter with intensity
-        const whitening = audioIntensity * 0.7;
+        // Treble rings: pink/coral gets brighter and more vibrant
         material.color.setRGB(
-          Math.min(baseColor.r + whitening, 1),
-          Math.min(baseColor.g + whitening, 1),
-          Math.min(baseColor.b + whitening, 1),
+          Math.min(baseColor.r + audioIntensity * 0.2, 1), // Bright pink
+          Math.min(baseColor.g + audioIntensity * 0.3, 1), // Coral tones
+          Math.min(baseColor.b + audioIntensity * 0.4, 1), // Pink/magenta
         );
       }
 
