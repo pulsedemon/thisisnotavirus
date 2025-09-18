@@ -84,6 +84,9 @@ class Void {
   idleTime = 0;
   lastInteractionTime = 0;
   rageBuildupLevel = 0;
+  calmLevel = 0;
+  contentmentLevel = 0;
+  lastCalmingTime = 0;
   autonomousEvents: number[] = [];
   isHavingTantrum = false;
   tentacleMorphFrame = 0; // Throttle tentacle morphing
@@ -531,6 +534,7 @@ class Void {
       this.lastInteractionTime = this.currentTime;
       this.idleTime = 0;
       this.createExplosion();
+      this.provideCalmingAttention();
     });
 
     document.addEventListener("mouseup", () => {
@@ -541,6 +545,7 @@ class Void {
       this.lastClickTime = this.currentTime;
       this.createClickBurst(event.clientX, event.clientY);
       this.createGravityWell(event.clientX, event.clientY);
+      this.provideCalmingAttention();
     });
 
     // Double-click for special effect
@@ -900,6 +905,41 @@ class Void {
     }
   }
 
+  provideCalmingAttention() {
+    // Immediate calming effect from interaction
+    this.lastCalmingTime = this.currentTime;
+
+    // Drastically reduce rage and build up calmness
+    this.rageBuildupLevel *= 0.3; // Immediate rage reduction
+    this.calmLevel = Math.min(this.calmLevel + 0.4, 1.0); // Build calmness
+
+    // Stop any ongoing tantrum
+    if (this.isHavingTantrum) {
+      this.isHavingTantrum = false;
+      // Clear autonomous rage events
+      this.autonomousEvents.forEach((eventId) => clearTimeout(eventId));
+      this.autonomousEvents = [];
+    }
+
+    // Increase contentment level
+    this.contentmentLevel = Math.min(this.contentmentLevel + 0.3, 1.0);
+
+    // Make eyes peaceful and stop their frantic searching
+    this.evilEyes.forEach((eye) => {
+      const userData = eye.userData as EyeUserData;
+      userData.watchIntensity *= 0.2; // Drastically reduce intensity
+      userData.lastBlink = this.currentTime; // Trigger peaceful blink
+    });
+
+    // Calm down tentacles
+    this.corruptionTentacles.forEach((tentacle) => {
+      const userData = tentacle.userData as TentacleUserData;
+      userData.writheSpeed *= 0.5; // Slower, more peaceful movement
+      userData.thrashIntensity *= 0.4; // Much less violent
+      userData.corruptionLevel *= 0.6; // Reduce corruption
+    });
+  }
+
   createClickBurst(x: number, y: number) {
     // Add new temporary particles at click location
     const burstCount = 50;
@@ -1161,6 +1201,10 @@ class Void {
       this.rageBuildupLevel *= Math.pow(0.98, timeMultiplier); // Quickly decay rage when interacting
     }
 
+    // Decay calmness and contentment over time, but slower than rage
+    this.calmLevel *= Math.pow(0.996, timeMultiplier); // Slowly decay calmness
+    this.contentmentLevel *= Math.pow(0.994, timeMultiplier); // Even slower decay for contentment
+
     const RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR = 0.1;
     if (this.rageBuildupLevel > RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR) {
       this.triggerAutonomousRageBehaviorWhenIgnored();
@@ -1220,9 +1264,11 @@ class Void {
     this.targetX += (this.mouseX - this.targetX) * responsiveness;
     this.targetY += (this.mouseY - this.targetY) * responsiveness;
 
-    // Animate the malevolent core with sinister energy
-    let sphereSpeedX = 0.01 + totalEnergy * 0.05;
-    let sphereSpeedY = 0.015 + totalEnergy * 0.08;
+    // Animate the core with energy, but slow down when calm
+    const calmingFactor =
+      1 - this.calmLevel * 0.7 - this.contentmentLevel * 0.3;
+    let sphereSpeedX = (0.01 + totalEnergy * 0.05) * calmingFactor;
+    let sphereSpeedY = (0.015 + totalEnergy * 0.08) * calmingFactor;
 
     if (this.mousePressed) {
       sphereSpeedX *= 4;
@@ -1256,15 +1302,21 @@ class Void {
     const midColorShift = this.audioMidLevel * 0.3; // Mids add orange/yellow tints
     const trebleColorShift = this.audioTrebleLevel * 0.4; // Treble adds brightness/white
 
-    // Dynamic color mixing based on audio frequencies
-    const audioRed = 1 - midColorShift * 0.3;
+    // Dynamic color mixing based on audio frequencies and calm state
+    const calmEffect = this.calmLevel * 0.6;
+    const contentEffect = this.contentmentLevel * 0.4;
+
+    // When calm, shift toward cooler, more soothing colors
+    const audioRed = (1 - midColorShift * 0.3) * (1 - calmEffect * 0.7);
     const audioGreen = Math.max(
       0,
       0.2 -
         corruption * 0.2 -
         rageIntensity * 0.2 +
         midColorShift * 0.6 -
-        bassColorShift * 0.4,
+        bassColorShift * 0.4 +
+        calmEffect * 0.8 + // More green when calm
+        contentEffect * 0.3,
     );
     const audioBlue = Math.max(
       0,
@@ -1272,7 +1324,9 @@ class Void {
         corruption * 0.2 -
         rageIntensity * 0.3 +
         trebleColorShift * 0.3 -
-        bassColorShift * 0.5,
+        bassColorShift * 0.5 +
+        calmEffect * 1.2 + // More blue when calm (soothing)
+        contentEffect * 0.6,
     );
 
     coreMaterial.color.setRGB(audioRed, audioGreen, audioBlue);
@@ -1285,20 +1339,31 @@ class Void {
     const baseEmissiveIntensity =
       this.rageBuildupLevel > 0.5 ? this.rageBuildupLevel : 0;
 
-    if (audioEmissiveIntensity > 0.1 || baseEmissiveIntensity > 0) {
-      // Bass makes it glow deep red, treble makes it glow bright
-      const emissiveRed = 0.3 + this.audioBassLevel * 0.5;
-      const emissiveGreen = this.audioTrebleLevel * 0.3;
-      const emissiveBlue = this.audioMidLevel * 0.2;
+    if (
+      audioEmissiveIntensity > 0.1 ||
+      baseEmissiveIntensity > 0 ||
+      this.calmLevel > 0.2
+    ) {
+      // Bass makes it glow deep red, treble makes it glow bright, calmness adds soft blue glow
+      const emissiveRed =
+        (0.3 + this.audioBassLevel * 0.5) * (1 - this.calmLevel * 0.6);
+      const emissiveGreen = this.audioTrebleLevel * 0.3 + this.calmLevel * 0.2;
+      const emissiveBlue =
+        this.audioMidLevel * 0.2 +
+        this.calmLevel * 0.4 +
+        this.contentmentLevel * 0.3;
 
       coreMaterial.emissive = new THREE.Color(
         emissiveRed,
         emissiveGreen,
         emissiveBlue,
       );
+      const calmEmissiveIntensity =
+        this.calmLevel * 0.5 + this.contentmentLevel * 0.3;
       coreMaterial.emissiveIntensity = Math.max(
-        baseEmissiveIntensity,
+        baseEmissiveIntensity * (1 - this.calmLevel * 0.8), // Reduce rage glow when calm
         audioEmissiveIntensity,
+        calmEmissiveIntensity,
       );
     } else {
       coreMaterial.emissiveIntensity = 0;
