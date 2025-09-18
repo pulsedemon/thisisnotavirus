@@ -80,14 +80,14 @@ class Void {
     this.setRenderOptions();
     this.scene = new THREE.Scene();
 
-    this.createFlowingSphere();
-    this.createParticleStorm();
-    this.createBeautyRings();
-    this.createQuantumField();
+    this.createMalevolentPulsatingCore();
+    this.createChaoticEvilParticleStorm();
+    this.createCorruptedEnergyRings();
+    this.createDarkEnergyCorruptionFields();
     this.createCorruptionTentacles();
     this.createEvilEyes();
-    this.setupMouseInteraction();
-    this.setupAudioVisualization();
+    this.setupResponsiveUserInteraction();
+    this.setupMicrophoneAudioReactivity();
 
     document.getElementById("container")!.appendChild(this.renderer.domElement);
     window.addEventListener("resize", () => this.setRenderOptions(), false);
@@ -124,85 +124,121 @@ class Void {
     }
   }
 
-  createFlowingSphere() {
-    // Create a malevolent, pulsating core of dark energy
-    const geometry = new THREE.IcosahedronGeometry(35, 3);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0xff0033, // Deep red evil energy
+  createMalevolentPulsatingCore() {
+    const CORE_RADIUS = 35;
+    const CORE_DETAIL_LEVEL = 3;
+    const DEEP_RED_EVIL_ENERGY = 0xff0033;
+
+    const coreGeometry = new THREE.IcosahedronGeometry(
+      CORE_RADIUS,
+      CORE_DETAIL_LEVEL,
+    );
+    const coreMaterial = new THREE.MeshStandardMaterial({
+      color: DEEP_RED_EVIL_ENERGY,
       transparent: true,
       opacity: 0.8,
       wireframe: false,
     });
 
-    this.flowingSphere = new THREE.Mesh(geometry, material);
+    this.flowingSphere = new THREE.Mesh(coreGeometry, coreMaterial);
 
-    // Add inner dark core
-    const innerGeometry = new THREE.SphereGeometry(25, 32, 32);
-    const innerMaterial = new THREE.MeshBasicMaterial({
-      color: 0x330000, // Dark crimson
+    const INNER_CORE_RADIUS = 25;
+    const INNER_CORE_DETAIL = 32;
+    const DARK_CRIMSON = 0x330000;
+
+    const innerCoreGeometry = new THREE.SphereGeometry(
+      INNER_CORE_RADIUS,
+      INNER_CORE_DETAIL,
+      INNER_CORE_DETAIL,
+    );
+    const innerCoreMaterial = new THREE.MeshBasicMaterial({
+      color: DARK_CRIMSON,
       transparent: true,
       opacity: 0.9,
       wireframe: true,
     });
-    const innerCore = new THREE.Mesh(innerGeometry, innerMaterial);
-    this.flowingSphere.add(innerCore);
+    const innerDarkCore = new THREE.Mesh(innerCoreGeometry, innerCoreMaterial);
+    this.flowingSphere.add(innerDarkCore);
 
-    // Add crackling energy shell
-    const shellGeometry = new THREE.IcosahedronGeometry(45, 2);
-    const shellMaterial = new THREE.MeshBasicMaterial({
-      color: 0xff3366, // Bright evil red
+    const ENERGY_SHELL_RADIUS = 45;
+    const ENERGY_SHELL_DETAIL = 2;
+    const BRIGHT_EVIL_RED = 0xff3366;
+
+    const energyShellGeometry = new THREE.IcosahedronGeometry(
+      ENERGY_SHELL_RADIUS,
+      ENERGY_SHELL_DETAIL,
+    );
+    const energyShellMaterial = new THREE.MeshBasicMaterial({
+      color: BRIGHT_EVIL_RED,
       transparent: true,
       opacity: 0.3,
       wireframe: true,
       blending: THREE.AdditiveBlending,
     });
-    const energyShell = new THREE.Mesh(shellGeometry, shellMaterial);
-    this.flowingSphere.add(energyShell);
+    const cracklingEnergyShell = new THREE.Mesh(
+      energyShellGeometry,
+      energyShellMaterial,
+    );
+    this.flowingSphere.add(cracklingEnergyShell);
 
     this.scene.add(this.flowingSphere);
   }
 
-  createParticleStorm() {
-    const particleCount = 1200; // More particles for chaos
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
+  createChaoticEvilParticleStorm() {
+    const CHAOTIC_PARTICLE_COUNT = 1200;
+    const SPAWN_RADIUS_MIN = 50;
+    const SPAWN_RADIUS_MAX = 400;
+    const COLOR_VARIANT_COUNT = 3;
+    const DEEP_RED_CORRUPTION_THRESHOLD = 1;
+    const DARK_PURPLE_MALEVOLENCE_THRESHOLD = 2;
 
-    for (let i = 0; i < particleCount; i++) {
-      // Create chaotic distribution radiating from evil core
-      const radius = Random.numberBetween(50, 400);
-      const theta = Random.numberBetween(0, Math.PI * 2);
-      const phi = Random.numberBetween(0, Math.PI);
+    const particleGeometry = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(CHAOTIC_PARTICLE_COUNT * 3);
+    const particleColors = new Float32Array(CHAOTIC_PARTICLE_COUNT * 3);
 
-      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = radius * Math.cos(phi);
+    for (let i = 0; i < CHAOTIC_PARTICLE_COUNT; i++) {
+      const spawnRadius = Random.numberBetween(
+        SPAWN_RADIUS_MIN,
+        SPAWN_RADIUS_MAX,
+      );
+      const sphericalTheta = Random.numberBetween(0, Math.PI * 2);
+      const sphericalPhi = Random.numberBetween(0, Math.PI);
 
-      // Evil color palette - reds, dark purples, and blacks
-      const colorType = Random.numberBetween(0, 3);
-      if (colorType < 1) {
-        // Deep red corruption
-        colors[i * 3] = Random.numberBetween(0.7, 1.0); // R
-        colors[i * 3 + 1] = Random.numberBetween(0.0, 0.2); // G
-        colors[i * 3 + 2] = Random.numberBetween(0.0, 0.3); // B
-      } else if (colorType < 2) {
-        // Dark purple malevolence
-        colors[i * 3] = Random.numberBetween(0.4, 0.8); // R
-        colors[i * 3 + 1] = Random.numberBetween(0.0, 0.2); // G
-        colors[i * 3 + 2] = Random.numberBetween(0.4, 0.9); // B
+      particlePositions[i * 3] =
+        spawnRadius * Math.sin(sphericalPhi) * Math.cos(sphericalTheta);
+      particlePositions[i * 3 + 1] =
+        spawnRadius * Math.sin(sphericalPhi) * Math.sin(sphericalTheta);
+      particlePositions[i * 3 + 2] = spawnRadius * Math.cos(sphericalPhi);
+
+      const colorVariant = Random.numberBetween(0, COLOR_VARIANT_COUNT);
+
+      if (colorVariant < DEEP_RED_CORRUPTION_THRESHOLD) {
+        particleColors[i * 3] = Random.numberBetween(0.7, 1.0);
+        particleColors[i * 3 + 1] = Random.numberBetween(0.0, 0.2);
+        particleColors[i * 3 + 2] = Random.numberBetween(0.0, 0.3);
+      } else if (colorVariant < DARK_PURPLE_MALEVOLENCE_THRESHOLD) {
+        particleColors[i * 3] = Random.numberBetween(0.4, 0.8);
+        particleColors[i * 3 + 1] = Random.numberBetween(0.0, 0.2);
+        particleColors[i * 3 + 2] = Random.numberBetween(0.4, 0.9);
       } else {
-        // Black void particles
-        colors[i * 3] = Random.numberBetween(0.1, 0.4); // R
-        colors[i * 3 + 1] = Random.numberBetween(0.0, 0.1); // G
-        colors[i * 3 + 2] = Random.numberBetween(0.0, 0.1); // B
+        particleColors[i * 3] = Random.numberBetween(0.1, 0.4);
+        particleColors[i * 3 + 1] = Random.numberBetween(0.0, 0.1);
+        particleColors[i * 3 + 2] = Random.numberBetween(0.0, 0.1);
       }
     }
 
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    particleGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(particlePositions, 3),
+    );
+    particleGeometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(particleColors, 3),
+    );
 
-    const material = new THREE.PointsMaterial({
-      size: 2,
+    const PARTICLE_SIZE = 2;
+    const particleMaterial = new THREE.PointsMaterial({
+      size: PARTICLE_SIZE,
       vertexColors: true,
       transparent: true,
       opacity: 0.8,
@@ -210,15 +246,15 @@ class Void {
       blending: THREE.AdditiveBlending,
     });
 
-    this.particles = new THREE.Points(geometry, material);
+    this.particles = new THREE.Points(particleGeometry, particleMaterial);
     this.scene.add(this.particles);
   }
 
-  createBeautyRings() {
+  createCorruptedEnergyRings() {
     this.beautyRings = new THREE.Group();
 
-    // Create corrupted energy rings
-    for (let i = 0; i < 5; i++) {
+    const CORRUPTION_RING_COUNT = 5;
+    for (let i = 0; i < CORRUPTION_RING_COUNT; i++) {
       const ringGeometry = new THREE.RingGeometry(
         70 + i * 25,
         75 + i * 25,
@@ -340,9 +376,9 @@ class Void {
     }
   }
 
-  createQuantumField() {
-    // Create dark energy corruption fields
-    for (let i = 0; i < 7; i++) {
+  createDarkEnergyCorruptionFields() {
+    const CORRUPTION_FIELD_COUNT = 7;
+    for (let i = 0; i < CORRUPTION_FIELD_COUNT; i++) {
       const fieldGeometry = new THREE.SphereGeometry(180 + i * 40, 6, 6);
       const fieldMaterial = new THREE.MeshBasicMaterial({
         color: i % 3 === 0 ? 0xff0000 : i % 3 === 1 ? 0x660000 : 0x330000,
@@ -364,8 +400,7 @@ class Void {
     }
   }
 
-  setupAudioVisualization() {
-    // Set up microphone input for audio-reactive visuals
+  setupMicrophoneAudioReactivity() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
@@ -385,7 +420,7 @@ class Void {
     }
   }
 
-  setupMouseInteraction() {
+  setupResponsiveUserInteraction() {
     document.addEventListener("mousemove", (event) => {
       // Calculate mouse velocity for energy system
       const currentMousePos = new THREE.Vector2(event.clientX, event.clientY);
@@ -701,10 +736,7 @@ class Void {
     }
   }
 
-  autonomousRage() {
-    // The entity gets PISSED when ignored and starts acting on its own!
-    // But we need to be careful not to overwhelm the browser
-
+  triggerAutonomousRageBehaviorWhenIgnored() {
     if (this.rageBuildupLevel > 0.3 && Math.random() < 0.008) {
       // Reduced frequency
       // Spontaneous corruption burst
@@ -1023,18 +1055,18 @@ class Void {
       this.rageBuildupLevel *= Math.pow(0.98, timeMultiplier); // Quickly decay rage when interacting
     }
 
-    // Autonomous evil behaviors when ignored
-    if (this.rageBuildupLevel > 0.1) {
-      this.autonomousRage();
+    const RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR = 0.1;
+    if (this.rageBuildupLevel > RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR) {
+      this.triggerAutonomousRageBehaviorWhenIgnored();
       this.hungerForAttention();
     }
 
-    // Optimized audio processing - update every 4th frame only
-    if (
-      this.frameCount % 4 === 0 &&
-      this.analyser &&
-      this.audioDataArray.length > 0
-    ) {
+    const AUDIO_UPDATE_FREQUENCY_FRAMES = 4;
+    const shouldUpdateAudioThisFrame =
+      this.frameCount % AUDIO_UPDATE_FREQUENCY_FRAMES === 0;
+    const hasValidAudioSetup = this.analyser && this.audioDataArray.length > 0;
+
+    if (shouldUpdateAudioThisFrame && hasValidAudioSetup) {
       // @ts-expect-error - Audio buffer type compatibility issue
       this.analyser.getByteFrequencyData(this.audioDataArray);
       let sum = 0;
