@@ -21,6 +21,7 @@ export default class Playlist {
     "cubes",
     "static",
     "shitstorm",
+    "void",
   ];
 
   playlist: string[] = [];
