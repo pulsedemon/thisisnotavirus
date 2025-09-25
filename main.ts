@@ -13,7 +13,7 @@ import Random from "./utils/random";
 declare let gtag: (
   eventName: string,
   eventType: string,
-  options?: object
+  options?: object,
 ) => void;
 
 declare global {
@@ -38,7 +38,7 @@ console.log(
   `%c
   ${virus}
 `,
-  "color: #00ffff"
+  "color: #00ffff",
 );
 
 const playlist = new Playlist();
@@ -47,12 +47,12 @@ class VirusLoader {
   iframe: HTMLIFrameElement;
   loadRandomInterval: ReturnType<typeof setInterval>;
   loadingAnimEl: HTMLDivElement = document.getElementById(
-    "loading-anim"
+    "loading-anim",
   ) as HTMLDivElement;
   loadingAnimStartTime = 0;
   loadingAnim: { start: () => void; stop: () => void };
   loadingRing: HTMLDivElement = document.getElementById(
-    "loading-ring"
+    "loading-ring",
   ) as HTMLDivElement;
   sourceCodeLink: HTMLAnchorElement = document.querySelector("#source-code a")!;
   sourceCodeDiv: HTMLElement = document.getElementById("source-code")!;
@@ -70,9 +70,92 @@ class VirusLoader {
     this.iframe.style.left = "0";
     this.iframe.style.background = "#000";
 
-    // We'll add the load event listener dynamically when loading viruses
-    this.loadVirus(playlist.current());
-    this.startRandomization();
+    // Check for URL parameters to load specific virus
+    const urlParams = new URLSearchParams(window.location.search);
+    const virusParam = urlParams.get("virus");
+    const pausedParam = urlParams.get("paused");
+    const primaryParam = urlParams.get("primary");
+    const secondaryParam = urlParams.get("secondary");
+    const ratioParam = urlParams.get("ratio");
+
+    console.log("URL params:", {
+      virusParam,
+      pausedParam,
+      primaryParam,
+      secondaryParam,
+      ratioParam,
+    });
+    console.log("Available viruses:", playlist.viruses);
+
+    // Determine initial virus and whether to start paused
+    let initialVirus: string;
+    let shouldStartPaused = false;
+
+    // Handle lab (mixed virus) URLs
+    if (virusParam === "lab" && primaryParam && secondaryParam) {
+      console.log("Loading lab virus mix:", primaryParam, "/", secondaryParam);
+
+      // Create a temporary mix for lab viewing
+      const mixRatio = ratioParam ? parseFloat(ratioParam) : 0.5;
+      const tempMix = {
+        primary: primaryParam,
+        secondary: secondaryParam,
+        mixRatio: mixRatio,
+        id: Date.now(), // Temporary ID
+        name: `${primaryParam} / ${secondaryParam} mix`,
+      };
+
+      // Add to saved mixes temporarily (don't persist to localStorage)
+      playlist.savedMixes.push(tempMix);
+      playlist.generatePlaylist();
+
+      initialVirus = `mixed:${tempMix.id}`;
+      playlist.setCurrentVirus(initialVirus);
+      // Always pause when loading from shared link, unless explicitly set to false
+      shouldStartPaused = pausedParam !== "false";
+    } else if (virusParam && playlist.viruses.includes(virusParam)) {
+      console.log("Loading specific virus:", virusParam);
+      initialVirus = virusParam;
+      playlist.setCurrentVirus(virusParam);
+      // Always pause when loading from shared link, unless explicitly set to false
+      shouldStartPaused = pausedParam !== "false";
+    } else {
+      console.log("Loading default virus, virusParam was:", virusParam);
+      initialVirus = playlist.current();
+      // Default behavior - don't pause unless explicitly requested
+      shouldStartPaused = pausedParam === "true";
+    }
+
+    // Load the initial virus
+    this.loadVirus(initialVirus);
+
+    // Clean up URL parameters after loading from shared link
+    if (virusParam || primaryParam) {
+      // Add a small delay to ensure the virus has started loading
+      setTimeout(() => {
+        this.cleanupURLParams();
+
+        // Track shared link usage
+        gtag("event", "shared_link_visited", {
+          virus_type: virusParam === "lab" ? "mix" : "regular",
+          virus_name:
+            virusParam === "lab"
+              ? `${primaryParam}/${secondaryParam}`
+              : virusParam,
+        });
+      }, 1000);
+    }
+
+    // Start randomization only if not requested to be paused
+    if (!shouldStartPaused) {
+      this.startRandomization();
+    } else {
+      // Set the play/pause button to show play_arrow (paused state)
+      const playPauseBtn = document.getElementById("play-pause");
+      if (playPauseBtn) {
+        playPauseBtn.innerText = "play_arrow";
+      }
+    }
 
     this.sourceCodeLink.addEventListener("click", () => {
       gtag("event", "source-click", {
@@ -143,6 +226,8 @@ class VirusLoader {
           // Set playlist current virus and load selected virus
           playlist.setCurrentVirus(virus);
           this.loadVirus(virus);
+          // Update URL for sharing
+          this.updateURL(virus);
         },
         onClose: () => {
           // No-op for now
@@ -158,6 +243,58 @@ class VirusLoader {
 
   private hideSourceCodeLink() {
     this.sourceCodeLink?.classList.add("hide");
+  }
+
+  /**
+   * Cleans up URL parameters after loading from a shared link
+   */
+  private cleanupURLParams() {
+    const url = new URL(window.location.href);
+    const hasParams = url.search.length > 0;
+
+    if (hasParams) {
+      // Clear all query parameters
+      url.search = "";
+
+      // Update the URL without reloading the page
+      window.history.replaceState({}, "", url.toString());
+
+      console.log("Cleaned up URL parameters after loading shared link");
+    }
+  }
+
+  /**
+   * Updates the browser URL to reflect the current virus for sharing
+   */
+  updateURL(virusName: string, paused = false) {
+    const url = new URL(window.location.href);
+
+    // Handle mixed viruses vs regular viruses
+    if (playlist.isMixedVirus(virusName)) {
+      const mix = playlist.getMixById(virusName);
+      if (mix) {
+        // For mixed viruses, use lab URL format
+        url.searchParams.set("virus", "lab");
+        url.searchParams.set("primary", mix.primary);
+        url.searchParams.set("secondary", mix.secondary);
+        url.searchParams.set("ratio", mix.mixRatio.toString());
+      }
+    } else {
+      // For regular viruses, use simple virus parameter
+      url.searchParams.set("virus", virusName);
+      url.searchParams.delete("primary");
+      url.searchParams.delete("secondary");
+      url.searchParams.delete("ratio");
+    }
+
+    if (paused) {
+      url.searchParams.set("paused", "true");
+    } else {
+      url.searchParams.delete("paused");
+    }
+
+    // Update the URL without reloading the page
+    window.history.replaceState({}, "", url.toString());
   }
 
   loadVirus(name: string) {
@@ -184,7 +321,7 @@ class VirusLoader {
 
     // Clean up any existing mixed virus
     const existingMixContainer = document.querySelector(
-      ".mixed-virus-container"
+      ".mixed-virus-container",
     );
     if (existingMixContainer) {
       existingMixContainer.remove();
@@ -252,7 +389,7 @@ class VirusLoader {
               clearTimeout(safetyTimeout);
               this._delayedIframeLoaded();
             },
-            { once: true }
+            { once: true },
           );
         }
       } else {
@@ -265,7 +402,7 @@ class VirusLoader {
             clearTimeout(safetyTimeout);
             this._delayedIframeLoaded();
           },
-          { once: true }
+          { once: true },
         );
       }
     } catch (error) {
@@ -278,7 +415,7 @@ class VirusLoader {
           clearTimeout(safetyTimeout);
           this._delayedIframeLoaded();
         },
-        { once: true }
+        { once: true },
       );
     }
   }
@@ -322,7 +459,7 @@ class VirusLoader {
 
     // Clean up any existing mixed virus container
     const existingMixContainer = document.querySelector(
-      ".mixed-virus-container"
+      ".mixed-virus-container",
     );
     if (existingMixContainer) {
       existingMixContainer.remove();
@@ -331,6 +468,7 @@ class VirusLoader {
     const nextVirus = playlist.next();
     console.log("Skipping to next virus:", nextVirus);
     this.loadVirus(nextVirus);
+    this.updateURL(nextVirus);
     this.startRandomization();
 
     setTimeout(() => {
@@ -344,7 +482,7 @@ class VirusLoader {
 
     // Clean up any existing mixed virus container
     const existingMixContainer = document.querySelector(
-      ".mixed-virus-container"
+      ".mixed-virus-container",
     );
     if (existingMixContainer) {
       existingMixContainer.remove();
@@ -353,6 +491,7 @@ class VirusLoader {
     const prevVirus = playlist.prev();
     console.log("Skipping to previous virus:", prevVirus);
     this.loadVirus(prevVirus);
+    this.updateURL(prevVirus);
     this.startRandomization();
 
     setTimeout(() => {
@@ -374,7 +513,7 @@ class VirusLoader {
     this.loadRandomInterval = setInterval(() => {
       // Clean up any existing mixed virus container
       const existingMixContainer = document.querySelector(
-        ".mixed-virus-container"
+        ".mixed-virus-container",
       );
       if (existingMixContainer) {
         existingMixContainer.remove();
@@ -383,6 +522,7 @@ class VirusLoader {
       // Get next virus and load it
       const nextVirus = playlist.next();
       this.loadVirus(nextVirus);
+      this.updateURL(nextVirus);
     }, randomTime);
   }
 
@@ -440,7 +580,7 @@ class VirusLoader {
 
       // Clean up any existing mixed virus container
       const existingMixContainer = document.querySelector(
-        ".mixed-virus-container"
+        ".mixed-virus-container",
       );
       if (existingMixContainer) {
         existingMixContainer.remove();
@@ -482,7 +622,7 @@ class VirusLoader {
 
     // Clean up any existing mixed virus container
     const existingMixContainer = document.querySelector(
-      ".mixed-virus-container"
+      ".mixed-virus-container",
     );
     if (existingMixContainer) {
       existingMixContainer.remove();
@@ -491,6 +631,7 @@ class VirusLoader {
     const currentVirus = playlist.current();
     console.log("Reloading current virus:", currentVirus);
     this.loadVirus(currentVirus);
+    this.updateURL(currentVirus);
     this.startRandomization();
 
     // Reset navigation flag after a short delay
@@ -516,11 +657,15 @@ function togglePlayPause() {
   if (playPauseBtn.innerText === "pause") {
     playPauseBtn.innerText = "play_arrow";
     clearInterval(vl.loadRandomInterval);
+    // Update URL to reflect paused state
+    vl.updateURL(playlist.current(), true);
     gtag("event", "pause", {
       animation_name: playlist.current(),
     });
   } else {
     playPauseBtn.innerText = "pause";
+    // Update URL to reflect playing state
+    vl.updateURL(playlist.current(), false);
     gtag("event", "play");
     vl.skipNext();
   }
@@ -556,7 +701,7 @@ const DEVICE = {
   isMobile: (): boolean => {
     return (
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       ) || window.innerWidth <= 768
     );
   },
@@ -591,7 +736,7 @@ const FULLSCREEN = {
 
   isActive: (): boolean => {
     return Object.values(FULLSCREEN.APIS).some(
-      (api) => (document as any)[api.element] || false
+      (api) => (document as any)[api.element] || false,
     );
   },
 
