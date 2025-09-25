@@ -2,6 +2,51 @@ import "./void.scss";
 import * as THREE from "three";
 import Random from "../../utils/random";
 
+// Constants
+const CONSTANTS = {
+  // Core configuration
+  CORE_RADIUS: 35,
+  CORE_DETAIL_LEVEL: 3,
+  INNER_CORE_RADIUS: 25,
+  INNER_CORE_DETAIL: 32,
+  ENERGY_SHELL_RADIUS: 45,
+  ENERGY_SHELL_DETAIL: 2,
+
+  // Particle system
+  CHAOTIC_PARTICLE_COUNT: 1200,
+  SPAWN_RADIUS_MIN: 50,
+  SPAWN_RADIUS_MAX: 400,
+  PARTICLE_SIZE: 2,
+
+  // Colors
+  DEEP_RED_EVIL_ENERGY: 0xff0033,
+  DARK_CRIMSON: 0x330000,
+  BRIGHT_EVIL_RED: 0xff3366,
+
+  // Rings and fields
+  CORRUPTION_RING_COUNT: 5,
+  AUDIO_WAVE_RING_COUNT: 8,
+  FREQUENCY_BAND_RINGS: 3,
+  CORRUPTION_FIELD_COUNT: 7,
+
+  // Animation and timing
+  AUDIO_UPDATE_FREQUENCY_FRAMES: 4,
+  MOUSE_TRAIL_MAX_LENGTH: 20,
+  MAX_TRAIL_PARTICLES: 3,
+  MAX_BLOOD_VEINS: 30,
+  MAX_GRAVITY_WELLS: 3,
+
+  // Behavioral thresholds
+  RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR: 0.1,
+  INTERACTION_TIMEOUT: 300,
+  RAGE_BUILDUP_DURATION: 1200,
+
+  // Performance settings
+  TENTACLE_MORPH_THROTTLE: 8,
+  BLOOD_VEIN_BURST_COUNT: 4,
+  BURST_PARTICLE_COUNT: 50,
+};
+
 // Type definitions for userData
 interface TentacleUserData {
   baseAngle: number;
@@ -93,23 +138,66 @@ class Void {
   frameCount = 0;
 
   constructor() {
-    this.setRenderOptions();
-    this.scene = new THREE.Scene();
+    try {
+      this.setRenderOptions();
+      this.scene = new THREE.Scene();
 
-    this.createMalevolentPulsatingCore();
-    this.createChaoticEvilParticleStorm();
-    this.createCorruptedEnergyRings();
-    this.createDarkEnergyCorruptionFields();
-    this.createAudioReactiveWaveRings();
-    this.createCorruptionTentacles();
-    this.createEvilEyes();
-    this.setupResponsiveUserInteraction();
-    this.setupMicrophoneAudioReactivity();
+      this.createMalevolentPulsatingCore();
+      this.createChaoticEvilParticleStorm();
+      this.createCorruptedEnergyRings();
+      this.createDarkEnergyCorruptionFields();
+      this.createAudioReactiveWaveRings();
+      this.createCorruptionTentacles();
+      this.createEvilEyes();
+      this.setupResponsiveUserInteraction();
+      this.setupMicrophoneAudioReactivity();
 
-    document.getElementById("container")!.appendChild(this.renderer.domElement);
-    window.addEventListener("resize", () => this.setRenderOptions(), false);
+      const container = document.getElementById("container");
+      if (!container) {
+        throw new Error("Container element not found");
+      }
+      container.appendChild(this.renderer.domElement);
 
-    this.render();
+      window.addEventListener("resize", () => this.setRenderOptions(), false);
+      window.addEventListener("beforeunload", () => this.dispose());
+
+      this.render();
+    } catch (error) {
+      console.error("Failed to initialize Void:", error);
+      throw error;
+    }
+  }
+
+  dispose() {
+    // Cleanup WebGL resources
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.geometry?.dispose?.();
+        if (Array.isArray(object.material)) {
+          object.material.forEach((material: THREE.Material) => {
+            if (
+              material &&
+              "dispose" in material &&
+              typeof material.dispose === "function"
+            ) {
+              material.dispose();
+            }
+          });
+        } else if (
+          object.material &&
+          "dispose" in object.material &&
+          typeof object.material.dispose === "function"
+        ) {
+          (object.material as THREE.Material).dispose();
+        }
+      }
+    });
+
+    // Cleanup audio context
+    this.cleanupAudioContext();
+
+    // Cleanup renderer
+    this.renderer.dispose();
   }
 
   setRenderOptions() {
@@ -117,13 +205,24 @@ class Void {
     this.HEIGHT = window.innerHeight;
 
     if (!this.renderer) {
-      this.renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true,
-        powerPreference: "high-performance",
-      });
-      this.renderer.setPixelRatio(window.devicePixelRatio);
-      this.renderer.setClearColor(0x000000, 1);
+      try {
+        this.renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance",
+        });
+
+        const gl = this.renderer.getContext();
+        if (!gl) {
+          throw new Error("WebGL context not available");
+        }
+
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        this.renderer.setClearColor(0x000000, 1);
+      } catch (error) {
+        console.error("Failed to initialize WebGL renderer:", error);
+        throw new Error("WebGL not supported or failed to initialize");
+      }
     }
 
     this.renderer.setSize(this.WIDTH, this.HEIGHT);
@@ -142,16 +241,12 @@ class Void {
   }
 
   createMalevolentPulsatingCore() {
-    const CORE_RADIUS = 35;
-    const CORE_DETAIL_LEVEL = 3;
-    const DEEP_RED_EVIL_ENERGY = 0xff0033;
-
     const coreGeometry = new THREE.IcosahedronGeometry(
-      CORE_RADIUS,
-      CORE_DETAIL_LEVEL,
+      CONSTANTS.CORE_RADIUS,
+      CONSTANTS.CORE_DETAIL_LEVEL,
     );
     const coreMaterial = new THREE.MeshStandardMaterial({
-      color: DEEP_RED_EVIL_ENERGY,
+      color: CONSTANTS.DEEP_RED_EVIL_ENERGY,
       transparent: true,
       opacity: 0.8,
       wireframe: false,
@@ -159,17 +254,13 @@ class Void {
 
     this.flowingSphere = new THREE.Mesh(coreGeometry, coreMaterial);
 
-    const INNER_CORE_RADIUS = 25;
-    const INNER_CORE_DETAIL = 32;
-    const DARK_CRIMSON = 0x330000;
-
     const innerCoreGeometry = new THREE.SphereGeometry(
-      INNER_CORE_RADIUS,
-      INNER_CORE_DETAIL,
-      INNER_CORE_DETAIL,
+      CONSTANTS.INNER_CORE_RADIUS,
+      CONSTANTS.INNER_CORE_DETAIL,
+      CONSTANTS.INNER_CORE_DETAIL,
     );
     const innerCoreMaterial = new THREE.MeshBasicMaterial({
-      color: DARK_CRIMSON,
+      color: CONSTANTS.DARK_CRIMSON,
       transparent: true,
       opacity: 0.9,
       wireframe: true,
@@ -177,16 +268,12 @@ class Void {
     const innerDarkCore = new THREE.Mesh(innerCoreGeometry, innerCoreMaterial);
     this.flowingSphere.add(innerDarkCore);
 
-    const ENERGY_SHELL_RADIUS = 45;
-    const ENERGY_SHELL_DETAIL = 2;
-    const BRIGHT_EVIL_RED = 0xff3366;
-
     const energyShellGeometry = new THREE.IcosahedronGeometry(
-      ENERGY_SHELL_RADIUS,
-      ENERGY_SHELL_DETAIL,
+      CONSTANTS.ENERGY_SHELL_RADIUS,
+      CONSTANTS.ENERGY_SHELL_DETAIL,
     );
     const energyShellMaterial = new THREE.MeshBasicMaterial({
-      color: BRIGHT_EVIL_RED,
+      color: CONSTANTS.BRIGHT_EVIL_RED,
       transparent: true,
       opacity: 0.3,
       wireframe: true,
@@ -202,21 +289,22 @@ class Void {
   }
 
   createChaoticEvilParticleStorm() {
-    const CHAOTIC_PARTICLE_COUNT = 1200;
-    const SPAWN_RADIUS_MIN = 50;
-    const SPAWN_RADIUS_MAX = 400;
     const COLOR_VARIANT_COUNT = 3;
     const DEEP_RED_CORRUPTION_THRESHOLD = 1;
     const DARK_PURPLE_MALEVOLENCE_THRESHOLD = 2;
 
     const particleGeometry = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(CHAOTIC_PARTICLE_COUNT * 3);
-    const particleColors = new Float32Array(CHAOTIC_PARTICLE_COUNT * 3);
+    const particlePositions = new Float32Array(
+      CONSTANTS.CHAOTIC_PARTICLE_COUNT * 3,
+    );
+    const particleColors = new Float32Array(
+      CONSTANTS.CHAOTIC_PARTICLE_COUNT * 3,
+    );
 
-    for (let i = 0; i < CHAOTIC_PARTICLE_COUNT; i++) {
+    for (let i = 0; i < CONSTANTS.CHAOTIC_PARTICLE_COUNT; i++) {
       const spawnRadius = Random.numberBetween(
-        SPAWN_RADIUS_MIN,
-        SPAWN_RADIUS_MAX,
+        CONSTANTS.SPAWN_RADIUS_MIN,
+        CONSTANTS.SPAWN_RADIUS_MAX,
       );
       const sphericalTheta = Random.numberBetween(0, Math.PI * 2);
       const sphericalPhi = Random.numberBetween(0, Math.PI);
@@ -253,9 +341,8 @@ class Void {
       new THREE.BufferAttribute(particleColors, 3),
     );
 
-    const PARTICLE_SIZE = 2;
     const particleMaterial = new THREE.PointsMaterial({
-      size: PARTICLE_SIZE,
+      size: CONSTANTS.PARTICLE_SIZE,
       vertexColors: true,
       transparent: true,
       opacity: 0.8,
@@ -270,8 +357,7 @@ class Void {
   createCorruptedEnergyRings() {
     this.beautyRings = new THREE.Group();
 
-    const CORRUPTION_RING_COUNT = 5;
-    for (let i = 0; i < CORRUPTION_RING_COUNT; i++) {
+    for (let i = 0; i < CONSTANTS.CORRUPTION_RING_COUNT; i++) {
       const ringGeometry = new THREE.RingGeometry(
         70 + i * 25,
         75 + i * 25,
@@ -303,10 +389,7 @@ class Void {
   createAudioReactiveWaveRings() {
     this.audioWaveRings = new THREE.Group();
 
-    const AUDIO_WAVE_RING_COUNT = 8;
-    const FREQUENCY_BAND_RINGS = 3; // Bass, Mid, Treble rings
-
-    for (let i = 0; i < AUDIO_WAVE_RING_COUNT; i++) {
+    for (let i = 0; i < CONSTANTS.AUDIO_WAVE_RING_COUNT; i++) {
       const ringRadius = 150 + i * 60;
       const ringGeometry = new THREE.RingGeometry(
         ringRadius - 5,
@@ -315,7 +398,7 @@ class Void {
       );
 
       // Different rings react to different frequency bands
-      const frequencyBand = i % FREQUENCY_BAND_RINGS;
+      const frequencyBand = i % CONSTANTS.FREQUENCY_BAND_RINGS;
       let baseColor;
       let waveType;
 
@@ -343,7 +426,7 @@ class Void {
 
       const audioWaveRing = new THREE.Mesh(ringGeometry, ringMaterial);
       audioWaveRing.rotation.x = Math.PI / 2;
-      audioWaveRing.position.z = (i - AUDIO_WAVE_RING_COUNT / 2) * 20;
+      audioWaveRing.position.z = (i - CONSTANTS.AUDIO_WAVE_RING_COUNT / 2) * 20;
 
       // Store metadata for audio reactivity
       audioWaveRing.userData = {
@@ -361,24 +444,21 @@ class Void {
   }
 
   createCorruptionTentacles() {
-    // Create INSANELY writhing tentacles of pure chaos!
     for (let i = 0; i < 12; i++) {
-      // More tentacles!
       const points = [];
-      const segments = 30; // More segments for smoother chaos
+      const segments = 30;
 
       for (let j = 0; j <= segments; j++) {
         const t = j / segments;
         const angle = (i / 12) * Math.PI * 2;
-        const radius = 30 + t * 150; // Longer reach
+        const radius = 30 + t * 150;
 
-        // MUCH more chaotic wobbling with multiple sine waves
+        // Multiple sine waves for chaotic motion
         const wobble1 = Math.sin(t * Math.PI * 6) * 15;
         const wobble2 = Math.cos(t * Math.PI * 8 + i) * 12;
         const wobble3 = Math.sin(t * Math.PI * 10 + i * 2) * 8;
         const totalWobble = wobble1 + wobble2 + wobble3;
 
-        // Spiral motion combined with chaos
         const spiralAngle = angle + t * Math.PI * 4;
 
         points.push(
@@ -393,26 +473,26 @@ class Void {
       const geometry = new THREE.TubeGeometry(
         new THREE.CatmullRomCurve3(points),
         segments,
-        Random.numberBetween(1, 4), // Variable thickness
-        Random.numberBetween(6, 12), // Variable resolution
+        Random.numberBetween(1, 4),
+        Random.numberBetween(6, 12),
         false,
       );
 
       const material = new THREE.MeshBasicMaterial({
-        color: i % 2 === 0 ? 0x440000 : 0x660000, // Alternating evil colors
+        color: i % 2 === 0 ? 0x440000 : 0x660000,
         transparent: true,
         opacity: Random.numberBetween(0.4, 0.8),
-        wireframe: Random.bool(), // Some solid, some wireframe
+        wireframe: Random.bool(),
       });
 
       const tentacle = new THREE.Mesh(geometry, material);
       tentacle.userData = {
         baseAngle: (i / 12) * Math.PI * 2,
-        writheSpeed: Random.numberBetween(0.01, 0.05), // Variable speeds
+        writheSpeed: Random.numberBetween(0.01, 0.05),
         corruptionLevel: 0,
         chaosPhase: Random.numberBetween(0, Math.PI * 2),
         thrashIntensity: Random.numberBetween(0.5, 2.0),
-        originalPoints: points.map((p) => p.clone()), // Store original for morphing
+        originalPoints: points.map((p) => p.clone()),
       } as TentacleUserData;
 
       this.corruptionTentacles.push(tentacle);
@@ -421,7 +501,6 @@ class Void {
   }
 
   createEvilEyes() {
-    // Create malevolent eyes that watch from the darkness
     for (let i = 0; i < 6; i++) {
       const eyeGeometry = new THREE.SphereGeometry(8, 16, 16);
       const eyeMaterial = new THREE.MeshStandardMaterial({
@@ -454,8 +533,7 @@ class Void {
   }
 
   createDarkEnergyCorruptionFields() {
-    const CORRUPTION_FIELD_COUNT = 7;
-    for (let i = 0; i < CORRUPTION_FIELD_COUNT; i++) {
+    for (let i = 0; i < CONSTANTS.CORRUPTION_FIELD_COUNT; i++) {
       const fieldGeometry = new THREE.SphereGeometry(180 + i * 40, 6, 6);
       const fieldMaterial = new THREE.MeshBasicMaterial({
         color: i % 3 === 0 ? 0xff0000 : i % 3 === 1 ? 0x660000 : 0x330000,
@@ -478,23 +556,39 @@ class Void {
   }
 
   setupMicrophoneAudioReactivity() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices
-        .getUserMedia({ audio: true })
-        .then((stream) => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      console.warn("Media devices not supported, audio reactivity disabled");
+      return;
+    }
+
+    void navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        try {
           this.audioContext = new AudioContext();
           const source = this.audioContext.createMediaStreamSource(stream);
           this.analyser = this.audioContext.createAnalyser();
           this.analyser.fftSize = 256;
-          this.audioDataArray = new Uint8Array(
-            this.analyser.frequencyBinCount,
-          ) as Uint8Array;
+          this.audioDataArray = new Uint8Array(this.analyser.frequencyBinCount);
           source.connect(this.analyser);
-        })
-        .catch(() => {
-          // Audio not available, that's ok
-        });
+          console.log("Audio reactivity enabled");
+        } catch (error) {
+          console.warn("Failed to setup audio context:", error);
+          this.cleanupAudioContext();
+        }
+      })
+      .catch((error) => {
+        console.warn("Microphone access denied or unavailable:", error);
+      });
+  }
+
+  private cleanupAudioContext() {
+    if (this.audioContext?.state !== "closed") {
+      void this.audioContext?.close();
     }
+    this.audioContext = null;
+    this.analyser = null;
+    this.audioDataArray = new Uint8Array(0);
   }
 
   setupResponsiveUserInteraction() {
@@ -595,7 +689,7 @@ class Void {
     this.mouseTrail.push(worldPos.clone());
 
     // Keep trail to manageable length
-    if (this.mouseTrail.length > 20) {
+    if (this.mouseTrail.length > CONSTANTS.MOUSE_TRAIL_MAX_LENGTH) {
       this.mouseTrail.shift();
     }
 
@@ -652,8 +746,7 @@ class Void {
     this.trailParticles.push(trailPoints);
 
     // Clean up old trails and recycle them
-    if (this.trailParticles.length > 3) {
-      // Reduced from 5 to 3
+    if (this.trailParticles.length > CONSTANTS.MAX_TRAIL_PARTICLES) {
       const oldTrail = this.trailParticles.shift();
       if (oldTrail) {
         this.scene.remove(oldTrail);
@@ -693,7 +786,7 @@ class Void {
     this.scene.add(well);
 
     // Keep only recent gravity wells
-    if (this.gravityWells.length > 3) {
+    if (this.gravityWells.length > CONSTANTS.MAX_GRAVITY_WELLS) {
       this.gravityWells.shift();
     }
   }
@@ -729,7 +822,6 @@ class Void {
   }
 
   createExplosion() {
-    // VIOLENT CORRUPTION BURST - like Tetsuo losing control
     const positions = this.particles.geometry.attributes.position
       .array as Float32Array;
 
@@ -746,37 +838,31 @@ class Void {
       positions[i + 2] += direction.z * force;
     }
 
-    // Core goes berserk
     this.flowingSphere.scale.setScalar(2.0);
     this.screechLevel = 1.0;
     this.lastScreechTime = this.currentTime;
 
-    // Wake up the evil eyes
     this.evilEyes.forEach((eye) => {
       eye.userData.watchIntensity = 1.0;
     });
 
-    // Tentacles thrash violently
     this.corruptionTentacles.forEach((tentacle) => {
       tentacle.userData.corruptionLevel = 1.0;
     });
 
-    // Create blood veins spreading outward
     this.createBloodVeins();
   }
 
   createBloodVeins() {
     // Create spreading corruption veins like infected arteries
-    // Reduce number to prevent performance issues
-    for (let i = 0; i < 4; i++) {
-      // Reduced from 6 to 4
+    for (let i = 0; i < CONSTANTS.BLOOD_VEIN_BURST_COUNT; i++) {
       // Try to reuse from pool first
       let vein = this.bloodVeinPool.pop();
 
       if (!vein) {
         // Create new one if pool is empty
         const points = [];
-        const angle = (i / 4) * Math.PI * 2;
+        const angle = (i / CONSTANTS.BLOOD_VEIN_BURST_COUNT) * Math.PI * 2;
         const length = Random.numberBetween(100, 300);
 
         for (let j = 0; j <= 10; j++) {
@@ -942,7 +1028,7 @@ class Void {
 
   createClickBurst(x: number, y: number) {
     // Add new temporary particles at click location
-    const burstCount = 50;
+    const burstCount = CONSTANTS.BURST_PARTICLE_COUNT;
     const burstGeometry = new THREE.BufferGeometry();
     const burstPositions = new Float32Array(burstCount * 3);
     const burstColors = new Float32Array(burstCount * 3);
@@ -1114,6 +1200,92 @@ class Void {
     this.particles.geometry.attributes.position.needsUpdate = true;
   }
 
+  updateBehavioralStates(timeMultiplier: number) {
+    // Gradually decay energy over time (frame-rate independent)
+    this.energyLevel *= Math.pow(0.99, timeMultiplier);
+
+    // Decay screech effect (frame-rate independent)
+    this.screechLevel *= Math.pow(0.95, timeMultiplier);
+
+    // Track idle time and build up rage when ignored
+    this.idleTime = this.currentTime - this.lastInteractionTime;
+
+    // Rage builds up exponentially the longer you ignore it
+    if (this.idleTime > CONSTANTS.INTERACTION_TIMEOUT) {
+      this.rageBuildupLevel = Math.min(
+        (this.idleTime - CONSTANTS.INTERACTION_TIMEOUT) /
+          CONSTANTS.RAGE_BUILDUP_DURATION,
+        1.0,
+      );
+    } else {
+      this.rageBuildupLevel *= Math.pow(0.98, timeMultiplier);
+    }
+
+    // Decay calmness and contentment over time, but slower than rage
+    this.calmLevel *= Math.pow(0.996, timeMultiplier);
+    this.contentmentLevel *= Math.pow(0.994, timeMultiplier);
+
+    if (
+      this.rageBuildupLevel > CONSTANTS.RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR
+    ) {
+      this.triggerAutonomousRageBehaviorWhenIgnored();
+      this.hungerForAttention();
+    }
+  }
+
+  updateAudioAnalysis() {
+    const shouldUpdateAudioThisFrame =
+      this.frameCount % CONSTANTS.AUDIO_UPDATE_FREQUENCY_FRAMES === 0;
+    const hasValidAudioSetup = this.analyser && this.audioDataArray.length > 0;
+
+    if (!shouldUpdateAudioThisFrame || !hasValidAudioSetup) {
+      return;
+    }
+
+    try {
+      this.analyser!.getByteFrequencyData(
+        this.audioDataArray as Uint8Array<ArrayBuffer>,
+      );
+
+      const frequencyBands = this.audioDataArray.length;
+      const bassRange = Math.floor(frequencyBands * 0.1);
+      const midRange = Math.floor(frequencyBands * 0.5);
+
+      let bassSum = 0;
+      let midSum = 0;
+      let trebleSum = 0;
+      let totalSum = 0;
+
+      // Optimize by reusing the existing array instead of creating new one
+      if (this.audioFrequencyData.length !== frequencyBands) {
+        this.audioFrequencyData = new Array<number>(frequencyBands);
+      }
+
+      for (let i = 0; i < frequencyBands; i++) {
+        const value = this.audioDataArray[i];
+        totalSum += value;
+        this.audioFrequencyData[i] = value / 255;
+
+        if (i < bassRange) {
+          bassSum += value;
+        } else if (i < midRange) {
+          midSum += value;
+        } else {
+          trebleSum += value;
+        }
+      }
+
+      const invFrequencyBands = 1 / (frequencyBands * 255);
+      this.audioLevel = totalSum * invFrequencyBands;
+      this.audioBassLevel = bassSum / (bassRange * 255);
+      this.audioMidLevel = midSum / ((midRange - bassRange) * 255);
+      this.audioTrebleLevel = trebleSum / ((frequencyBands - midRange) * 255);
+    } catch (error) {
+      console.warn("Audio analysis failed:", error);
+      this.cleanupAudioContext();
+    }
+  }
+
   updateFlowingSphere() {
     // Audio-reactive morphing effect on the malevolent core
     const geometry = this.flowingSphere.geometry as THREE.SphereGeometry;
@@ -1184,76 +1356,9 @@ class Void {
     const timeMultiplier = Math.min(this.deltaTime / 16.67, 2.0); // Cap at 2x for extreme frame drops
     this.currentTime += this.timeWarp * timeMultiplier;
 
-    // Gradually decay energy over time (frame-rate independent)
-    this.energyLevel *= Math.pow(0.99, timeMultiplier);
+    this.updateBehavioralStates(timeMultiplier);
 
-    // Decay screech effect (frame-rate independent)
-    this.screechLevel *= Math.pow(0.95, timeMultiplier);
-
-    // Track idle time and build up rage when ignored
-    this.idleTime = this.currentTime - this.lastInteractionTime;
-
-    // Rage builds up exponentially the longer you ignore it
-    if (this.idleTime > 300) {
-      // After 5 seconds of no interaction
-      this.rageBuildupLevel = Math.min((this.idleTime - 300) / 1200, 1.0); // Maxes out after 20 seconds
-    } else {
-      this.rageBuildupLevel *= Math.pow(0.98, timeMultiplier); // Quickly decay rage when interacting
-    }
-
-    // Decay calmness and contentment over time, but slower than rage
-    this.calmLevel *= Math.pow(0.996, timeMultiplier); // Slowly decay calmness
-    this.contentmentLevel *= Math.pow(0.994, timeMultiplier); // Even slower decay for contentment
-
-    const RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR = 0.1;
-    if (this.rageBuildupLevel > RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR) {
-      this.triggerAutonomousRageBehaviorWhenIgnored();
-      this.hungerForAttention();
-    }
-
-    const AUDIO_UPDATE_FREQUENCY_FRAMES = 4;
-    const shouldUpdateAudioThisFrame =
-      this.frameCount % AUDIO_UPDATE_FREQUENCY_FRAMES === 0;
-    const hasValidAudioSetup = this.analyser && this.audioDataArray.length > 0;
-
-    if (shouldUpdateAudioThisFrame && hasValidAudioSetup) {
-      // @ts-expect-error - Audio buffer type compatibility issue
-      this.analyser.getByteFrequencyData(this.audioDataArray);
-
-      // Extract frequency bands for more detailed audio analysis
-      const frequencyBands = this.audioDataArray.length;
-      const bassRange = Math.floor(frequencyBands * 0.1); // 0-10% for bass
-      const midRange = Math.floor(frequencyBands * 0.5); // 10-50% for mids
-      const trebleRange = frequencyBands; // 50-100% for treble
-
-      let bassSum = 0;
-      let midSum = 0;
-      let trebleSum = 0;
-      let totalSum = 0;
-
-      // Store frequency data for wave effects
-      this.audioFrequencyData = Array.from(this.audioDataArray).map(
-        (v) => v / 255,
-      );
-
-      for (let i = 0; i < frequencyBands; i++) {
-        const value = this.audioDataArray[i];
-        totalSum += value;
-
-        if (i < bassRange) {
-          bassSum += value;
-        } else if (i < midRange) {
-          midSum += value;
-        } else {
-          trebleSum += value;
-        }
-      }
-
-      this.audioLevel = totalSum / frequencyBands / 255;
-      this.audioBassLevel = bassSum / bassRange / 255;
-      this.audioMidLevel = midSum / (midRange - bassRange) / 255;
-      this.audioTrebleLevel = trebleSum / (trebleRange - midRange) / 255;
-    }
+    this.updateAudioAnalysis();
 
     // Combine energy sources including RAGE!
     const totalEnergy =
@@ -1596,10 +1701,10 @@ class Void {
         totalEnergy * 0.7 +
         this.rageBuildupLevel * 0.8;
 
-      // Dynamic morphing of the tentacle shape! (Throttled for performance)
+      // Dynamic morphing of the tentacle shape (throttled for performance)
       this.tentacleMorphFrame++;
       if (
-        this.tentacleMorphFrame % 8 === 0 &&
+        this.tentacleMorphFrame % CONSTANTS.TENTACLE_MORPH_THROTTLE === 0 &&
         Math.random() < 0.3 &&
         corruption > 0.3
       ) {
@@ -1634,14 +1739,14 @@ class Void {
         material.color.setRGB(0.4 + corruption * 0.4, 0, corruption * 0.3); // Dark red
       }
 
-      // VIOLENT scaling and position chaos
-      const violentScale =
+      // Dynamic scaling based on corruption level
+      const corruptionScale =
         1 +
         corruption * 0.5 +
         Math.sin(this.currentTime * 0.1 + userData.chaosPhase) *
           corruption *
           0.3;
-      tentacle.scale.setScalar(violentScale);
+      tentacle.scale.setScalar(corruptionScale);
 
       // Tentacles lash out randomly when highly corrupted
       if (corruption > 0.6) {
@@ -1742,7 +1847,7 @@ class Void {
     });
 
     // Emergency cleanup if too many objects
-    if (this.bloodVeins.length > 30) {
+    if (this.bloodVeins.length > CONSTANTS.MAX_BLOOD_VEINS) {
       const toRemove = this.bloodVeins.splice(0, 10);
       toRemove.forEach((vein) => {
         this.scene.remove(vein);
