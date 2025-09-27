@@ -25,12 +25,9 @@ const CONSTANTS = {
 
   // Rings and fields
   CORRUPTION_RING_COUNT: 5,
-  AUDIO_WAVE_RING_COUNT: 8,
-  FREQUENCY_BAND_RINGS: 3,
   CORRUPTION_FIELD_COUNT: 7,
 
   // Animation and timing
-  AUDIO_UPDATE_FREQUENCY_FRAMES: 4,
   MOUSE_TRAIL_MAX_LENGTH: 20,
   MAX_TRAIL_PARTICLES: 3,
   MAX_BLOOD_VEINS: 30,
@@ -75,14 +72,6 @@ interface QuantumFieldUserData {
   phase: number;
 }
 
-interface AudioWaveRingUserData {
-  originalRadius: number;
-  frequencyBand: string;
-  baseColor: THREE.Color;
-  phaseOffset: number;
-  waveSpeed: number;
-}
-
 class Void {
   WIDTH: number;
   HEIGHT: number;
@@ -92,7 +81,6 @@ class Void {
   flowingSphere: THREE.Mesh;
   particles: THREE.Points;
   beautyRings: THREE.Group;
-  audioWaveRings: THREE.Group;
   currentTime = 0;
   lastFrameTime = 0;
   deltaTime = 0;
@@ -102,15 +90,6 @@ class Void {
   targetY = 0;
   mousePressed = false;
   lastClickTime = 0;
-  audioContext: AudioContext | null = null;
-  analyser: AnalyserNode | null = null;
-  audioDataArray: Uint8Array = new Uint8Array(0);
-  audioLevel = 0;
-  audioBassLevel = 0;
-  audioMidLevel = 0;
-  audioTrebleLevel = 0;
-  audioFrequencyData: number[] = [];
-  audioUpdateFrame = 0;
   trailParticles: THREE.Points[] = [];
   trailParticlePool: THREE.Points[] = []; // Object pool for performance
   mouseTrail: THREE.Vector3[] = [];
@@ -146,11 +125,9 @@ class Void {
       this.createChaoticEvilParticleStorm();
       this.createCorruptedEnergyRings();
       this.createDarkEnergyCorruptionFields();
-      this.createAudioReactiveWaveRings();
       this.createCorruptionTentacles();
       this.createEvilEyes();
       this.setupResponsiveUserInteraction();
-      this.setupMicrophoneAudioReactivity();
 
       const container = document.getElementById("container");
       if (!container) {
@@ -192,9 +169,6 @@ class Void {
         }
       }
     });
-
-    // Cleanup audio context
-    this.cleanupAudioContext();
 
     // Cleanup renderer
     this.renderer.dispose();
@@ -386,63 +360,6 @@ class Void {
     this.scene.add(this.beautyRings);
   }
 
-  createAudioReactiveWaveRings() {
-    this.audioWaveRings = new THREE.Group();
-
-    for (let i = 0; i < CONSTANTS.AUDIO_WAVE_RING_COUNT; i++) {
-      const ringRadius = 150 + i * 60;
-      const ringGeometry = new THREE.RingGeometry(
-        ringRadius - 5,
-        ringRadius + 5,
-        32,
-      );
-
-      // Different rings react to different frequency bands
-      const frequencyBand = i % CONSTANTS.FREQUENCY_BAND_RINGS;
-      let baseColor;
-      let waveType;
-
-      if (frequencyBand === 0) {
-        // Bass rings - deep crimson/burgundy
-        baseColor = new THREE.Color(0x8b0000); // Dark red
-        waveType = "bass";
-      } else if (frequencyBand === 1) {
-        // Mid rings - bright red (no orange)
-        baseColor = new THREE.Color(0xdc143c); // Crimson red
-        waveType = "mid";
-      } else {
-        // Treble rings - bright pink/magenta
-        baseColor = new THREE.Color(0xff1493); // Deep pink
-        waveType = "treble";
-      }
-
-      const ringMaterial = new THREE.MeshBasicMaterial({
-        color: baseColor,
-        transparent: true,
-        opacity: 0,
-        side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending,
-      });
-
-      const audioWaveRing = new THREE.Mesh(ringGeometry, ringMaterial);
-      audioWaveRing.rotation.x = Math.PI / 2;
-      audioWaveRing.position.z = (i - CONSTANTS.AUDIO_WAVE_RING_COUNT / 2) * 20;
-
-      // Store metadata for audio reactivity
-      audioWaveRing.userData = {
-        originalRadius: ringRadius,
-        frequencyBand: waveType,
-        baseColor: baseColor.clone(),
-        phaseOffset: i * 0.5,
-        waveSpeed: 0.02 + i * 0.005,
-      } as AudioWaveRingUserData;
-
-      this.audioWaveRings.add(audioWaveRing);
-    }
-
-    this.scene.add(this.audioWaveRings);
-  }
-
   createCorruptionTentacles() {
     for (let i = 0; i < 12; i++) {
       const points = [];
@@ -553,42 +470,6 @@ class Void {
 
       this.scene.add(field);
     }
-  }
-
-  setupMicrophoneAudioReactivity() {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      console.warn("Media devices not supported, audio reactivity disabled");
-      return;
-    }
-
-    void navigator.mediaDevices
-      .getUserMedia({ audio: true })
-      .then((stream) => {
-        try {
-          this.audioContext = new AudioContext();
-          const source = this.audioContext.createMediaStreamSource(stream);
-          this.analyser = this.audioContext.createAnalyser();
-          this.analyser.fftSize = 256;
-          this.audioDataArray = new Uint8Array(this.analyser.frequencyBinCount);
-          source.connect(this.analyser);
-          console.log("Audio reactivity enabled");
-        } catch (error) {
-          console.warn("Failed to setup audio context:", error);
-          this.cleanupAudioContext();
-        }
-      })
-      .catch((error) => {
-        console.warn("Microphone access denied or unavailable:", error);
-      });
-  }
-
-  private cleanupAudioContext() {
-    if (this.audioContext?.state !== "closed") {
-      void this.audioContext?.close();
-    }
-    this.audioContext = null;
-    this.analyser = null;
-    this.audioDataArray = new Uint8Array(0);
   }
 
   setupResponsiveUserInteraction() {
@@ -1233,68 +1114,10 @@ class Void {
     }
   }
 
-  updateAudioAnalysis() {
-    const shouldUpdateAudioThisFrame =
-      this.frameCount % CONSTANTS.AUDIO_UPDATE_FREQUENCY_FRAMES === 0;
-    const hasValidAudioSetup = this.analyser && this.audioDataArray.length > 0;
-
-    if (!shouldUpdateAudioThisFrame || !hasValidAudioSetup) {
-      return;
-    }
-
-    try {
-      this.analyser!.getByteFrequencyData(
-        this.audioDataArray as Uint8Array<ArrayBuffer>,
-      );
-
-      const frequencyBands = this.audioDataArray.length;
-      const bassRange = Math.floor(frequencyBands * 0.1);
-      const midRange = Math.floor(frequencyBands * 0.5);
-
-      let bassSum = 0;
-      let midSum = 0;
-      let trebleSum = 0;
-      let totalSum = 0;
-
-      // Optimize by reusing the existing array instead of creating new one
-      if (this.audioFrequencyData.length !== frequencyBands) {
-        this.audioFrequencyData = new Array<number>(frequencyBands);
-      }
-
-      for (let i = 0; i < frequencyBands; i++) {
-        const value = this.audioDataArray[i];
-        totalSum += value;
-        this.audioFrequencyData[i] = value / 255;
-
-        if (i < bassRange) {
-          bassSum += value;
-        } else if (i < midRange) {
-          midSum += value;
-        } else {
-          trebleSum += value;
-        }
-      }
-
-      const invFrequencyBands = 1 / (frequencyBands * 255);
-      this.audioLevel = totalSum * invFrequencyBands;
-      this.audioBassLevel = bassSum / (bassRange * 255);
-      this.audioMidLevel = midSum / ((midRange - bassRange) * 255);
-      this.audioTrebleLevel = trebleSum / ((frequencyBands - midRange) * 255);
-    } catch (error) {
-      console.warn("Audio analysis failed:", error);
-      this.cleanupAudioContext();
-    }
-  }
-
   updateFlowingSphere() {
-    // Audio-reactive morphing effect on the malevolent core
+    // Basic morphing effect on the malevolent core
     const geometry = this.flowingSphere.geometry as THREE.SphereGeometry;
     const positionAttribute = geometry.attributes.position;
-
-    // Audio-driven wave multipliers for different frequency bands
-    const bassWaveIntensity = this.audioBassLevel * 15; // Bass creates large, slow waves
-    const midWaveIntensity = this.audioMidLevel * 8; // Mids create medium waves
-    const trebleWaveIntensity = this.audioTrebleLevel * 5; // Treble creates fast, sharp waves
 
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
@@ -1304,32 +1127,11 @@ class Void {
       const radius = Math.sqrt(x * x + y * y + z * z);
       const normalizedRadius = radius / 35; // Normalize based on core radius
 
-      // Multiple wave layers driven by different audio frequencies
+      // Basic wave effect
       const baseWave = Math.sin(this.currentTime * 0.01 + radius * 0.1) * 3;
-      const bassWave =
-        Math.sin(this.currentTime * 0.005 + normalizedRadius * Math.PI) *
-        bassWaveIntensity;
-      const midWave =
-        Math.sin(this.currentTime * 0.02 + normalizedRadius * Math.PI * 2) *
-        midWaveIntensity;
-      const trebleWave =
-        Math.sin(this.currentTime * 0.08 + normalizedRadius * Math.PI * 4) *
-        trebleWaveIntensity;
-
-      // Combine all wave effects
-      const totalWave = baseWave + bassWave + midWave + trebleWave;
-
-      // Apply audio-reactive frequency-based distortion
-      const audioDistortion =
-        this.audioFrequencyData.length > 0
-          ? this.audioFrequencyData[
-              Math.floor(
-                (i / positionAttribute.count) * this.audioFrequencyData.length,
-              )
-            ] * 10
-          : 0;
-
-      const finalWave = totalWave + audioDistortion;
+      const timeWave =
+        Math.sin(this.currentTime * 0.005 + normalizedRadius * Math.PI) * 5;
+      const finalWave = baseWave + timeWave;
 
       positionAttribute.setX(i, x + (x / radius) * finalWave);
       positionAttribute.setY(i, y + (y / radius) * finalWave);
@@ -1358,11 +1160,8 @@ class Void {
 
     this.updateBehavioralStates(timeMultiplier);
 
-    this.updateAudioAnalysis();
-
     // Combine energy sources including RAGE!
-    const totalEnergy =
-      this.energyLevel + this.audioLevel * 0.5 + this.rageBuildupLevel * 0.8;
+    const totalEnergy = this.energyLevel + this.rageBuildupLevel * 0.8;
 
     // Smooth mouse interaction with adaptive responsiveness
     const responsiveness = this.mouseResponsiveness * timeMultiplier;
@@ -1396,92 +1195,59 @@ class Void {
       ragePulse;
     this.flowingSphere.scale.setScalar(evilPulse);
 
-    // Audio-reactive color corruption based on frequency bands
+    // Color corruption based on energy and calm state
     const coreMaterial = this.flowingSphere
       .material as THREE.MeshStandardMaterial;
     const corruption = Math.min(totalEnergy * 2, 1);
 
-    // Audio-driven red spectrum color shifts
-    const bassRedIntensity = this.audioBassLevel * 0.8; // Deep crimson/burgundy
-    const midRedIntensity = this.audioMidLevel * 0.6; // Bright scarlet/fire red
-    const trebleRedIntensity = this.audioTrebleLevel * 0.5; // Pink/coral highlights
-
-    // Dynamic color mixing based on audio frequencies and calm state
+    // Dynamic color mixing based on calm state
     const calmEffect = this.calmLevel * 0.6;
     const contentEffect = this.contentmentLevel * 0.4;
 
-    // Red spectrum audio coloring with different red tones
+    // Red spectrum coloring with different red tones
     const baseRed = 0.8 + corruption * 0.2; // Base evil red
-    const audioRed = Math.min(
+    const finalRed = Math.min(
       1,
-      baseRed +
-        bassRedIntensity * 0.2 + // Deep crimson from bass
-        midRedIntensity * 0.4 + // Bright scarlet from mids
-        trebleRedIntensity * 0.3 - // Pink highlights from treble
-        calmEffect * 0.4, // Slightly less red when calm
+      baseRed - calmEffect * 0.4, // Slightly less red when calm
     );
 
-    const audioGreen = Math.max(
+    const finalGreen = Math.max(
       0,
       0.05 + // Very minimal base green
-        midRedIntensity * 0.1 + // Slight red warmth from mids (less orange)
-        trebleRedIntensity * 0.2 + // Pink from treble
         calmEffect * 0.6 + // More green when calm (soothing)
-        contentEffect * 0.2 -
-        bassRedIntensity * 0.3, // Much less green with deep bass
+        contentEffect * 0.2,
     );
 
-    const audioBlue = Math.max(
+    const finalBlue = Math.max(
       0,
       0.05 + // Minimal base blue
-        trebleRedIntensity * 0.5 + // Pink/magenta from treble
         calmEffect * 0.8 + // More blue when calm (soothing)
-        contentEffect * 0.4 -
-        bassRedIntensity * 0.3 - // Less blue with deep bass
-        midRedIntensity * 0.1, // Less blue with bright mids
+        contentEffect * 0.4,
     );
 
-    coreMaterial.color.setRGB(audioRed, audioGreen, audioBlue);
+    coreMaterial.color.setRGB(finalRed, finalGreen, finalBlue);
 
-    // Audio-reactive emissive intensity
-    const audioEmissiveIntensity =
-      this.audioBassLevel * 2 +
-      this.audioMidLevel * 1.5 +
-      this.audioTrebleLevel;
+    // Emissive intensity based on rage and calm state
     const baseEmissiveIntensity =
       this.rageBuildupLevel > 0.5 ? this.rageBuildupLevel : 0;
 
-    if (
-      audioEmissiveIntensity > 0.1 ||
-      baseEmissiveIntensity > 0 ||
-      this.calmLevel > 0.2
-    ) {
-      // Red spectrum emissive glow with different red tones
+    if (baseEmissiveIntensity > 0 || this.calmLevel > 0.2) {
+      // Red spectrum emissive glow
       const emissiveRed = Math.min(
         1,
-        0.4 +
-          bassRedIntensity * 0.6 + // Deep crimson glow from bass
-          midRedIntensity * 0.5 + // Bright scarlet glow from mids
-          trebleRedIntensity * 0.3 - // Reduced for pink balance
-          this.calmLevel * 0.3, // Less intense when calm
+        0.4 - this.calmLevel * 0.3, // Less intense when calm
       );
 
       const emissiveGreen = Math.max(
         0,
-        midRedIntensity * 0.2 + // Slight warmth from mids (reduced orange)
-          trebleRedIntensity * 0.3 + // Pink glow from treble
-          this.calmLevel * 0.3 + // Soothing green when calm
-          this.contentmentLevel * 0.2 -
-          bassRedIntensity * 0.3, // Much less green with deep bass
+        this.calmLevel * 0.3 + // Soothing green when calm
+          this.contentmentLevel * 0.2,
       );
 
       const emissiveBlue = Math.max(
         0,
-        trebleRedIntensity * 0.6 + // Pink/magenta glow from treble
-          this.calmLevel * 0.5 + // Soothing blue when calm
-          this.contentmentLevel * 0.4 -
-          bassRedIntensity * 0.3 - // Less blue with deep bass
-          midRedIntensity * 0.1, // Less blue with bright mids
+        this.calmLevel * 0.5 + // Soothing blue when calm
+          this.contentmentLevel * 0.4,
       );
 
       coreMaterial.emissive = new THREE.Color(
@@ -1493,7 +1259,6 @@ class Void {
         this.calmLevel * 0.5 + this.contentmentLevel * 0.3;
       coreMaterial.emissiveIntensity = Math.max(
         baseEmissiveIntensity * (1 - this.calmLevel * 0.8), // Reduce rage glow when calm
-        audioEmissiveIntensity,
         calmEmissiveIntensity,
       );
     } else {
@@ -1554,7 +1319,7 @@ class Void {
       // Dynamic evil coloring
       const material = ringMesh.material as THREE.MeshBasicMaterial;
       const corruptionIntensity =
-        0.3 + mouseInfluence * 0.4 + this.audioLevel * 0.6 + totalEnergy * 0.5;
+        0.3 + mouseInfluence * 0.4 + totalEnergy * 0.5;
       material.opacity = Math.min(corruptionIntensity, 0.8);
 
       // Shift between different shades of evil
@@ -1565,83 +1330,6 @@ class Void {
         material.color.setRGB(0.8, 0, 0.4); // Dark crimson
       } else {
         material.color.setRGB(0.6, 0, 0.1); // Deep maroon
-      }
-    });
-
-    // Animate audio-reactive wave rings with frequency-specific responses
-    this.audioWaveRings.children.forEach((ring) => {
-      const ringMesh = ring as THREE.Mesh;
-      const userData = ring.userData as AudioWaveRingUserData;
-      const material = ringMesh.material as THREE.MeshBasicMaterial;
-
-      // Get audio level for this ring's frequency band
-      let audioIntensity = 0;
-      if (userData.frequencyBand === "bass") {
-        audioIntensity = this.audioBassLevel;
-      } else if (userData.frequencyBand === "mid") {
-        audioIntensity = this.audioMidLevel;
-      } else if (userData.frequencyBand === "treble") {
-        audioIntensity = this.audioTrebleLevel;
-      }
-
-      // Audio-reactive opacity and scaling
-      const waveIntensity = audioIntensity * 2;
-      material.opacity = Math.min(waveIntensity * 0.8, 0.9);
-
-      // Pulsating scale based on audio
-      const audioWaveScale =
-        1 +
-        audioIntensity * 0.5 +
-        Math.sin(this.currentTime * userData.waveSpeed + userData.phaseOffset) *
-          0.1;
-      ring.scale.setScalar(audioWaveScale);
-
-      // Dynamic color shifting based on audio intensity
-      const baseColor = userData.baseColor;
-
-      if (userData.frequencyBand === "bass") {
-        // Bass rings: deep crimson gets richer and darker with intensity
-        material.color.setRGB(
-          Math.min(baseColor.r + audioIntensity * 0.3, 1), // Richer red
-          baseColor.g * (0.3 + audioIntensity * 0.2), // Minimal green for depth
-          baseColor.b * (0.2 + audioIntensity * 0.3), // Subtle blue for crimson
-        );
-      } else if (userData.frequencyBand === "mid") {
-        // Mid rings: bright scarlet gets more intense red (no orange)
-        material.color.setRGB(
-          Math.min(baseColor.r + audioIntensity * 0.3, 1), // Bright red
-          Math.min(baseColor.g + audioIntensity * 0.1, 1), // Minimal green (no orange)
-          baseColor.b * (0.1 + audioIntensity * 0.1), // Minimal blue
-        );
-      } else {
-        // Treble rings: pink/coral gets brighter and more vibrant
-        material.color.setRGB(
-          Math.min(baseColor.r + audioIntensity * 0.2, 1), // Bright pink
-          Math.min(baseColor.g + audioIntensity * 0.3, 1), // Coral tones
-          Math.min(baseColor.b + audioIntensity * 0.4, 1), // Pink/magenta
-        );
-      }
-
-      // Slow rotation with audio-reactive speed
-      ring.rotation.z +=
-        (userData.waveSpeed + audioIntensity * 0.05) * this.timeWarp;
-
-      // Subtle position oscillation based on frequency data
-      if (this.audioFrequencyData.length > 0) {
-        const frequencyIndex = Math.floor(
-          ((ring.position.z + 200) / 400) * this.audioFrequencyData.length,
-        );
-        const frequencyValue =
-          this.audioFrequencyData[
-            Math.max(
-              0,
-              Math.min(frequencyIndex, this.audioFrequencyData.length - 1),
-            )
-          ];
-        ring.position.y =
-          Math.sin(this.currentTime * 0.01 + userData.phaseOffset) *
-          frequencyValue *
-          30;
       }
     });
 
