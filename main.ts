@@ -576,8 +576,8 @@ const DEVICE = {
 // Fullscreen functionality
 const FULLSCREEN = {
   isActive: () =>
-    !!(document as any).fullscreenElement ||
-    !!(document as any).webkitFullscreenElement,
+    !!(document as unknown as Record<string, unknown>).fullscreenElement ||
+    !!(document as unknown as Record<string, unknown>).webkitFullscreenElement,
 
   toggleUI: (show: boolean) => {
     ["menu", "lab-btn", "thumbnail-btn", "source-code"].forEach((id) => {
@@ -589,16 +589,15 @@ const FULLSCREEN = {
     });
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async callMethod(obj: any, methods: string[]) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  async callMethod(obj: Record<string, unknown>, methods: string[]) {
     const fn = methods.find((m) => obj[m]);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    if (fn) await obj[fn]();
+    if (typeof fn === "function") {
+      await (fn as () => Promise<void>)();
+    }
   },
 
   async enter(el: HTMLElement) {
-    await FULLSCREEN.callMethod(el, [
+    await FULLSCREEN.callMethod(el as unknown as Record<string, unknown>, [
       "requestFullscreen",
       "webkitRequestFullscreen",
       "mozRequestFullScreen",
@@ -607,12 +606,15 @@ const FULLSCREEN = {
   },
 
   async exit() {
-    await FULLSCREEN.callMethod(document, [
-      "exitFullscreen",
-      "webkitExitFullscreen",
-      "mozCancelFullScreen",
-      "msExitFullscreen",
-    ]);
+    await FULLSCREEN.callMethod(
+      document as unknown as Record<string, unknown>,
+      [
+        "exitFullscreen",
+        "webkitExitFullscreen",
+        "mozCancelFullScreen",
+        "msExitFullscreen",
+      ],
+    );
   },
 };
 
