@@ -575,12 +575,24 @@ const DEVICE = {
 
 // Fullscreen functionality
 const FULLSCREEN = {
-  isActive: () =>
-    !!(document as unknown as Record<string, unknown>).fullscreenElement ||
-    !!(document as unknown as Record<string, unknown>).webkitFullscreenElement,
+  isActive: (): boolean => {
+    const doc = document as Document & {
+      fullscreenElement?: Element;
+      webkitFullscreenElement?: Element;
+      mozFullScreenElement?: Element;
+      msFullscreenElement?: Element;
+    };
+    return !!(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    );
+  },
 
-  toggleUI: (show: boolean) => {
-    ["menu", "lab-btn", "thumbnail-btn", "source-code"].forEach((id) => {
+  toggleUI: (show: boolean): void => {
+    const elements = ["menu", "lab-btn", "thumbnail-btn", "source-code"];
+    elements.forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
         el.style.opacity = show ? "1" : "0";
@@ -589,14 +601,17 @@ const FULLSCREEN = {
     });
   },
 
-  async callMethod(obj: Record<string, unknown>, methods: string[]) {
-    const fn = methods.find((m) => obj[m]);
-    if (typeof fn === "function") {
-      await (fn as () => Promise<void>)();
+  async callMethod(
+    obj: Record<string, unknown>,
+    methods: string[],
+  ): Promise<void> {
+    const methodName = methods.find((m) => typeof obj[m] === "function");
+    if (methodName && typeof obj[methodName] === "function") {
+      await (obj[methodName] as () => Promise<void>)();
     }
   },
 
-  async enter(el: HTMLElement) {
+  async enter(el: HTMLElement): Promise<void> {
     await FULLSCREEN.callMethod(el as unknown as Record<string, unknown>, [
       "requestFullscreen",
       "webkitRequestFullscreen",
@@ -605,7 +620,7 @@ const FULLSCREEN = {
     ]);
   },
 
-  async exit() {
+  async exit(): Promise<void> {
     await FULLSCREEN.callMethod(
       document as unknown as Record<string, unknown>,
       [
