@@ -124,7 +124,6 @@ class Void {
       this.createMalevolentPulsatingCore();
       this.createChaoticEvilParticleStorm();
       this.createCorruptedEnergyRings();
-      this.createDarkEnergyCorruptionFields();
       this.createCorruptionTentacles();
       this.createEvilEyes();
       this.setupResponsiveUserInteraction();
@@ -149,7 +148,9 @@ class Void {
     // Cleanup WebGL resources
     this.scene.traverse((object) => {
       if (object instanceof THREE.Mesh) {
-        object.geometry?.dispose?.();
+        if (object.geometry && "dispose" in object.geometry) {
+          (object.geometry as THREE.BufferGeometry).dispose();
+        }
         if (Array.isArray(object.material)) {
           object.material.forEach((material: THREE.Material) => {
             if (
@@ -160,11 +161,7 @@ class Void {
               material.dispose();
             }
           });
-        } else if (
-          object.material &&
-          "dispose" in object.material &&
-          typeof object.material.dispose === "function"
-        ) {
+        } else if (object.material && "dispose" in object.material) {
           (object.material as THREE.Material).dispose();
         }
       }
@@ -358,6 +355,28 @@ class Void {
     }
 
     this.scene.add(this.beautyRings);
+
+    // Add corruption fields to the same group
+    for (let i = 0; i < CONSTANTS.CORRUPTION_FIELD_COUNT; i++) {
+      const fieldGeometry = new THREE.SphereGeometry(180 + i * 40, 6, 6);
+      const fieldMaterial = new THREE.MeshBasicMaterial({
+        color: i % 3 === 0 ? 0xff0000 : i % 3 === 1 ? 0x660000 : 0x330000,
+        transparent: true,
+        opacity: 0,
+        wireframe: true,
+        blending: THREE.AdditiveBlending,
+      });
+
+      const field = new THREE.Mesh(fieldGeometry, fieldMaterial);
+      field.userData = {
+        originalScale: 1,
+        energyResponse: 0.15 + i * 0.08,
+        phase: i * 0.8,
+        corruptionLevel: i * 0.2,
+      };
+
+      this.scene.add(field);
+    }
   }
 
   createCorruptionTentacles() {
@@ -449,29 +468,6 @@ class Void {
     }
   }
 
-  createDarkEnergyCorruptionFields() {
-    for (let i = 0; i < CONSTANTS.CORRUPTION_FIELD_COUNT; i++) {
-      const fieldGeometry = new THREE.SphereGeometry(180 + i * 40, 6, 6);
-      const fieldMaterial = new THREE.MeshBasicMaterial({
-        color: i % 3 === 0 ? 0xff0000 : i % 3 === 1 ? 0x660000 : 0x330000,
-        transparent: true,
-        opacity: 0,
-        wireframe: true,
-        blending: THREE.AdditiveBlending,
-      });
-
-      const field = new THREE.Mesh(fieldGeometry, fieldMaterial);
-      field.userData = {
-        originalScale: 1,
-        energyResponse: 0.15 + i * 0.08,
-        phase: i * 0.8,
-        corruptionLevel: i * 0.2,
-      };
-
-      this.scene.add(field);
-    }
-  }
-
   setupResponsiveUserInteraction() {
     document.addEventListener("mousemove", (event) => {
       // Calculate mouse velocity for energy system
@@ -495,10 +491,6 @@ class Void {
       // Reset idle timer on any interaction
       this.lastInteractionTime = this.currentTime;
       this.idleTime = 0;
-
-      // Increase energy based on movement speed
-      const speed = this.mouseVelocity.length();
-      this.energyLevel = Math.min(this.energyLevel + speed * 0.001, 1.0);
 
       // Create ripple effect on mouse movement
       this.createRipple(event.clientX, event.clientY);
@@ -975,12 +967,24 @@ class Void {
       case " ": // Spacebar - reset everything
         this.resetScene();
         break;
-      case "r": // R - randomize colors
-        this.randomizeColors();
+      case "r": {
+        // R - randomize colors
+        const colors = this.particles.geometry.attributes.color
+          .array as Float32Array;
+        for (let i = 0; i < colors.length; i += 3) {
+          colors[i] = Math.random();
+          colors[i + 1] = Math.random();
+          colors[i + 2] = Math.random();
+        }
+        this.particles.geometry.attributes.color.needsUpdate = true;
         break;
-      case "w": // W - toggle wireframe
-        this.toggleWireframe();
+      }
+      case "w": {
+        // W - toggle wireframe
+        const material = this.flowingSphere.material as THREE.MeshBasicMaterial;
+        material.wireframe = !material.wireframe;
         break;
+      }
       case "f": // F - speed up time
         this.currentTime += 100;
         break;
@@ -1003,24 +1007,6 @@ class Void {
     }
 
     this.flowingSphere.scale.setScalar(1);
-  }
-
-  randomizeColors() {
-    const colors = this.particles.geometry.attributes.color
-      .array as Float32Array;
-
-    for (let i = 0; i < colors.length; i += 3) {
-      colors[i] = Math.random();
-      colors[i + 1] = Math.random();
-      colors[i + 2] = Math.random();
-    }
-
-    this.particles.geometry.attributes.color.needsUpdate = true;
-  }
-
-  toggleWireframe() {
-    const material = this.flowingSphere.material as THREE.MeshBasicMaterial;
-    material.wireframe = !material.wireframe;
   }
 
   updateParticles() {
