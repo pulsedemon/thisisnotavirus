@@ -89,7 +89,7 @@ export default defineConfig(() => {
             ) {
               const virusName = url.match(/^\/viruses\/([^\/]+)\/?$/)?.[1];
               if (virusName && virusName !== "lab") {
-                const redirectUrl = `/?virus=${virusName}&paused=true`;
+                const redirectUrl = `/?virus=${virusName}`;
                 res.writeHead(302, { Location: redirectUrl });
                 res.end();
                 return;
