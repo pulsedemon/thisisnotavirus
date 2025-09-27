@@ -18,11 +18,12 @@ declare let gtag: (
 
 declare global {
   interface Window {
-    TVStaticLoading?: any;
+    TVStaticLoading?: typeof TVStaticLoading;
   }
 }
 
-if (import.meta.env.PROD) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+if ((import.meta as any).env?.PROD) {
   Sentry.init({
     dsn: "https://2cead2fbc81748d68231d7729b5812f9@o4504890125582336.ingest.sentry.io/4504890229194752",
     integrations: [
@@ -70,25 +71,16 @@ class VirusLoader {
     this.iframe.style.left = "0";
     this.iframe.style.background = "#000";
 
-    // Check if we came from a redirect
-    const urlParams = new URLSearchParams(window.location.search);
-    const virusParam = urlParams.get("virus");
+    // Check for virus redirect parameter
+    const virusParam = new URLSearchParams(window.location.search).get("virus");
 
     if (virusParam && playlist.viruses.includes(virusParam)) {
-      // Load the specific virus from redirect and stay paused
-      console.log("Loading virus from redirect:", virusParam);
       playlist.setCurrentVirus(virusParam);
       this.loadVirus(virusParam);
-      // Set play button to paused state
-      const playPauseBtn = document.getElementById("play-pause");
-      if (playPauseBtn) {
-        playPauseBtn.innerText = "play_arrow";
-      }
-      // Clear the URL parameters after loading
+      document.getElementById("play-pause")!.innerText = "play_arrow";
+      clearInterval(this.loadRandomInterval);
       window.history.replaceState({}, "", window.location.pathname);
-      // Don't start randomization - stay paused
     } else {
-      // Default behavior - load random virus and start playing
       this.loadVirus(playlist.current());
       this.startRandomization();
     }
@@ -583,65 +575,46 @@ const DEVICE = {
 
 // Fullscreen functionality
 const FULLSCREEN = {
-  APIS: {
-    standard: {
-      enter: "requestFullscreen",
-      exit: "exitFullscreen",
-      element: "fullscreenElement",
-    },
-    webkit: {
-      enter: "webkitRequestFullscreen",
-      exit: "webkitExitFullscreen",
-      element: "webkitFullscreenElement",
-    },
-    moz: {
-      enter: "mozRequestFullScreen",
-      exit: "mozCancelFullScreen",
-      element: "mozFullScreenElement",
-    },
-    ms: {
-      enter: "msRequestFullscreen",
-      exit: "msExitFullscreen",
-      element: "msFullscreenElement",
-    },
-  } as const,
-
-  UI_ELEMENTS: ["menu", "lab-btn", "thumbnail-btn", "source-code"] as const,
-
-  isActive: (): boolean => {
-    return Object.values(FULLSCREEN.APIS).some(
-      (api) => (document as any)[api.element] || false,
-    );
-  },
+  isActive: () =>
+    !!(document as any).fullscreenElement ||
+    !!(document as any).webkitFullscreenElement,
 
   toggleUI: (show: boolean) => {
-    FULLSCREEN.UI_ELEMENTS.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.style.opacity = show ? "1" : "0";
-        element.style.pointerEvents = show ? "auto" : "none";
+    ["menu", "lab-btn", "thumbnail-btn", "source-code"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.opacity = show ? "1" : "0";
+        el.style.pointerEvents = show ? "auto" : "none";
       }
     });
   },
 
-  async enter(doc: HTMLElement): Promise<void> {
-    for (const api of Object.values(FULLSCREEN.APIS)) {
-      if ((doc as any)[api.enter]) {
-        await (doc as any)[api.enter]();
-        break;
-      }
-    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async callMethod(obj: any, methods: string[]) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const fn = methods.find((m) => obj[m]);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    if (fn) await obj[fn]();
   },
 
-  async exit(): Promise<void> {
-    for (const api of Object.values(FULLSCREEN.APIS)) {
-      if ((document as any)[api.exit]) {
-        await (document as any)[api.exit]();
-        break;
-      }
-    }
+  async enter(el: HTMLElement) {
+    await FULLSCREEN.callMethod(el, [
+      "requestFullscreen",
+      "webkitRequestFullscreen",
+      "mozRequestFullScreen",
+      "msRequestFullscreen",
+    ]);
   },
-} as const;
+
+  async exit() {
+    await FULLSCREEN.callMethod(document, [
+      "exitFullscreen",
+      "webkitExitFullscreen",
+      "mozCancelFullScreen",
+      "msExitFullscreen",
+    ]);
+  },
+};
 
 // Initialize fullscreen functionality only for desktop
 if (!DEVICE.isMobile()) {
@@ -785,4 +758,4 @@ function teleportMenu() {
   gtag("event", "v_icon_click");
 }
 
-(window as any).TVStaticLoading = TVStaticLoading;
+window.TVStaticLoading = TVStaticLoading;
