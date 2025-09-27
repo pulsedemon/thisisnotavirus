@@ -517,7 +517,17 @@ class Void {
 
     // Double-click for special effect
     document.addEventListener("dblclick", (event) => {
-      this.resetScene();
+      const positions = this.particles.geometry.attributes.position
+        .array as Float32Array;
+      for (let i = 0; i < positions.length / 3; i++) {
+        const radius = Random.numberBetween(60, 300);
+        const theta = Random.numberBetween(0, Math.PI * 2);
+        const phi = Random.numberBetween(0, Math.PI);
+        positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = radius * Math.cos(phi);
+      }
+      this.flowingSphere.scale.setScalar(1);
       this.createClickBurst(event.clientX, event.clientY);
     });
 
@@ -568,63 +578,49 @@ class Void {
 
     // Create beautiful trail particles
     if (this.mouseTrail.length > 1) {
-      this.createTrailParticles();
-    }
-  }
+      let trailPoints = this.trailParticlePool.pop();
+      if (!trailPoints) {
+        const trailGeometry = new THREE.BufferGeometry();
+        const trailMaterial = new THREE.PointsMaterial({
+          size: 2,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.8,
+          blending: THREE.AdditiveBlending,
+        });
+        trailPoints = new THREE.Points(trailGeometry, trailMaterial);
+      }
 
-  createTrailParticles() {
-    // Try to reuse a trail particle from the pool
-    let trailPoints = this.trailParticlePool.pop();
+      const positions = new Float32Array(this.mouseTrail.length * 3);
+      const colors = new Float32Array(this.mouseTrail.length * 3);
+      for (let i = 0; i < this.mouseTrail.length; i++) {
+        const pos = this.mouseTrail[i];
+        positions[i * 3] = pos.x;
+        positions[i * 3 + 1] = pos.y;
+        positions[i * 3 + 2] = pos.z;
+        const alpha = i / this.mouseTrail.length;
+        colors[i * 3] = 1;
+        colors[i * 3 + 1] = 0.8 + alpha * 0.2;
+        colors[i * 3 + 2] = 0.9 + alpha * 0.1;
+      }
 
-    if (!trailPoints) {
-      // Create new one if pool is empty
-      const trailGeometry = new THREE.BufferGeometry();
-      const trailMaterial = new THREE.PointsMaterial({
-        size: 2,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending,
-      });
-      trailPoints = new THREE.Points(trailGeometry, trailMaterial);
-    }
+      trailPoints.geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3),
+      );
+      trailPoints.geometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(colors, 3),
+      );
+      this.scene.add(trailPoints);
+      this.trailParticles.push(trailPoints);
 
-    // Update geometry with current trail data
-    const positions = new Float32Array(this.mouseTrail.length * 3);
-    const colors = new Float32Array(this.mouseTrail.length * 3);
-
-    for (let i = 0; i < this.mouseTrail.length; i++) {
-      const pos = this.mouseTrail[i];
-      positions[i * 3] = pos.x;
-      positions[i * 3 + 1] = pos.y;
-      positions[i * 3 + 2] = pos.z;
-
-      // Fade from bright to dim along trail
-      const alpha = i / this.mouseTrail.length;
-      colors[i * 3] = 1;
-      colors[i * 3 + 1] = 0.8 + alpha * 0.2;
-      colors[i * 3 + 2] = 0.9 + alpha * 0.1;
-    }
-
-    trailPoints.geometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(positions, 3),
-    );
-    trailPoints.geometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(colors, 3),
-    );
-
-    this.scene.add(trailPoints);
-    this.trailParticles.push(trailPoints);
-
-    // Clean up old trails and recycle them
-    if (this.trailParticles.length > CONSTANTS.MAX_TRAIL_PARTICLES) {
-      const oldTrail = this.trailParticles.shift();
-      if (oldTrail) {
-        this.scene.remove(oldTrail);
-        // Return to pool instead of disposing
-        this.trailParticlePool.push(oldTrail);
+      if (this.trailParticles.length > CONSTANTS.MAX_TRAIL_PARTICLES) {
+        const oldTrail = this.trailParticles.shift();
+        if (oldTrail) {
+          this.scene.remove(oldTrail);
+          this.trailParticlePool.push(oldTrail);
+        }
       }
     }
   }
@@ -722,146 +718,6 @@ class Void {
     this.corruptionTentacles.forEach((tentacle) => {
       tentacle.userData.corruptionLevel = 1.0;
     });
-
-    this.createBloodVeins();
-  }
-
-  createBloodVeins() {
-    // Create spreading corruption veins like infected arteries
-    for (let i = 0; i < CONSTANTS.BLOOD_VEIN_BURST_COUNT; i++) {
-      // Try to reuse from pool first
-      let vein = this.bloodVeinPool.pop();
-
-      if (!vein) {
-        // Create new one if pool is empty
-        const points = [];
-        const angle = (i / CONSTANTS.BLOOD_VEIN_BURST_COUNT) * Math.PI * 2;
-        const length = Random.numberBetween(100, 300);
-
-        for (let j = 0; j <= 10; j++) {
-          const t = j / 10;
-          const distance = t * length;
-          const corruption = Math.sin(t * Math.PI * 3) * 20;
-
-          points.push(
-            new THREE.Vector3(
-              Math.cos(angle) * distance + corruption,
-              Math.sin(angle) * distance + corruption,
-              Random.numberBetween(-30, 30),
-            ),
-          );
-        }
-
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineBasicMaterial({
-          color: 0xff0000,
-          transparent: true,
-          opacity: 0.8,
-          linewidth: 3,
-        });
-
-        vein = new THREE.Line(geometry, material);
-      }
-
-      // Reset vein properties
-      vein.userData = {
-        life: 150,
-        maxLife: 150,
-      };
-
-      this.bloodVeins.push(vein);
-      this.scene.add(vein);
-    }
-  }
-
-  triggerAutonomousRageBehaviorWhenIgnored() {
-    if (this.rageBuildupLevel > 0.3 && Math.random() < 0.008) {
-      // Reduced frequency
-      // Spontaneous corruption burst
-      this.createExplosion();
-    }
-
-    if (
-      this.rageBuildupLevel > 0.5 &&
-      Math.random() < 0.003 &&
-      this.gravityWells.length < 2
-    ) {
-      // Limit gravity wells
-      // Random gravity wells appear without user input
-      const x = Random.numberBetween(100, window.innerWidth - 100);
-      const y = Random.numberBetween(100, window.innerHeight - 100);
-      this.createGravityWell(x, y);
-    }
-
-    if (
-      this.rageBuildupLevel > 0.7 &&
-      Math.random() < 0.001 &&
-      !this.isHavingTantrum
-    ) {
-      // Prevent multiple tantrums
-      // VIOLENT TANTRUM - everything goes berserk
-      this.isHavingTantrum = true;
-      this.screechLevel = 2.0;
-
-      // Create fewer blood vein bursts to prevent overload
-      if (this.bloodVeins.length < 20) {
-        for (let i = 0; i < 2; i++) {
-          setTimeout(() => this.createBloodVeins(), i * 300);
-        }
-      }
-
-      // Wake up ALL the eyes at once
-      this.evilEyes.forEach((eye) => {
-        eye.userData.watchIntensity = 2.0;
-      });
-
-      // All tentacles go crazy
-      this.corruptionTentacles.forEach((tentacle) => {
-        tentacle.userData.corruptionLevel = 2.0;
-      });
-
-      // Fewer particle explosions
-      for (let i = 0; i < 2; i++) {
-        setTimeout(() => {
-          const x = Random.numberBetween(0, window.innerWidth);
-          const y = Random.numberBetween(0, window.innerHeight);
-          this.createClickBurst(x, y);
-        }, i * 200);
-      }
-
-      // Tantrum lasts for a while
-      setTimeout(() => {
-        this.isHavingTantrum = false;
-      }, 2000);
-    }
-  }
-
-  hungerForAttention() {
-    // The longer you ignore it, the more it craves interaction
-    if (this.rageBuildupLevel > 0.4) {
-      // Eyes start desperately seeking the mouse
-      this.evilEyes.forEach((eye) => {
-        if (Math.random() < 0.1) {
-          // Occasionally look in random directions like searching
-          const searchAngle = Random.numberBetween(0, Math.PI * 2);
-          const searchDistance = 200;
-          const searchTarget = new THREE.Vector3(
-            Math.cos(searchAngle) * searchDistance,
-            Math.sin(searchAngle) * searchDistance,
-            0,
-          );
-          eye.lookAt(searchTarget);
-        }
-      });
-    }
-
-    if (this.rageBuildupLevel > 0.6) {
-      // Tentacles start reaching out randomly
-      this.corruptionTentacles.forEach((tentacle, index) => {
-        tentacle.userData.writheSpeed =
-          0.02 + index * 0.005 + this.rageBuildupLevel * 0.03;
-      });
-    }
   }
 
   provideCalmingAttention() {
@@ -964,9 +820,21 @@ class Void {
 
   handleKeyPress(key: string) {
     switch (key.toLowerCase()) {
-      case " ": // Spacebar - reset everything
-        this.resetScene();
+      case " ": {
+        // Spacebar - reset everything
+        const positions = this.particles.geometry.attributes.position
+          .array as Float32Array;
+        for (let i = 0; i < positions.length / 3; i++) {
+          const radius = Random.numberBetween(60, 300);
+          const theta = Random.numberBetween(0, Math.PI * 2);
+          const phi = Random.numberBetween(0, Math.PI);
+          positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+          positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+          positions[i * 3 + 2] = radius * Math.cos(phi);
+        }
+        this.flowingSphere.scale.setScalar(1);
         break;
+      }
       case "r": {
         // R - randomize colors
         const colors = this.particles.geometry.attributes.color
@@ -989,24 +857,6 @@ class Void {
         this.currentTime += 100;
         break;
     }
-  }
-
-  resetScene() {
-    // Reset all particles to original positions
-    const positions = this.particles.geometry.attributes.position
-      .array as Float32Array;
-
-    for (let i = 0; i < positions.length / 3; i++) {
-      const radius = Random.numberBetween(60, 300);
-      const theta = Random.numberBetween(0, Math.PI * 2);
-      const phi = Random.numberBetween(0, Math.PI);
-
-      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = radius * Math.cos(phi);
-    }
-
-    this.flowingSphere.scale.setScalar(1);
   }
 
   updateParticles() {
@@ -1095,8 +945,48 @@ class Void {
     if (
       this.rageBuildupLevel > CONSTANTS.RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR
     ) {
-      this.triggerAutonomousRageBehaviorWhenIgnored();
-      this.hungerForAttention();
+      if (this.rageBuildupLevel > 0.3 && Math.random() < 0.008) {
+        this.createExplosion();
+      }
+
+      if (
+        this.rageBuildupLevel > 0.5 &&
+        Math.random() < 0.003 &&
+        this.gravityWells.length < 2
+      ) {
+        const x = Random.numberBetween(100, window.innerWidth - 100);
+        const y = Random.numberBetween(100, window.innerHeight - 100);
+        this.createGravityWell(x, y);
+      }
+
+      if (
+        this.rageBuildupLevel > 0.7 &&
+        Math.random() < 0.001 &&
+        !this.isHavingTantrum
+      ) {
+        this.isHavingTantrum = true;
+        this.screechLevel = 2.0;
+
+        this.evilEyes.forEach((eye) => {
+          eye.userData.watchIntensity = 2.0;
+        });
+
+        this.corruptionTentacles.forEach((tentacle) => {
+          tentacle.userData.corruptionLevel = 2.0;
+        });
+
+        for (let i = 0; i < 2; i++) {
+          setTimeout(() => {
+            const x = Random.numberBetween(0, window.innerWidth);
+            const y = Random.numberBetween(0, window.innerHeight);
+            this.createClickBurst(x, y);
+          }, i * 200);
+        }
+
+        setTimeout(() => {
+          this.isHavingTantrum = false;
+        }, 2000);
+      }
     }
   }
 
