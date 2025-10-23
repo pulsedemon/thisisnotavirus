@@ -1011,17 +1011,151 @@ class CraneGame {
     });
   }
 
-  addMechanicalDetails() {
-    // Motor/mechanism box at the top
-    const motorBoxGeometry = new THREE.BoxGeometry(3, 2, 3);
-    const motorBoxMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      metalness: 0.3,
-      roughness: 0.7,
+  createCraneMechanism() {
+    // Main motor housing - more detailed and realistic
+    const housingGeometry = new THREE.BoxGeometry(4, 2.5, 4);
+    const housingMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2a2a2a,
+      metalness: 0.7,
+      roughness: 0.3,
     });
-    const motorBox = new THREE.Mesh(motorBoxGeometry, motorBoxMaterial);
-    motorBox.position.set(0, 11, 0);
-    this.cabinet.add(motorBox);
+    const motorHousing = new THREE.Mesh(housingGeometry, housingMaterial);
+    motorHousing.position.set(0, 11, -6); // Move to back of cabinet
+    motorHousing.castShadow = true;
+    this.cabinet.add(motorHousing);
+
+    // Motor housing details
+    const detailGeometry = new THREE.BoxGeometry(3.8, 0.3, 3.8);
+    const detailMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1a1a1a,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+    const topDetail = new THREE.Mesh(detailGeometry, detailMaterial);
+    topDetail.position.set(0, 11 + 1.35, -6); // Move to back
+    this.cabinet.add(topDetail);
+
+    // Control panel on motor housing
+    const panelGeometry = new THREE.BoxGeometry(1.5, 0.8, 0.2);
+    const panelMaterial = new THREE.MeshStandardMaterial({
+      color: 0x333333,
+      metalness: 0.6,
+      roughness: 0.4,
+    });
+    const controlPanel = new THREE.Mesh(panelGeometry, panelMaterial);
+    controlPanel.position.set(0, 11, -3.9); // Move to back
+    this.cabinet.add(controlPanel);
+
+    // LED indicators on control panel
+    const ledGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+    const greenLedMaterial = new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      emissive: 0x00ff00,
+      emissiveIntensity: 0.5,
+    });
+    const redLedMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      emissive: 0xff0000,
+      emissiveIntensity: 0.3,
+    });
+
+    const greenLed = new THREE.Mesh(ledGeometry, greenLedMaterial);
+    greenLed.position.set(-0.3, 11, -3.7); // Move to back
+    this.cabinet.add(greenLed);
+
+    const redLed = new THREE.Mesh(ledGeometry, redLedMaterial);
+    redLed.position.set(0.3, 11, -3.7); // Move to back
+    this.cabinet.add(redLed);
+
+    // Rotating gear mechanism
+    const gearGeometry = new THREE.CylinderGeometry(0.8, 0.8, 0.2, 16);
+    const gearMaterial = new THREE.MeshStandardMaterial({
+      color: 0x444444,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+    const mainGear = new THREE.Mesh(gearGeometry, gearMaterial);
+    mainGear.position.set(0, 11, -7); // Move to back
+    mainGear.rotation.x = Math.PI / 2;
+    this.cabinet.add(mainGear);
+
+    // Store gear for animation
+    (this as any).mainGear = mainGear;
+
+    // Secondary gears
+    const smallGearGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.15, 12);
+    const smallGearMaterial = new THREE.MeshStandardMaterial({
+      color: 0x555555,
+      metalness: 0.7,
+      roughness: 0.3,
+    });
+
+    [-1.2, 1.2].forEach((x) => {
+      const smallGear = new THREE.Mesh(smallGearGeometry, smallGearMaterial);
+      smallGear.position.set(x, 11, -7); // Move to back
+      smallGear.rotation.x = Math.PI / 2;
+      this.cabinet.add(smallGear);
+      (this as any).smallGears = (this as any).smallGears || [];
+      (this as any).smallGears.push(smallGear);
+    });
+
+    // Drive shaft
+    const shaftGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2.5, 8);
+    const shaftMaterial = new THREE.MeshStandardMaterial({
+      color: 0x666666,
+      metalness: 0.9,
+      roughness: 0.1,
+    });
+    const driveShaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+    driveShaft.position.set(0, 11, -7); // Move to back
+    driveShaft.rotation.z = Math.PI / 2;
+    this.cabinet.add(driveShaft);
+
+    // Cable winch drums
+    const drumGeometry = new THREE.CylinderGeometry(0.6, 0.6, 0.3, 16);
+    const drumMaterial = new THREE.MeshStandardMaterial({
+      color: 0x777777,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+
+    [-0.8, 0.8].forEach((x) => {
+      const drum = new THREE.Mesh(drumGeometry, drumMaterial);
+      drum.position.set(x, 11, -4.5); // Move to back
+      drum.rotation.x = Math.PI / 2;
+      this.cabinet.add(drum);
+    });
+
+    // Warning labels and safety markings
+    this.addSafetyMarkings();
+  }
+
+  addSafetyMarkings() {
+    // Warning stripe on motor housing
+    const stripeGeometry = new THREE.BoxGeometry(4.2, 0.1, 0.3);
+    const stripeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+    });
+    const warningStripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
+    warningStripe.position.set(0, 11 + 1.3, -7.8); // Move to back
+    this.cabinet.add(warningStripe);
+
+    // Emergency stop button
+    const buttonGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.15, 16);
+    const buttonMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff0000,
+      emissive: 0xff0000,
+      emissiveIntensity: 0.2,
+    });
+    const emergencyButton = new THREE.Mesh(buttonGeometry, buttonMaterial);
+    emergencyButton.position.set(1.5, 11, -6); // Move to back
+    emergencyButton.rotation.x = Math.PI / 2;
+    this.cabinet.add(emergencyButton);
+  }
+
+  addMechanicalDetails() {
+    // Enhanced crane mechanism - more realistic and visually interesting
+    this.createCraneMechanism();
 
     // Pulley system
     const pulleyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.5, 16);
@@ -2248,7 +2382,26 @@ class CraneGame {
     this.renderer.render(this.scene, this.camera);
   };
 
+  animateCraneMechanism() {
+    // Animate main gear
+    const mainGear = (this as any).mainGear;
+    if (mainGear) {
+      mainGear.rotation.z += 0.02; // Slow rotation
+    }
+
+    // Animate small gears (counter-rotating)
+    const smallGears = (this as any).smallGears;
+    if (smallGears) {
+      smallGears.forEach((gear: THREE.Mesh) => {
+        gear.rotation.z -= 0.04; // Faster counter-rotation
+      });
+    }
+  }
+
   updateArcadeEffects() {
+    // Animate crane mechanism gears
+    this.animateCraneMechanism();
+
     // Animate LED light strips (chase effect)
     const ledStrips = (this as any).ledStrips;
     if (ledStrips) {
