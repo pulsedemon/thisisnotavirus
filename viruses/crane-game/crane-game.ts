@@ -147,6 +147,7 @@ class AudioManager {
       "clawGrab",
       "prizeDrop",
       "win",
+      "lose",
       "ambient",
       "coin",
     ];
@@ -198,6 +199,14 @@ class AudioManager {
             // Coin dropping sound
             data[i] = Math.sin(t * 600) * Math.exp(-t * 6) * 0.5;
             break;
+          case "lose":
+            // Depressing descending notes (opposite of win sound)
+            const loseNoteFreq = 220 - (Math.floor(t * 3) % 4) * 80; // Descending minor scale
+            data[i] =
+              Math.sin(t * loseNoteFreq * 2 * Math.PI) *
+              Math.exp(-t * 0.8) *
+              0.3;
+            break;
           default:
             data[i] = 0;
         }
@@ -215,6 +224,7 @@ class AudioManager {
       clawGrab: 0.3,
       prizeDrop: 0.6,
       win: 1.5,
+      lose: 1.2,
       ambient: 2.0,
       coin: 0.4,
     };
@@ -1048,12 +1058,12 @@ class CraneGame {
 
     // LED indicators on control panel
     const ledGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-    const greenLedMaterial = new THREE.MeshBasicMaterial({
+    const greenLedMaterial = new THREE.MeshStandardMaterial({
       color: 0x00ff00,
       emissive: 0x00ff00,
       emissiveIntensity: 0.5,
     });
-    const redLedMaterial = new THREE.MeshBasicMaterial({
+    const redLedMaterial = new THREE.MeshStandardMaterial({
       color: 0xff0000,
       emissive: 0xff0000,
       emissiveIntensity: 0.3,
@@ -1669,7 +1679,12 @@ class CraneGame {
           emissiveIntensity: brightness,
           roughness: roughness,
           metalness: 0.1,
+          transparent: false, // Ensure prizes are not transparent
+          opacity: 1.0, // Ensure full opacity
         });
+
+        // Store original emissive intensity for later reset
+        (material as any).originalEmissiveIntensity = brightness;
 
         const mesh = new THREE.Mesh(geometry, material);
         mesh.castShadow = true;
@@ -1797,6 +1812,9 @@ class CraneGame {
         roughness: roughness,
         metalness: 0.1,
       });
+
+      // Store original emissive intensity for later reset
+      (material as any).originalEmissiveIntensity = brightness;
 
       const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
@@ -2018,12 +2036,23 @@ class CraneGame {
         console.log("Reached bin, releasing prizes now");
         this.releasePrizesPhysics();
 
-        // Play prize drop sound
-        this.audioManager.playSound(
-          "prizeDrop",
-          0.4,
-          0.8 + Math.random() * 0.4,
-        );
+        // Play prize drop sound only if prizes were actually grabbed
+        if (this.grabbedPrizes.length > 0) {
+          this.audioManager.playSound(
+            "prizeDrop",
+            0.4,
+            0.8 + Math.random() * 0.4,
+          );
+        }
+
+        // Show "TRY AGAIN" message and play depressing sound if no prizes were grabbed
+        if (this.grabbedPrizes.length === 0) {
+          setTimeout(() => {
+            this.showMessage("TRY AGAIN!");
+            // Play depressing lose sound (lower pitch, minor key feel)
+            this.audioManager.playSound("lose", 0.4, 0.6);
+          }, 500);
+        }
 
         // Open the claw
         setTimeout(() => {
@@ -2136,13 +2165,19 @@ class CraneGame {
       `Found ${prizesInRange.length} prizes in range, will attempt to grab closest 1`,
     );
 
+    if (prizesInRange.length > 0) {
+      console.log(
+        `Closest prize distance: ${prizesInRange[0].distance.toFixed(2)}`,
+      );
+    }
+
     // Only try to grab the closest prize (max 1)
     let grabbedCount = 0;
     for (let i = 0; i < Math.min(prizesInRange.length, maxPrizesToGrab); i++) {
       const { prize, distance } = prizesInRange[i];
 
-      // 70% chance to grab each prize
-      if (Math.random() < 0.7) {
+      // 65% chance to grab each prize (balanced for fairness)
+      if (Math.random() < 0.65) {
         prize.grabbed = true;
         prize.settled = false;
         this.grabbedPrizes.push(prize);
@@ -2179,6 +2214,7 @@ class CraneGame {
     console.log(`Releasing prizes. Count: ${this.grabbedPrizes.length}`);
 
     if (this.grabbedPrizes.length > 0) {
+      console.log(`About to release ${this.grabbedPrizes.length} prizes`);
       this.showMessage("YOU WIN!");
 
       // Play win sound effect
@@ -2197,6 +2233,12 @@ class CraneGame {
         prize.settled = false; // Mark as unsettled so it can fall
         // Give them a slight downward velocity to start falling
         prize.body.velocity.set(0, -0.2, 0);
+
+        // Reset visual effects when prize is released
+        const material = prize.mesh.material as THREE.MeshStandardMaterial;
+        material.emissiveIntensity =
+          (material as any).originalEmissiveIntensity || 0.05;
+
         this.wonPrizes.push(prize);
       });
 
@@ -2249,6 +2291,21 @@ class CraneGame {
 
         // Update body position to match mesh
         prize.body.position.copy(prize.mesh.position);
+
+        // Make grabbed prizes more visible by adding a slight glow
+        const material = prize.mesh.material as THREE.MeshStandardMaterial;
+        material.emissiveIntensity = 0.3; // Add glow to grabbed prizes
+
+        // Debug: log grabbed prize position occasionally
+        if (Math.random() < 0.01) {
+          // Log ~1% of the time to avoid spam
+          console.log(
+            `Grabbed prize position: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}`,
+          );
+          console.log(
+            `Claw position: ${this.clawPosition.x.toFixed(2)}, ${this.clawPosition.y.toFixed(2)}, ${this.clawPosition.z.toFixed(2)}`,
+          );
+        }
       } else if (!prize.grabbed && !prize.settled) {
         // Apply gravity
         prize.body.velocity.y += this.gravity;
