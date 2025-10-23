@@ -1867,7 +1867,7 @@ class CraneGame {
   }
 
   updateUI() {
-    let instruction = "WASD: Move | SPACE: Drop Claw";
+    let instruction = "WASD or Arrow Keys: Move | SPACE: Drop Claw";
 
     if (this.isDescending || this.isAscending || this.isMovingToBin) {
       instruction = "Grabbing...";
@@ -1885,14 +1885,25 @@ class CraneGame {
 
   setupControls() {
     const moveSpeed = 0.3;
-    const keys = { w: false, a: false, s: false, d: false, space: false };
+    const keys = {
+      w: false,
+      a: false,
+      s: false,
+      d: false, // WASD keys
+      ArrowUp: false,
+      ArrowLeft: false,
+      ArrowDown: false,
+      ArrowRight: false, // Arrow keys
+      space: false,
+    };
 
     window.addEventListener("keydown", (e) => {
-      const key = e.key.toLowerCase();
-      if (key in keys) keys[key as keyof typeof keys] = true;
+      // Handle both regular keys (lowercase) and arrow keys (as-is)
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key in keys) (keys as any)[key] = true;
 
       if (
-        key === " " &&
+        (e.key === " " || e.key === " ") &&
         !this.isDescending &&
         !this.isAscending &&
         !this.isMovingToBin &&
@@ -1904,8 +1915,9 @@ class CraneGame {
     });
 
     window.addEventListener("keyup", (e) => {
-      const key = e.key.toLowerCase();
-      if (key in keys) keys[key as keyof typeof keys] = false;
+      // Handle both regular keys (lowercase) and arrow keys (as-is)
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key in keys) (keys as any)[key] = false;
     });
 
     // Store keys reference for movement
@@ -1925,12 +1937,12 @@ class CraneGame {
     )
       return;
 
-    // Calculate movement input
+    // Calculate movement input (support both WASD and Arrow keys)
     const moveVector = new THREE.Vector3();
-    if (keys.w) moveVector.z -= moveSpeed;
-    if (keys.s) moveVector.z += moveSpeed;
-    if (keys.a) moveVector.x -= moveSpeed;
-    if (keys.d) moveVector.x += moveSpeed;
+    if (keys.w || keys.ArrowUp) moveVector.z -= moveSpeed;
+    if (keys.s || keys.ArrowDown) moveVector.z += moveSpeed;
+    if (keys.a || keys.ArrowLeft) moveVector.x -= moveSpeed;
+    if (keys.d || keys.ArrowRight) moveVector.x += moveSpeed;
 
     if (moveVector.length() > 0) {
       // Add momentum to claw movement
