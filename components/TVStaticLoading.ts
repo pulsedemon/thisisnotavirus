@@ -203,7 +203,7 @@ export default class TVStaticLoading {
           shift,
           y,
           width,
-          bandHeight
+          bandHeight,
         );
       });
     }
@@ -316,7 +316,7 @@ export default class TVStaticLoading {
         width * 0.3,
         cx,
         cy,
-        maxRadius
+        maxRadius,
       );
       grad.addColorStop(0, "rgba(0,0,0,0)");
       grad.addColorStop(1, "rgba(0,0,0,0.32)");
@@ -372,11 +372,11 @@ export default class TVStaticLoading {
     this._drawBlockyGlitch();
   }
 
-  private _onUserReveal = (e: Event) => {
+  private _onUserReveal = () => {
     this.watermark.clickCount++;
     this.watermark.fade = Math.min(
       1,
-      this.watermark.fade + this.watermark.step
+      this.watermark.fade + this.watermark.step,
     );
   };
 
@@ -391,7 +391,7 @@ export default class TVStaticLoading {
     if (this.watermark.fade > 0) {
       this.watermark.fade = Math.max(
         0,
-        this.watermark.fade - this.config.fadeSpeed
+        this.watermark.fade - this.config.fadeSpeed,
       );
       if (this.watermark.fade === 0) {
         this.watermark.clickCount = 0;
@@ -416,12 +416,15 @@ export default class TVStaticLoading {
     } else {
       this._drawStatic(colorStatic);
       if (!this._effectTimer) {
-        this._effectTimer = window.setTimeout(() => {
-          const effects = Object.keys(this.effectHandlers);
-          this._effect = effects[Math.floor(Math.random() * effects.length)];
-          this._effectProgress = 0;
-          this._effectTimer = null;
-        }, 1000 + Math.random() * 1000);
+        this._effectTimer = window.setTimeout(
+          () => {
+            const effects = Object.keys(this.effectHandlers);
+            this._effect = effects[Math.floor(Math.random() * effects.length)];
+            this._effectProgress = 0;
+            this._effectTimer = null;
+          },
+          1000 + Math.random() * 1000,
+        );
       }
     }
     this._drawScanlines();
@@ -436,7 +439,7 @@ export default class TVStaticLoading {
       0,
       0,
       this.canvas.width,
-      this.canvas.height
+      this.canvas.height,
     );
     this._animationFrame = requestAnimationFrame(this._animate);
   };

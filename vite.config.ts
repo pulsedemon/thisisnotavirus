@@ -84,10 +84,10 @@ export default defineConfig(() => {
             // Only redirect browser navigation requests, not iframe/embed requests
             if (
               url &&
-              url.match(/^\/viruses\/([^\/]+)\/?$/) &&
+              url.match(/^\/viruses\/([^/]+)\/?$/) &&
               secFetchDest !== "iframe"
             ) {
-              const virusName = url.match(/^\/viruses\/([^\/]+)\/?$/)?.[1];
+              const virusName = url.match(/^\/viruses\/([^/]+)\/?$/)?.[1];
               if (virusName && virusName !== "lab") {
                 const redirectUrl = `/?virus=${virusName}`;
                 res.writeHead(302, { Location: redirectUrl });

@@ -16,6 +16,12 @@ interface Prize {
   deformability: number;
   bounciness: number;
   materialType: "plush" | "ball" | "box" | "cylinder";
+  gripStrength: number; // How securely the claw holds this prize (0-1)
+  dropChance: number; // Base chance to drop during transport
+}
+
+interface ImagesResponse {
+  images: string[];
 }
 
 class CraneRope {
@@ -70,10 +76,6 @@ class CraneRope {
     // Multiple constraint iterations for stability
     for (let iteration = 0; iteration < 3; iteration++) {
       for (let i = 1; i < this.joints.length - 1; i++) {
-        const prevJoint = this.joints[i - 1];
-        const joint = this.joints[i];
-        const nextJoint = this.joints[i + 1];
-
         // Maintain distance constraints
         this.constrainDistance(i - 1, i, this.segmentLength);
         this.constrainDistance(i, i + 1, this.segmentLength);
@@ -122,20 +124,21 @@ class CraneRope {
 
 class AudioManager {
   private audioContext: AudioContext;
-  private sounds: Map<string, AudioBuffer> = new Map();
+  private sounds = new Map<string, AudioBuffer>();
   private isEnabled = true;
 
   constructor() {
     try {
       this.audioContext = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext)();
       this.loadSounds();
-    } catch (e) {
+    } catch {
       console.warn("Web Audio API not supported");
     }
   }
 
-  async loadSounds() {
+  loadSounds(): void {
     // Generate procedural sounds since we don't have audio files
     this.generateProceduralSounds();
   }
@@ -173,33 +176,37 @@ class AudioManager {
         const t = i / sampleRate;
 
         switch (soundName) {
-          case "clawDescend":
+          case "clawDescend": {
             // Mechanical whirring sound
             data[i] =
               Math.sin(t * 150) * Math.exp(-t * 2) * 0.3 +
               Math.sin(t * 75) * Math.exp(-t * 1.5) * 0.2;
             break;
+          }
           case "clawGrab":
             // Sharp metallic clank
             data[i] = Math.sin(t * 800) * Math.exp(-t * 8) * 0.4;
             break;
-          case "prizeDrop":
+          case "prizeDrop": {
             // Soft thud with some bounce
             const envelope = Math.exp(-t * 3);
             data[i] =
               (Math.sin(t * 100) * envelope + Math.random() * 0.1) * 0.3;
             break;
-          case "win":
+          }
+          case "win": {
             // Celebratory ascending notes
             const noteFreq = 220 + (Math.floor(t * 4) % 5) * 110;
             data[i] =
               Math.sin(t * noteFreq * 2 * Math.PI) * Math.exp(-t * 0.5) * 0.4;
             break;
-          case "coin":
+          }
+          case "coin": {
             // Coin dropping sound
             data[i] = Math.sin(t * 600) * Math.exp(-t * 6) * 0.5;
             break;
-          case "lose":
+          }
+          case "lose": {
             // Depressing descending notes (opposite of win sound)
             const loseNoteFreq = 220 - (Math.floor(t * 3) % 4) * 80; // Descending minor scale
             data[i] =
@@ -207,13 +214,16 @@ class AudioManager {
               Math.exp(-t * 0.8) *
               0.3;
             break;
-          default:
+          }
+          default: {
             data[i] = 0;
+            break;
+          }
         }
       }
 
       return buffer;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -247,7 +257,7 @@ class AudioManager {
       gainNode.connect(this.audioContext.destination);
 
       source.start();
-    } catch (e) {
+    } catch {
       console.warn("Failed to play sound:", name);
     }
   }
@@ -336,9 +346,9 @@ class CraneGame {
 
   // Game state
   clawRestingHeight = 10; // Height where claw waits
-  clawPosition = new THREE.Vector3(0, 10, 0);
-  targetPosition = new THREE.Vector2(0, 0);
-  binPosition = new THREE.Vector3(8, -5, 8); // Prize bin location (raised)
+  clawPosition: THREE.Vector3 = new THREE.Vector3(0, 10, 0);
+  targetPosition: THREE.Vector2 = new THREE.Vector2(0, 0);
+  binPosition: THREE.Vector3 = new THREE.Vector3(8, -5, 8); // Prize bin location (raised)
   isDescending = false;
   isGrabbing = false;
   isAscending = false;
@@ -349,7 +359,7 @@ class CraneGame {
   currentClawAngle = Math.PI / 6;
   grabbedPrizes: Prize[] = [];
   wonPrizes: Prize[] = [];
-  credits = 10;
+  credits = 15; // More starting credits for better experience
 
   // Physics
   gravity = -0.05;
@@ -359,21 +369,44 @@ class CraneGame {
   images: string[] = [];
   textureLoader = new THREE.TextureLoader();
 
+  // Prize properties
+  prizeRadius = 0.75;
+
   // UI
   uiElement: HTMLDivElement;
 
   // Enhanced features
   audioManager: AudioManager;
   atmosphericEffects: AtmosphericEffects;
-  clawVelocity = new THREE.Vector3();
+  clawVelocity: THREE.Vector3 = new THREE.Vector3();
   swingDamping = 0.95;
+
+  // Control properties
+  keys: Record<string, boolean> = {};
+  moveSpeed = 0.3;
+
+  // Crane mechanism components
+  mainGear?: THREE.Mesh;
+  smallGears: THREE.Mesh[] = [];
+
+  // Background animation elements
+  bgCanvas?: HTMLCanvasElement;
+  bgContext?: CanvasRenderingContext2D;
+  particles: THREE.Mesh[] = [];
+
+  // Floor animation elements
+  floorCanvas?: HTMLCanvasElement;
+  floorTexture?: THREE.CanvasTexture;
+
+  // LED strips for animation
+  ledStrips: THREE.Mesh[] = [];
 
   constructor() {
     this.setupScene();
     this.setupLights();
     this.createCabinet();
     this.createClaw();
-    this.loadImages();
+    void this.loadImages();
     this.setupUI();
     this.setupControls();
     this.initializeEnhancedFeatures();
@@ -415,8 +448,8 @@ class CraneGame {
     const context = canvas.getContext("2d")!;
 
     // Store canvas for animation
-    (this as any).bgCanvas = canvas;
-    (this as any).bgContext = context;
+    this.bgCanvas = canvas;
+    this.bgContext = context;
 
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.MeshBasicMaterial({
@@ -453,13 +486,13 @@ class CraneGame {
       );
 
       // Store animation data
-      (particle as any).floatSpeed = Random.numberBetween(0.01, 0.03);
-      (particle as any).floatOffset = Random.numberBetween(0, Math.PI * 2);
-      (particle as any).horizontalSpeed = Random.numberBetween(0.005, 0.015);
+      particle.userData = particle.userData || {};
+      particle.userData.floatSpeed = Random.numberBetween(0.01, 0.03);
+      particle.userData.floatOffset = Random.numberBetween(0, Math.PI * 2);
+      particle.userData.horizontalSpeed = Random.numberBetween(0.005, 0.015);
 
       this.scene.add(particle);
-      if (!(this as any).particles) (this as any).particles = [];
-      (this as any).particles.push(particle);
+      this.particles.push(particle);
     }
   }
 
@@ -587,8 +620,8 @@ class CraneGame {
     floorTexture.repeat.set(4, 4);
 
     // Store for animation
-    (this as any).floorCanvas = floorCanvas;
-    (this as any).floorTexture = floorTexture;
+    this.floorCanvas = floorCanvas;
+    this.floorTexture = floorTexture;
 
     const floorMaterial = new THREE.MeshStandardMaterial({
       map: floorTexture,
@@ -940,7 +973,7 @@ class CraneGame {
     }
 
     // Store for animation
-    (this as any).ledStrips = ledStrips;
+    this.ledStrips = ledStrips;
 
     // Side LED strip housings (vertical) - full height along glass edges
     const glassHeight = this.cabinetSize.height;
@@ -1090,7 +1123,7 @@ class CraneGame {
     this.cabinet.add(mainGear);
 
     // Store gear for animation
-    (this as any).mainGear = mainGear;
+    this.mainGear = mainGear;
 
     // Secondary gears
     const smallGearGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.15, 12);
@@ -1105,8 +1138,7 @@ class CraneGame {
       smallGear.position.set(x, 11, -7); // Move to back
       smallGear.rotation.x = Math.PI / 2;
       this.cabinet.add(smallGear);
-      (this as any).smallGears = (this as any).smallGears || [];
-      (this as any).smallGears.push(smallGear);
+      this.smallGears.push(smallGear);
     });
 
     // Drive shaft
@@ -1568,7 +1600,7 @@ class CraneGame {
     try {
       const response = await fetch("/viruses/buttons/images.json");
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as ImagesResponse;
         this.images = data.images;
         this.createPrizes();
       }
@@ -1581,9 +1613,6 @@ class CraneGame {
     const floorY = -9.5;
 
     // Calculate grid dimensions based on cabinet and prize size
-    // Reserve space for the prize bin (avoid spawning prizes there)
-    const binReserveWidth = 5; // Width to avoid near bin
-    const binReserveDepth = 5; // Depth to avoid near bin
 
     const usableWidth = this.cabinetSize.width - 2; // Leave 1 unit padding on each side
     const usableDepth = this.cabinetSize.depth - 2;
@@ -1600,7 +1629,9 @@ class CraneGame {
     // Create prizes in a grid with some randomness
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const imageUrl = Random.itemInArray(this.images);
+        const imageUrl = this.images[
+          Math.floor(Math.random() * this.images.length)
+        ] as unknown as string;
 
         // Vary prize dimensions for more organic look (avoid flat shapes)
         const widthVariation = Random.numberBetween(0.95, 1.15);
@@ -1621,7 +1652,6 @@ class CraneGame {
           );
         } else if (shapeType === 1) {
           // Capsule shape (sphere + cylinder = plush toy shape)
-          const capsuleGroup = new THREE.Group();
           const cylinderHeight = this.prizeSize * heightVariation * 0.6;
           const radius = this.prizeSize * 0.5 * widthVariation;
 
@@ -1630,24 +1660,6 @@ class CraneGame {
             radius,
             cylinderHeight,
             16,
-          );
-          const topSphere = new THREE.SphereGeometry(
-            radius,
-            16,
-            8,
-            0,
-            Math.PI * 2,
-            0,
-            Math.PI / 2,
-          );
-          const bottomSphere = new THREE.SphereGeometry(
-            radius,
-            16,
-            8,
-            0,
-            Math.PI * 2,
-            Math.PI / 2,
-            Math.PI / 2,
           );
 
           // Merge geometries for capsule
@@ -1683,12 +1695,15 @@ class CraneGame {
           opacity: 1.0, // Ensure full opacity
         });
 
-        // Store original emissive intensity for later reset
-        (material as any).originalEmissiveIntensity = brightness;
+        // Store original emissive properties for later reset
+        material.userData = material.userData || {};
+        material.userData.originalEmissiveIntensity = brightness;
+        material.userData.originalEmissiveColor = new THREE.Color("#222222");
 
         const mesh = new THREE.Mesh(geometry, material);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        mesh.frustumCulled = false; // Ensure prizes are always rendered
 
         // Position in grid with slight randomness
         const x = offsetX + col * spacingX + Random.numberBetween(-0.15, 0.15);
@@ -1713,7 +1728,8 @@ class CraneGame {
         mesh.rotation.y = Random.numberBetween(0, Math.PI * 2);
 
         // Store shape info for better collision detection
-        (mesh as any).prizeRadius =
+        mesh.userData = mesh.userData || {};
+        mesh.userData.prizeRadius =
           shapeType === 2
             ? this.prizeSize * 0.6 * widthVariation
             : this.prizeSize * 0.5 * Math.max(widthVariation, depthVariation);
@@ -1738,7 +1754,9 @@ class CraneGame {
             "ball",
             "box",
             "cylinder",
-          ] as const),
+          ]) as "plush" | "ball" | "box" | "cylinder",
+          gripStrength: 0, // Will be set when grabbed
+          dropChance: 0, // Will be set when grabbed
         };
 
         this.prizes.push(prize);
@@ -1813,12 +1831,15 @@ class CraneGame {
         metalness: 0.1,
       });
 
-      // Store original emissive intensity for later reset
-      (material as any).originalEmissiveIntensity = brightness;
+      // Store original emissive properties for later reset
+      material.userData = material.userData || {};
+      material.userData.originalEmissiveIntensity = brightness;
+      material.userData.originalEmissiveColor = new THREE.Color("#222222");
 
       const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      mesh.frustumCulled = false; // Ensure prizes are always rendered
 
       // Drop from random height to let physics handle stacking
       const dropHeight = Random.numberBetween(2, 15);
@@ -1827,7 +1848,8 @@ class CraneGame {
       mesh.position.set(x, y, z);
       mesh.rotation.y = Random.numberBetween(0, Math.PI * 2);
 
-      (mesh as any).prizeRadius =
+      mesh.userData = mesh.userData || {};
+      mesh.userData.prizeRadius =
         shapeType === 2
           ? this.prizeSize * 0.6 * widthVariation
           : this.prizeSize * 0.5 * Math.max(widthVariation, depthVariation);
@@ -1852,7 +1874,9 @@ class CraneGame {
           "ball",
           "box",
           "cylinder",
-        ] as const),
+        ]) as "plush" | "ball" | "box" | "cylinder",
+        gripStrength: 0, // Will be set when grabbed
+        dropChance: 0, // Will be set when grabbed
       };
 
       this.prizes.push(prize);
@@ -1884,8 +1908,7 @@ class CraneGame {
   }
 
   setupControls() {
-    const moveSpeed = 0.3;
-    const keys = {
+    this.keys = {
       w: false,
       a: false,
       s: false,
@@ -1900,7 +1923,7 @@ class CraneGame {
     window.addEventListener("keydown", (e) => {
       // Handle both regular keys (lowercase) and arrow keys (as-is)
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      if (key in keys) (keys as any)[key] = true;
+      if (key in this.keys) this.keys[key] = true;
 
       if (
         (e.key === " " || e.key === " ") &&
@@ -1917,17 +1940,13 @@ class CraneGame {
     window.addEventListener("keyup", (e) => {
       // Handle both regular keys (lowercase) and arrow keys (as-is)
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      if (key in keys) (keys as any)[key] = false;
+      if (key in this.keys) this.keys[key] = false;
     });
-
-    // Store keys reference for movement
-    (this as any).keys = keys;
-    (this as any).moveSpeed = moveSpeed;
   }
 
   updateClawMovement() {
-    const keys = (this as any).keys;
-    const moveSpeed = (this as any).moveSpeed;
+    const keys = this.keys;
+    const moveSpeed = this.moveSpeed;
 
     if (
       this.isDescending ||
@@ -1939,10 +1958,10 @@ class CraneGame {
 
     // Calculate movement input (support both WASD and Arrow keys)
     const moveVector = new THREE.Vector3();
-    if (keys.w || keys.ArrowUp) moveVector.z -= moveSpeed;
-    if (keys.s || keys.ArrowDown) moveVector.z += moveSpeed;
-    if (keys.a || keys.ArrowLeft) moveVector.x -= moveSpeed;
-    if (keys.d || keys.ArrowRight) moveVector.x += moveSpeed;
+    if (keys["w"] || keys["ArrowUp"]) moveVector.z -= moveSpeed;
+    if (keys["s"] || keys["ArrowDown"]) moveVector.z += moveSpeed;
+    if (keys["a"] || keys["ArrowLeft"]) moveVector.x -= moveSpeed;
+    if (keys["d"] || keys["ArrowRight"]) moveVector.x += moveSpeed;
 
     if (moveVector.length() > 0) {
       // Add momentum to claw movement
@@ -2024,6 +2043,10 @@ class CraneGame {
     // Ascending
     if (this.isAscending) {
       this.clawPosition.y += 0.15;
+
+      // Check for prize drops during ascent
+      this.checkForPrizeDrops();
+
       if (this.clawPosition.y >= this.clawRestingHeight) {
         this.clawPosition.y = this.clawRestingHeight;
         this.isAscending = false;
@@ -2036,6 +2059,9 @@ class CraneGame {
       this.clawPosition.x += (this.binPosition.x - this.clawPosition.x) * 0.08;
       this.clawPosition.z += (this.binPosition.z - this.clawPosition.z) * 0.08;
 
+      // Check for prize drops during transport
+      this.checkForPrizeDrops();
+
       const distanceToBin = Math.sqrt(
         Math.pow(this.binPosition.x - this.clawPosition.x, 2) +
           Math.pow(this.binPosition.z - this.clawPosition.z, 2),
@@ -2046,25 +2072,23 @@ class CraneGame {
 
         // Immediately release prizes when we reach the bin
         console.log("Reached bin, releasing prizes now");
+        console.log(
+          `grabbedPrizes count before release: ${this.grabbedPrizes.length}`,
+        );
+        console.log(
+          `grabbedPrizes before release:`,
+          this.grabbedPrizes.map((p) => ({
+            id: p.mesh.id,
+            grabbed: p.grabbed,
+            position: p.mesh.position.toArray(),
+          })),
+        );
         this.releasePrizesPhysics();
 
         // Play prize drop sound only if prizes were actually grabbed
-        if (this.grabbedPrizes.length > 0) {
-          this.audioManager.playSound(
-            "prizeDrop",
-            0.4,
-            0.8 + Math.random() * 0.4,
-          );
-        }
-
-        // Show "TRY AGAIN" message and play depressing sound if no prizes were grabbed
-        if (this.grabbedPrizes.length === 0) {
-          setTimeout(() => {
-            this.showMessage("TRY AGAIN!");
-            // Play depressing lose sound (lower pitch, minor key feel)
-            this.audioManager.playSound("lose", 0.4, 0.6);
-          }, 500);
-        }
+        console.log(
+          `grabbedPrizes count after release: ${this.grabbedPrizes.length}`,
+        );
 
         // Open the claw
         setTimeout(() => {
@@ -2153,7 +2177,7 @@ class CraneGame {
     const maxPrizesToGrab = 1; // Japanese crane games: grab max 1 prize!
 
     // Find all prizes within grab range and calculate distances
-    const prizesInRange: Array<{ prize: Prize; distance: number }> = [];
+    const prizesInRange: { prize: Prize; distance: number }[] = [];
 
     this.prizes.forEach((prize) => {
       if (prize.grabbed) return;
@@ -2162,7 +2186,8 @@ class CraneGame {
       const distance = prize.mesh.position.distanceTo(this.clawPosition);
 
       // Get prize's effective radius for better collision
-      const prizeRadius = (prize.mesh as any).prizeRadius || 0.75;
+      const prizeRadius =
+        (prize.mesh.userData?.prizeRadius as number) || this.prizeRadius;
       const effectiveGrabDistance = grabRadius + prizeRadius;
 
       if (distance < effectiveGrabDistance) {
@@ -2188,16 +2213,27 @@ class CraneGame {
     for (let i = 0; i < Math.min(prizesInRange.length, maxPrizesToGrab); i++) {
       const { prize, distance } = prizesInRange[i];
 
-      // 65% chance to grab each prize (balanced for fairness)
-      if (Math.random() < 0.65) {
+      // 75% chance to grab each prize (more forgiving)
+      if (Math.random() < 0.75) {
         prize.grabbed = true;
         prize.settled = false;
+
+        // Set grip strength based on prize properties and grab quality
+        const baseGrip = 0.8 + Math.random() * 0.15; // 80-95% base grip (more reliable)
+        const distancePenalty = Math.max(0, (distance - 0.3) * 0.2); // Reduced penalty for distance
+        const weightPenalty = prize.weight * 0.05; // Reduced weight penalty
+
+        prize.gripStrength = Math.max(
+          0.5,
+          baseGrip - distancePenalty - weightPenalty,
+        );
+        prize.dropChance = (1 - prize.gripStrength) * 0.008; // Much lower base drop chance
+
         this.grabbedPrizes.push(prize);
         grabbedCount++;
 
-        const prizeRadius = (prize.mesh as any).prizeRadius || 0.75;
         console.log(
-          `Grabbed prize ${grabbedCount}! Distance: ${distance.toFixed(2)}`,
+          `Grabbed prize ${grabbedCount}! Distance: ${distance.toFixed(2)}, Grip: ${prize.gripStrength.toFixed(2)}`,
         );
 
         // Unsettle nearby prizes for realistic disturbance
@@ -2224,6 +2260,14 @@ class CraneGame {
 
   releasePrizesPhysics() {
     console.log(`Releasing prizes. Count: ${this.grabbedPrizes.length}`);
+    console.log(
+      `grabbedPrizes array:`,
+      this.grabbedPrizes.map((p) => ({
+        id: p.mesh.id,
+        grabbed: p.grabbed,
+        position: p.mesh.position.toArray(),
+      })),
+    );
 
     if (this.grabbedPrizes.length > 0) {
       console.log(`About to release ${this.grabbedPrizes.length} prizes`);
@@ -2235,12 +2279,37 @@ class CraneGame {
       // Store the prizes we're releasing in a local variable
       const prizesToRelease = [...this.grabbedPrizes];
       console.log(`Stored ${prizesToRelease.length} prizes to release`);
+      console.log(
+        `Prizes to release:`,
+        prizesToRelease.map((p) => ({
+          id: p.mesh?.id || "NO_ID",
+          grabbed: p.grabbed,
+          position: p.mesh?.position?.toArray() || "NO_POSITION",
+          meshValid: !!p.mesh,
+          meshInScene: p.mesh ? this.scene.children.includes(p.mesh) : false,
+        })),
+      );
 
       // Clear the grabbed prizes array immediately
       this.grabbedPrizes = [];
 
+      // Validate and release prizes
+      const validPrizesToRelease = prizesToRelease.filter((prize) => {
+        const isValid = prize && prize.mesh && prize.grabbed;
+        if (!isValid) {
+          console.log(`Invalid prize filtered out:`, {
+            prize,
+            hasMesh: !!prize?.mesh,
+            grabbed: prize?.grabbed,
+          });
+        }
+        return isValid;
+      });
+
+      console.log(`Valid prizes to release: ${validPrizesToRelease.length}`);
+
       // Release prizes and let them fall with physics
-      prizesToRelease.forEach((prize) => {
+      validPrizesToRelease.forEach((prize) => {
         prize.grabbed = false;
         prize.settled = false; // Mark as unsettled so it can fall
         // Give them a slight downward velocity to start falling
@@ -2249,7 +2318,10 @@ class CraneGame {
         // Reset visual effects when prize is released
         const material = prize.mesh.material as THREE.MeshStandardMaterial;
         material.emissiveIntensity =
-          (material as any).originalEmissiveIntensity || 0.05;
+          (material.userData?.originalEmissiveIntensity as number) || 0.05;
+        material.emissive =
+          (material.userData?.originalEmissiveColor as THREE.Color) ||
+          new THREE.Color("#222222");
 
         this.wonPrizes.push(prize);
       });
@@ -2258,12 +2330,35 @@ class CraneGame {
 
       // Remove won prizes from scene after they've fallen
       setTimeout(() => {
-        prizesToRelease.forEach((prize) => {
+        validPrizesToRelease.forEach((prize) => {
           this.scene.remove(prize.mesh);
           const index = this.prizes.indexOf(prize);
           if (index > -1) this.prizes.splice(index, 1);
         });
       }, 2000); // Give them 2 seconds to fall into the bin visually
+    } else {
+      console.log(`No prizes to release! grabbedPrizes array is empty`);
+      console.log(`Current grabbedPrizes state:`, this.grabbedPrizes);
+
+      // Debug: Check if any prizes have grabbed=true but aren't in the array
+      const orphanedPrizes = this.prizes.filter(
+        (p) => p.grabbed && !this.grabbedPrizes.includes(p),
+      );
+      console.log(
+        `Orphaned grabbed prizes:`,
+        orphanedPrizes.map((p) => ({
+          id: p.mesh.id,
+          grabbed: p.grabbed,
+          position: p.mesh.position.toArray(),
+        })),
+      );
+
+      // No prizes grabbed - show "TRY AGAIN" message and play lose sound
+      setTimeout(() => {
+        this.showMessage("TRY AGAIN!");
+        // Play depressing lose sound (lower pitch, minor key feel)
+        this.audioManager.playSound("lose", 0.4, 0.6);
+      }, 500);
     }
 
     this.updateUI();
@@ -2294,9 +2389,10 @@ class CraneGame {
         const targetY = this.clawPosition.y - 1.5; // Hang below claw
         const targetZ = this.clawPosition.z;
 
-        prize.mesh.position.x += (targetX - prize.mesh.position.x) * 0.2;
-        prize.mesh.position.y += (targetY - prize.mesh.position.y) * 0.2;
-        prize.mesh.position.z += (targetZ - prize.mesh.position.z) * 0.2;
+        // Use faster interpolation for more responsive following
+        prize.mesh.position.x += (targetX - prize.mesh.position.x) * 0.3;
+        prize.mesh.position.y += (targetY - prize.mesh.position.y) * 0.3;
+        prize.mesh.position.z += (targetZ - prize.mesh.position.z) * 0.3;
 
         // Reset velocity while being held
         prize.body.velocity.set(0, 0, 0);
@@ -2304,15 +2400,17 @@ class CraneGame {
         // Update body position to match mesh
         prize.body.position.copy(prize.mesh.position);
 
-        // Make grabbed prizes more visible by adding a slight glow
+        // Make grabbed prizes extremely visible with intense glow and color tint
         const material = prize.mesh.material as THREE.MeshStandardMaterial;
-        material.emissiveIntensity = 0.3; // Add glow to grabbed prizes
+        material.emissiveIntensity = 1.5; // Very strong glow to make grabbed prizes obvious
+        material.emissive = new THREE.Color(0x00ffff); // Bright cyan glow for grabbed prizes
 
-        // Debug: log grabbed prize position occasionally
-        if (Math.random() < 0.01) {
-          // Log ~1% of the time to avoid spam
+        // Debug: log grabbed prize position and array membership (increased frequency for testing)
+        if (Math.random() < 0.1) {
+          // Log ~10% of the time to see more detail
+          const inArray = this.grabbedPrizes.includes(prize);
           console.log(
-            `Grabbed prize position: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}`,
+            `Grabbed prize ${prize.mesh.id}: position: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}, inArray: ${inArray}`,
           );
           console.log(
             `Claw position: ${this.clawPosition.x.toFixed(2)}, ${this.clawPosition.y.toFixed(2)}, ${this.clawPosition.z.toFixed(2)}`,
@@ -2327,7 +2425,8 @@ class CraneGame {
         prize.body.position.copy(prize.mesh.position);
 
         // Prize-to-prize collision detection
-        const prizeRadius = (prize.mesh as any).prizeRadius || 0.75;
+        const prizeRadius =
+          prize.mesh.userData?.prizeRadius || this.prizeRadius;
 
         for (let i = 0; i < this.prizes.length; i++) {
           if (i === index) continue; // Skip self
@@ -2335,7 +2434,8 @@ class CraneGame {
           const otherPrize = this.prizes[i];
           if (otherPrize.grabbed) continue; // Skip grabbed prizes
 
-          const otherRadius = (otherPrize.mesh as any).prizeRadius || 0.75;
+          const otherRadius =
+            otherPrize.mesh.userData?.prizeRadius || this.prizeRadius;
           const distance = prize.mesh.position.distanceTo(
             otherPrize.mesh.position,
           );
@@ -2453,17 +2553,118 @@ class CraneGame {
 
   animateCraneMechanism() {
     // Animate main gear
-    const mainGear = (this as any).mainGear;
+    const mainGear = this.mainGear;
     if (mainGear) {
       mainGear.rotation.z += 0.02; // Slow rotation
     }
 
     // Animate small gears (counter-rotating)
-    const smallGears = (this as any).smallGears;
+    const smallGears = this.smallGears;
     if (smallGears) {
       smallGears.forEach((gear: THREE.Mesh) => {
         gear.rotation.z -= 0.04; // Faster counter-rotation
       });
+    }
+  }
+
+  checkForPrizeDrops() {
+    console.log(
+      `Checking for prize drops. grabbedPrizes count: ${this.grabbedPrizes.length}`,
+    );
+    console.log(
+      `Current grabbedPrizes:`,
+      this.grabbedPrizes.map((p) => ({
+        id: p.mesh.id,
+        grabbed: p.grabbed,
+        position: p.mesh.position.toArray(),
+        grip: p.gripStrength.toFixed(2),
+      })),
+    );
+
+    // Check each grabbed prize to see if it should drop
+    for (let i = this.grabbedPrizes.length - 1; i >= 0; i--) {
+      const prize = this.grabbedPrizes[i];
+
+      // Calculate drop probability based on multiple factors
+      const distanceFromClaw = prize.mesh.position.distanceTo(
+        this.clawPosition,
+      );
+      const movementSpeed = this.clawVelocity.length();
+      const heightFactor = Math.max(0, (prize.mesh.position.y + 5) / 15); // Higher = more likely to drop
+
+      // Base drop chance plus movement and height factors (reduced for better balance)
+      const totalDropChance =
+        prize.dropChance + movementSpeed * 0.05 + heightFactor * 0.002;
+
+      console.log(
+        `Prize ${prize.mesh.id}: distance=${distanceFromClaw.toFixed(2)}, speed=${movementSpeed.toFixed(2)}, height=${prize.mesh.position.y.toFixed(2)}, dropChance=${totalDropChance.toFixed(4)}, random=${Math.random().toFixed(4)}`,
+      );
+
+      if (Math.random() < totalDropChance) {
+        // Prize drops!
+        console.log(
+          `Prize dropped! Grip: ${prize.gripStrength.toFixed(2)}, Distance: ${distanceFromClaw.toFixed(2)}`,
+        );
+
+        // Remove from grabbed array
+        this.grabbedPrizes.splice(i, 1);
+
+        // Reset prize state
+        prize.grabbed = false;
+        prize.settled = false;
+
+        // Give it a slight downward and outward velocity
+        const dropDirection = new THREE.Vector3(
+          (Math.random() - 0.5) * 0.1,
+          -Math.random() * 0.05 - 0.02,
+          (Math.random() - 0.5) * 0.1,
+        );
+        prize.body.velocity.copy(dropDirection);
+
+        // Play drop sound
+        this.audioManager.playSound(
+          "prizeDrop",
+          0.3,
+          0.8 + Math.random() * 0.4,
+        );
+
+        // Show drop effect
+        this.showPrizeDropEffect(prize.mesh.position);
+      }
+    }
+
+    console.log(
+      `After drop check, grabbedPrizes count: ${this.grabbedPrizes.length}`,
+    );
+  }
+
+  showPrizeDropEffect(position: THREE.Vector3) {
+    // Create a simple particle burst effect when prize drops
+    const particleCount = 5;
+    for (let i = 0; i < particleCount; i++) {
+      setTimeout(() => {
+        // Create a temporary visual indicator
+        const indicator = document.createElement("div");
+        indicator.style.position = "absolute";
+        indicator.style.left = `${Math.random() * 20 + position.x * 10}px`;
+        indicator.style.top = `${Math.random() * 20 + (15 - position.y) * 10}px`;
+        indicator.style.width = "4px";
+        indicator.style.height = "4px";
+        indicator.style.backgroundColor = "#ffff00";
+        indicator.style.borderRadius = "50%";
+        indicator.style.opacity = "0.8";
+        indicator.style.pointerEvents = "none";
+        indicator.style.zIndex = "1000";
+
+        document.body.appendChild(indicator);
+
+        // Animate and remove
+        setTimeout(() => {
+          indicator.style.transform = "scale(0)";
+          indicator.style.opacity = "0";
+          setTimeout(() => indicator.remove(), 300);
+        }, 100);
+      }, i * 50);
     }
   }
 
@@ -2472,10 +2673,9 @@ class CraneGame {
     this.animateCraneMechanism();
 
     // Animate LED light strips (chase effect)
-    const ledStrips = (this as any).ledStrips;
-    if (ledStrips) {
+    if (this.ledStrips) {
       const time = Date.now() * 0.001;
-      ledStrips.forEach((led: THREE.Mesh, i: number) => {
+      this.ledStrips.forEach((led: THREE.Mesh, i: number) => {
         const mat = led.material as THREE.MeshStandardMaterial;
         // Chase effect
         const phase = (time * 2 + i * 0.3) % (Math.PI * 2);
@@ -2491,8 +2691,8 @@ class CraneGame {
     }
 
     // Animate floor grid pattern
-    const floorCanvas = (this as any).floorCanvas;
-    const floorTexture = (this as any).floorTexture;
+    const floorCanvas = this.floorCanvas;
+    const floorTexture = this.floorTexture;
     if (floorCanvas && floorTexture) {
       const ctx = floorCanvas.getContext("2d")!;
       const time = Date.now() * 0.001;
@@ -2529,8 +2729,8 @@ class CraneGame {
     }
 
     // Animate background gradient
-    const bgCanvas = (this as any).bgCanvas;
-    const bgContext = (this as any).bgContext;
+    const bgCanvas = this.bgCanvas;
+    const bgContext = this.bgContext;
     if (bgCanvas && bgContext) {
       const time = Date.now() * 0.001;
 
@@ -2568,9 +2768,15 @@ class CraneGame {
         bgContext.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
       }
 
-      // Update texture
-      if (this.scene.children[0] && (this.scene.children[0] as any).material) {
-        const material = (this.scene.children[0] as any).material;
+      // Update texture for background sphere
+      const backgroundSphere = this.scene.children.find(
+        (child) =>
+          child instanceof THREE.Mesh &&
+          (child.material as THREE.MeshBasicMaterial).map,
+      ) as THREE.Mesh | undefined;
+
+      if (backgroundSphere && backgroundSphere.material) {
+        const material = backgroundSphere.material as THREE.MeshBasicMaterial;
         if (material.map) {
           material.map.needsUpdate = true;
         }
@@ -2578,13 +2784,12 @@ class CraneGame {
     }
 
     // Animate floating particles
-    const particles = (this as any).particles;
-    if (particles) {
+    if (this.particles) {
       const time = Date.now() * 0.001;
-      particles.forEach((particle: THREE.Mesh) => {
-        const floatSpeed = (particle as any).floatSpeed;
-        const floatOffset = (particle as any).floatOffset;
-        const horizontalSpeed = (particle as any).horizontalSpeed;
+      this.particles.forEach((particle: THREE.Mesh) => {
+        const floatSpeed = particle.userData?.floatSpeed || 0.02;
+        const floatOffset = particle.userData?.floatOffset || 0;
+        const horizontalSpeed = particle.userData?.horizontalSpeed || 0.01;
 
         // Vertical floating
         particle.position.y += Math.sin(time * floatSpeed + floatOffset) * 0.02;
@@ -2596,7 +2801,7 @@ class CraneGame {
         const mat = particle.material as THREE.MeshBasicMaterial;
         mat.opacity = 0.4 + Math.sin(time * 2 + floatOffset) * 0.3;
 
-        // Wrap around
+        // Wrap around boundaries
         if (particle.position.y > 40) particle.position.y = -20;
         if (particle.position.y < -20) particle.position.y = 40;
         if (particle.position.x > 50) particle.position.x = -50;

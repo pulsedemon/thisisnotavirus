@@ -4,7 +4,7 @@ import Playlist from "./Playlist";
 declare let gtag: (
   command: "config" | "event",
   targetId: string,
-  config?: Record<string, any>
+  config?: Record<string, unknown>,
 ) => void;
 
 interface VirusLoader {
@@ -48,7 +48,7 @@ export function showVirusThumbnailOverlay({
   const customViruses = playlist.savedMixes.map((mix) => ({
     value: `mixed:${mix.id}`,
     label: `${formatVirusName(mix.primary)} / ${formatVirusName(
-      mix.secondary
+      mix.secondary,
     )} (${Math.round(mix.mixRatio * 100)}%)`,
     type: "custom",
     mix: {
@@ -61,7 +61,7 @@ export function showVirusThumbnailOverlay({
   const overlay = document.createElement("div");
   overlay.id = "virus-thumbnail-overlay";
   overlay.className = "virus-overlay";
-  
+
   overlay.innerHTML = `
     <div class="virus-overlay-header">
       <h2 class="virus-overlay-title">Select Virus</h2>
@@ -90,8 +90,10 @@ export function showVirusThumbnailOverlay({
           <div class="virus-section-title-wrapper">
             <h3 class="virus-section-title">Viruses</h3>
           </div>
-          <div class="virus-thumbnail-grid ${isMobile ? 'mobile' : ''}">
-            ${viruses.map(virus => `
+          <div class="virus-thumbnail-grid ${isMobile ? "mobile" : ""}">
+            ${viruses
+              .map(
+                (virus) => `
               <div class="virus-thumbnail-item" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} virus">
                 <div class="virus-thumbnail-preview">
                   <iframe 
@@ -107,15 +109,21 @@ export function showVirusThumbnailOverlay({
                 </div>
                 <div class="virus-label">${virus.label}</div>
               </div>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </div>
         </div>
 
-        ${customViruses.length > 0 ? `
+        ${
+          customViruses.length > 0
+            ? `
         <div class="virus-section custom-viruses">
           <h3 class="virus-section-title">Mixes</h3>
-          <div class="virus-thumbnail-grid ${isMobile ? 'mobile' : ''}">
-            ${customViruses.map(virus => `
+          <div class="virus-thumbnail-grid ${isMobile ? "mobile" : ""}">
+            ${customViruses
+              .map(
+                (virus) => `
               <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} custom virus">
                 <div class="virus-thumbnail-preview custom-preview">
                   <div class="custom-virus-display">
@@ -134,21 +142,25 @@ export function showVirusThumbnailOverlay({
                 </div>
                 <div class="virus-label custom-label">${virus.label}</div>
               </div>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </div>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
     </div>
   `;
 
   // Get references to key elements
   const searchInput = overlay.querySelector(
-    ".virus-search"
+    ".virus-search",
   ) as HTMLInputElement;
   const thumbnailItems = overlay.querySelectorAll(".virus-thumbnail-item");
   const closeBtn = overlay.querySelector(
-    ".virus-thumbnail-close"
+    ".virus-thumbnail-close",
   ) as HTMLButtonElement;
 
   // Search functionality
@@ -171,10 +183,10 @@ export function showVirusThumbnailOverlay({
         if (customVirus) {
           const label = customVirus.label.toLowerCase();
           const primaryVirus = formatVirusName(
-            customVirus.mix.primary
+            customVirus.mix.primary,
           ).toLowerCase();
           const secondaryVirus = formatVirusName(
-            customVirus.mix.secondary
+            customVirus.mix.secondary,
           ).toLowerCase();
 
           matches =
@@ -266,7 +278,7 @@ export function showVirusThumbnailOverlay({
         e.preventDefault();
         const nextIndex = Math.min(
           currentFocusIndex + Math.floor(filteredItems.length / 4) || 1,
-          filteredItems.length - 1
+          filteredItems.length - 1,
         );
         updateFocus(nextIndex);
         break;
@@ -276,7 +288,7 @@ export function showVirusThumbnailOverlay({
         e.preventDefault();
         const prevIndex = Math.max(
           currentFocusIndex - Math.floor(filteredItems.length / 4) || 1,
-          0
+          0,
         );
         updateFocus(prevIndex);
         break;
@@ -376,7 +388,7 @@ export function showVirusThumbnailOverlay({
 
   const handleThumbnailKeydown = (
     e: KeyboardEvent,
-    htmlWrapper: HTMLElement
+    htmlWrapper: HTMLElement,
   ) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
