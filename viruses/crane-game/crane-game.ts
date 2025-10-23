@@ -416,7 +416,470 @@ class CraneGame {
     // Create prize bin/chute
     this.createPrizeBin();
 
+    // Add realistic details
+    this.addControlPanel();
+    this.addLEDLightStrips();
+    this.addInternalLighting();
+    this.addMechanicalDetails();
+    this.addCabinetDetails();
+    this.addGlassDecals();
+
     this.scene.add(this.cabinet);
+  }
+
+  addControlPanel() {
+    // Control panel on the front of the cabinet
+    const panelWidth = 8;
+    const panelHeight = 4;
+    const panelDepth = 1;
+    const panelY = -10;
+    const panelZ = this.cabinetSize.depth / 2 + panelDepth / 2;
+
+    // Main panel box
+    const panelGeometry = new THREE.BoxGeometry(
+      panelWidth,
+      panelHeight,
+      panelDepth,
+    );
+    const panelMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2a2a2a,
+      metalness: 0.5,
+      roughness: 0.6,
+    });
+    const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+    panel.position.set(0, panelY, panelZ);
+    this.cabinet.add(panel);
+
+    // Large red START button
+    const startButtonGeometry = new THREE.CylinderGeometry(0.6, 0.6, 0.3, 16);
+    const startButtonMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff0000,
+      emissive: 0xff0000,
+      emissiveIntensity: 0.5,
+      metalness: 0.3,
+      roughness: 0.4,
+    });
+    const startButton = new THREE.Mesh(
+      startButtonGeometry,
+      startButtonMaterial,
+    );
+    startButton.rotation.x = Math.PI / 2;
+    startButton.position.set(0, panelY, panelZ + panelDepth / 2 + 0.2);
+    this.cabinet.add(startButton);
+
+    // Joystick
+    const joystickBaseGeometry = new THREE.CylinderGeometry(0.5, 0.6, 0.4, 16);
+    const joystickBaseMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1a1a1a,
+      metalness: 0.7,
+      roughness: 0.3,
+    });
+    const joystickBase = new THREE.Mesh(
+      joystickBaseGeometry,
+      joystickBaseMaterial,
+    );
+    joystickBase.position.set(-3, panelY, panelZ + panelDepth / 2 + 0.2);
+    this.cabinet.add(joystickBase);
+
+    // Joystick stick
+    const joystickStickGeometry = new THREE.CylinderGeometry(
+      0.15,
+      0.15,
+      1.5,
+      8,
+    );
+    const joystickStickMaterial = new THREE.MeshStandardMaterial({
+      color: 0x333333,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+    const joystickStick = new THREE.Mesh(
+      joystickStickGeometry,
+      joystickStickMaterial,
+    );
+    joystickStick.position.set(
+      -3,
+      panelY + 0.75,
+      panelZ + panelDepth / 2 + 0.2,
+    );
+    this.cabinet.add(joystickStick);
+
+    // Joystick ball
+    const joystickBallGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+    const joystickBallMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff0000,
+      metalness: 0.4,
+      roughness: 0.5,
+    });
+    const joystickBall = new THREE.Mesh(
+      joystickBallGeometry,
+      joystickBallMaterial,
+    );
+    joystickBall.position.set(-3, panelY + 1.5, panelZ + panelDepth / 2 + 0.2);
+    this.cabinet.add(joystickBall);
+
+    // Coin slot
+    const coinSlotGeometry = new THREE.BoxGeometry(1.5, 0.3, 0.2);
+    const coinSlotMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0a0a0a,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+    const coinSlot = new THREE.Mesh(coinSlotGeometry, coinSlotMaterial);
+    coinSlot.position.set(3, panelY + 1, panelZ + panelDepth / 2 + 0.1);
+    this.cabinet.add(coinSlot);
+
+    // "COIN" label
+    const coinLabelCanvas = document.createElement("canvas");
+    coinLabelCanvas.width = 128;
+    coinLabelCanvas.height = 32;
+    const ctx = coinLabelCanvas.getContext("2d")!;
+    ctx.fillStyle = "#ffff00";
+    ctx.font = "bold 24px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("COIN", 64, 24);
+    const coinLabelTexture = new THREE.CanvasTexture(coinLabelCanvas);
+    const coinLabelMaterial = new THREE.MeshBasicMaterial({
+      map: coinLabelTexture,
+      transparent: true,
+    });
+    const coinLabel = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 0.25),
+      coinLabelMaterial,
+    );
+    coinLabel.position.set(3, panelY + 1.5, panelZ + panelDepth / 2 + 0.3);
+    this.cabinet.add(coinLabel);
+  }
+
+  addLEDLightStrips() {
+    // Animated LED strips around the cabinet edges
+    const ledStrips: THREE.Mesh[] = [];
+
+    // Top edge LED strip housing (continuous strip around marquee)
+    const topY = 12;
+    const stripHousingGeometry = new THREE.TorusGeometry(11, 0.2, 8, 50);
+    const stripHousingMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff1493,
+      metalness: 0.6,
+      roughness: 0.4,
+      emissive: 0xff1493,
+      emissiveIntensity: 0.4,
+    });
+    const stripHousing = new THREE.Mesh(
+      stripHousingGeometry,
+      stripHousingMaterial,
+    );
+    stripHousing.rotation.x = Math.PI / 2;
+    stripHousing.position.y = topY;
+    this.cabinet.add(stripHousing);
+
+    // LEDs mounted on the strip
+    const ledCount = 20;
+    const ledSize = 0.25;
+
+    for (let i = 0; i < ledCount; i++) {
+      const ledGeometry = new THREE.SphereGeometry(ledSize, 8, 8);
+      const ledMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff00ff,
+        emissive: 0xff00ff,
+        emissiveIntensity: 2,
+      });
+      const led = new THREE.Mesh(ledGeometry, ledMaterial);
+
+      // Position around the top perimeter, embedded in housing
+      const angle = (i / ledCount) * Math.PI * 2;
+      const radius = 11;
+      led.position.set(
+        Math.cos(angle) * radius,
+        topY,
+        Math.sin(angle) * radius,
+      );
+
+      this.cabinet.add(led);
+      ledStrips.push(led);
+    }
+
+    // Store for animation
+    (this as any).ledStrips = ledStrips;
+
+    // Side LED strip housings (vertical) - full height along glass edges
+    const glassHeight = this.cabinetSize.height;
+    const glassBottom = 2.5 - glassHeight / 2; // -10
+    const sideStripCount = 10; // More LEDs for full height
+
+    // Left and right edges of front glass
+    const edgePositions = [
+      -this.cabinetSize.width / 2,
+      this.cabinetSize.width / 2,
+    ]; // -10, 10
+
+    edgePositions.forEach((x) => {
+      // Vertical strip housing - full height
+      const verticalHousingGeometry = new THREE.BoxGeometry(
+        0.6,
+        glassHeight,
+        0.4,
+      );
+      const verticalHousingMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff1493,
+        metalness: 0.6,
+        roughness: 0.4,
+        emissive: 0xff1493,
+        emissiveIntensity: 0.4,
+      });
+      const verticalHousing = new THREE.Mesh(
+        verticalHousingGeometry,
+        verticalHousingMaterial,
+      );
+      verticalHousing.position.set(x, 2.5, this.cabinetSize.depth / 2 + 0.3);
+      this.cabinet.add(verticalHousing);
+
+      // LEDs mounted on vertical strips - evenly spaced
+      const ledSpacing = glassHeight / (sideStripCount + 1);
+      for (let i = 1; i <= sideStripCount; i++) {
+        const ledGeometry = new THREE.SphereGeometry(ledSize, 8, 8);
+        const ledMaterial = new THREE.MeshStandardMaterial({
+          color: 0x00ffff,
+          emissive: 0x00ffff,
+          emissiveIntensity: 2,
+        });
+        const led = new THREE.Mesh(ledGeometry, ledMaterial);
+        const yPos = glassBottom + i * ledSpacing;
+        led.position.set(x, yPos, this.cabinetSize.depth / 2 + 0.4);
+        this.cabinet.add(led);
+        ledStrips.push(led);
+      }
+    });
+  }
+
+  addInternalLighting() {
+    // Spotlights inside cabinet pointing at prizes
+    const spotlightPositions = [
+      { x: -5, z: -5 },
+      { x: 5, z: -5 },
+      { x: -5, z: 5 },
+      { x: 0, z: 0 },
+    ];
+
+    spotlightPositions.forEach((pos) => {
+      const spotlight = new THREE.SpotLight(0xffffff, 1.5);
+      spotlight.position.set(pos.x, 8, pos.z);
+      spotlight.target.position.set(pos.x, -10, pos.z);
+      spotlight.angle = Math.PI / 6;
+      spotlight.penumbra = 0.5;
+      spotlight.castShadow = false;
+      this.cabinet.add(spotlight);
+      this.cabinet.add(spotlight.target);
+    });
+
+    // Colored accent lights
+    const colors = [0xff00ff, 0x00ffff, 0xffff00];
+    colors.forEach((color, i) => {
+      const light = new THREE.PointLight(color, 0.5, 20);
+      light.position.set((i - 1) * 6, 5, 0);
+      this.cabinet.add(light);
+    });
+  }
+
+  addMechanicalDetails() {
+    // Motor/mechanism box at the top
+    const motorBoxGeometry = new THREE.BoxGeometry(3, 2, 3);
+    const motorBoxMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      metalness: 0.3,
+      roughness: 0.7,
+    });
+    const motorBox = new THREE.Mesh(motorBoxGeometry, motorBoxMaterial);
+    motorBox.position.set(0, 11, 0);
+    this.cabinet.add(motorBox);
+
+    // Pulley system
+    const pulleyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.5, 16);
+    const pulleyMaterial = new THREE.MeshStandardMaterial({
+      color: 0x222222,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+    [-1, 1].forEach((x) => {
+      const pulley = new THREE.Mesh(pulleyGeometry, pulleyMaterial);
+      pulley.position.set(x, 11.5, 0);
+      pulley.rotation.x = Math.PI / 2;
+      this.cabinet.add(pulley);
+    });
+
+    // Metal tracks/rails
+    const trackGeometry = new THREE.BoxGeometry(0.2, 0.3, 18);
+    const trackMaterial = new THREE.MeshStandardMaterial({
+      color: 0x888888,
+      metalness: 0.9,
+      roughness: 0.3,
+    });
+    [-10, 10].forEach((x) => {
+      const track = new THREE.Mesh(trackGeometry, trackMaterial);
+      track.position.set(x, 10, 0);
+      this.cabinet.add(track);
+    });
+
+    // Support beams
+    const beamGeometry = new THREE.BoxGeometry(0.3, 20, 0.3);
+    const beamMaterial = new THREE.MeshStandardMaterial({
+      color: 0x666666,
+      metalness: 0.7,
+      roughness: 0.5,
+    });
+    [
+      { x: -10, z: -10 },
+      { x: 10, z: -10 },
+      { x: -10, z: 10 },
+      { x: 10, z: 10 },
+    ].forEach((pos) => {
+      const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+      beam.position.set(pos.x, 0, pos.z);
+      this.cabinet.add(beam);
+    });
+  }
+
+  addCabinetDetails() {
+    // Speaker grills on sides
+    const grillGeometry = new THREE.PlaneGeometry(2, 3);
+    const grillCanvas = document.createElement("canvas");
+    grillCanvas.width = 64;
+    grillCanvas.height = 96;
+    const ctx = grillCanvas.getContext("2d")!;
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, grillCanvas.width, grillCanvas.height);
+    ctx.fillStyle = "#666666";
+    for (let y = 5; y < grillCanvas.height; y += 10) {
+      for (let x = 5; x < grillCanvas.width; x += 8) {
+        ctx.fillRect(x, y, 4, 4);
+      }
+    }
+    const grillTexture = new THREE.CanvasTexture(grillCanvas);
+    const grillMaterial = new THREE.MeshBasicMaterial({ map: grillTexture });
+
+    [-11.5, 11.5].forEach((x) => {
+      const grill = new THREE.Mesh(grillGeometry, grillMaterial);
+      grill.position.set(x, 0, 0);
+      grill.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2;
+      this.cabinet.add(grill);
+    });
+
+    // Ventilation slots
+    const ventGeometry = new THREE.BoxGeometry(4, 0.2, 0.5);
+    const ventMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0a0a0a,
+      metalness: 0.5,
+      roughness: 0.7,
+    });
+    [0, 1, 2].forEach((i) => {
+      const vent = new THREE.Mesh(ventGeometry, ventMaterial);
+      vent.position.set(-6, -15 + i * 1, 11.5);
+      this.cabinet.add(vent);
+    });
+
+    // Coin return slot
+    const coinReturnGeometry = new THREE.BoxGeometry(1, 0.4, 0.3);
+    const coinReturnMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0a0a0a,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+    const coinReturn = new THREE.Mesh(coinReturnGeometry, coinReturnMaterial);
+    coinReturn.position.set(5, -11, 11.5);
+    this.cabinet.add(coinReturn);
+
+    // Decorative screws/bolts
+    const screwGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.1, 8);
+    const screwMaterial = new THREE.MeshStandardMaterial({
+      color: 0x888888,
+      metalness: 0.9,
+      roughness: 0.3,
+    });
+    [
+      { x: -10, y: 10, z: 10 },
+      { x: 10, y: 10, z: 10 },
+      { x: -10, y: -10, z: 10 },
+      { x: 10, y: -10, z: 10 },
+    ].forEach((pos) => {
+      const screw = new THREE.Mesh(screwGeometry, screwMaterial);
+      screw.position.set(pos.x, pos.y, pos.z + 0.5);
+      screw.rotation.x = Math.PI / 2;
+      this.cabinet.add(screw);
+    });
+  }
+
+  addGlassDecals() {
+    // PUSH button instructions in Japanese on front glass
+    const instructionCanvas = document.createElement("canvas");
+    instructionCanvas.width = 256;
+    instructionCanvas.height = 128;
+    const ctx = instructionCanvas.getContext("2d")!;
+
+    // Background
+    ctx.fillStyle = "rgba(255, 255, 0, 0.9)";
+    ctx.fillRect(0, 0, instructionCanvas.width, instructionCanvas.height);
+    ctx.strokeStyle = "#ff0000";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(
+      5,
+      5,
+      instructionCanvas.width - 10,
+      instructionCanvas.height - 10,
+    );
+
+    // Text
+    ctx.fillStyle = "#ff0000";
+    ctx.font = "bold 48px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("PUSH", 128, 50);
+    ctx.font = "bold 32px Arial";
+    ctx.fillText("ボタン", 128, 90);
+
+    const instructionTexture = new THREE.CanvasTexture(instructionCanvas);
+    const instructionMaterial = new THREE.MeshBasicMaterial({
+      map: instructionTexture,
+      transparent: true,
+      opacity: 0.8,
+    });
+    const instructionDecal = new THREE.Mesh(
+      new THREE.PlaneGeometry(4, 2),
+      instructionMaterial,
+    );
+    instructionDecal.position.set(-5, 3, 10.1);
+    this.cabinet.add(instructionDecal);
+
+    // Warning sticker
+    const warningCanvas = document.createElement("canvas");
+    warningCanvas.width = 128;
+    warningCanvas.height = 128;
+    const wctx = warningCanvas.getContext("2d")!;
+    wctx.fillStyle = "#ffff00";
+    wctx.beginPath();
+    wctx.moveTo(64, 10);
+    wctx.lineTo(118, 108);
+    wctx.lineTo(10, 108);
+    wctx.closePath();
+    wctx.fill();
+    wctx.strokeStyle = "#ff0000";
+    wctx.lineWidth = 4;
+    wctx.stroke();
+    wctx.fillStyle = "#000000";
+    wctx.font = "bold 72px Arial";
+    wctx.textAlign = "center";
+    wctx.fillText("!", 64, 90);
+
+    const warningTexture = new THREE.CanvasTexture(warningCanvas);
+    const warningMaterial = new THREE.MeshBasicMaterial({
+      map: warningTexture,
+      transparent: true,
+      opacity: 0.8,
+    });
+    const warningDecal = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 1.5),
+      warningMaterial,
+    );
+    warningDecal.position.set(5, 6, 10.1);
+    this.cabinet.add(warningDecal);
   }
 
   addJapaneseText(marquee: THREE.Mesh, marqueeHeight: number) {
@@ -566,10 +1029,13 @@ class CraneGame {
     const cableMaterial = new THREE.MeshStandardMaterial({
       color: 0x333333,
       metalness: 0.8,
+      depthTest: false,
     });
     // Start with a placeholder geometry, will be updated in updateClaw
     const cableGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 8);
     this.clawArm = new THREE.Mesh(cableGeometry, cableMaterial);
+    // Make cable always render on top
+    this.clawArm.renderOrder = 999;
     this.claw.add(this.clawArm);
 
     // Claw base (connector) - bright and glowing
@@ -582,6 +1048,7 @@ class CraneGame {
     });
     const base = new THREE.Mesh(baseGeometry, baseMaterial);
     base.position.y = 0;
+    base.renderOrder = 999;
     this.claw.add(base);
 
     // Three prongs - bright yellow with glow
@@ -600,12 +1067,14 @@ class CraneGame {
       const prongMesh = new THREE.Mesh(prongGeometry, prongMaterial);
       prongMesh.position.y = -1;
       prongMesh.castShadow = true;
+      prongMesh.renderOrder = 999;
 
       // Claw tip
       const tipGeometry = new THREE.ConeGeometry(0.15, 0.5, 8);
       const tip = new THREE.Mesh(tipGeometry, prongMaterial);
       tip.position.y = -2.25;
       tip.castShadow = true;
+      tip.renderOrder = 999;
 
       prong.add(prongMesh);
       prong.add(tip);
@@ -1376,6 +1845,25 @@ class CraneGame {
   };
 
   updateArcadeEffects() {
+    // Animate LED light strips (chase effect)
+    const ledStrips = (this as any).ledStrips;
+    if (ledStrips) {
+      const time = Date.now() * 0.001;
+      ledStrips.forEach((led: THREE.Mesh, i: number) => {
+        const mat = led.material as THREE.MeshStandardMaterial;
+        // Chase effect
+        const phase = (time * 2 + i * 0.3) % (Math.PI * 2);
+        const intensity = Math.sin(phase) * 1 + 2;
+        mat.emissiveIntensity = Math.max(0.5, intensity);
+
+        // Color cycling
+        const hue = (time * 30 + i * 10) % 360;
+        const color = new THREE.Color().setHSL(hue / 360, 1, 0.5);
+        mat.emissive = color;
+        mat.color = color;
+      });
+    }
+
     // Animate floor grid pattern
     const floorCanvas = (this as any).floorCanvas;
     const floorTexture = (this as any).floorTexture;
