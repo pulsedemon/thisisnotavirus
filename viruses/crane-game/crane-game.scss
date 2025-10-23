@@ -1,0 +1,75 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+#container {
+  width: 100vw;
+  height: 100vh;
+  cursor: crosshair;
+  
+  canvas {
+    display: block;
+  }
+}
+
+.ui-overlay {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  z-index: 100;
+  
+  .instruction {
+    margin: 5px 0;
+    animation: pulse 2s infinite;
+  }
+  
+  .coins {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.win-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffff00;
+  font-size: 48px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  text-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00;
+  animation: winAnimation 1s ease-out;
+  pointer-events: none;
+  z-index: 200;
+}
+
+@keyframes winAnimation {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
