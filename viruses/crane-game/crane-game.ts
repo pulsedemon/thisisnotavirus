@@ -1629,9 +1629,8 @@ class CraneGame {
     // Create prizes in a grid with some randomness
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const imageUrl = this.images[
-          Math.floor(Math.random() * this.images.length)
-        ] as unknown as string;
+        const imageUrl =
+          this.images[Math.floor(Math.random() * this.images.length)];
 
         // Vary prize dimensions for more organic look (avoid flat shapes)
         const widthVariation = Random.numberBetween(0.95, 1.15);
@@ -2426,7 +2425,7 @@ class CraneGame {
 
         // Prize-to-prize collision detection
         const prizeRadius =
-          prize.mesh.userData?.prizeRadius || this.prizeRadius;
+          (prize.mesh.userData?.prizeRadius as number) || this.prizeRadius;
 
         for (let i = 0; i < this.prizes.length; i++) {
           if (i === index) continue; // Skip self
@@ -2435,7 +2434,8 @@ class CraneGame {
           if (otherPrize.grabbed) continue; // Skip grabbed prizes
 
           const otherRadius =
-            otherPrize.mesh.userData?.prizeRadius || this.prizeRadius;
+            (otherPrize.mesh.userData?.prizeRadius as number) ||
+            this.prizeRadius;
           const distance = prize.mesh.position.distanceTo(
             otherPrize.mesh.position,
           );
@@ -2787,9 +2787,10 @@ class CraneGame {
     if (this.particles) {
       const time = Date.now() * 0.001;
       this.particles.forEach((particle: THREE.Mesh) => {
-        const floatSpeed = particle.userData?.floatSpeed || 0.02;
-        const floatOffset = particle.userData?.floatOffset || 0;
-        const horizontalSpeed = particle.userData?.horizontalSpeed || 0.01;
+        const floatSpeed = (particle.userData?.floatSpeed as number) || 0.02;
+        const floatOffset = (particle.userData?.floatOffset as number) || 0;
+        const horizontalSpeed =
+          (particle.userData?.horizontalSpeed as number) || 0.01;
 
         // Vertical floating
         particle.position.y += Math.sin(time * floatSpeed + floatOffset) * 0.02;
