@@ -12,6 +12,301 @@ interface Prize {
   grabbed: boolean;
   settled: boolean; // True when prize has come to rest
   imageUrl: string;
+  weight: number;
+  deformability: number;
+  bounciness: number;
+  materialType: "plush" | "ball" | "box" | "cylinder";
+}
+
+class CraneRope {
+  segments: THREE.Mesh[] = [];
+  joints: THREE.Vector3[] = [];
+  segmentLength = 0.5;
+  segmentCount = 20;
+  damping = 0.98;
+  stiffness = 0.95;
+
+  constructor(startPos: THREE.Vector3, endPos: THREE.Vector3) {
+    this.createRope(startPos, endPos);
+  }
+
+  createRope(start: THREE.Vector3, end: THREE.Vector3) {
+    // Create rope segments with physics
+    for (let i = 0; i <= this.segmentCount; i++) {
+      const geometry = new THREE.CylinderGeometry(
+        0.02,
+        0.02,
+        this.segmentLength,
+      );
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x333333,
+        metalness: 0.8,
+        roughness: 0.2,
+      });
+      const segment = new THREE.Mesh(geometry, material);
+
+      // Position segments along rope
+      const t = i / this.segmentCount;
+      segment.position.lerpVectors(start, end, t);
+      this.segments.push(segment);
+
+      this.joints.push(segment.position.clone());
+    }
+  }
+
+  updatePhysics(gravity = 0.02, wind = 0.01) {
+    // Apply gravity and wind to all joints except fixed ends
+    for (let i = 1; i < this.joints.length - 1; i++) {
+      const joint = this.joints[i];
+
+      // Apply gravity
+      joint.y -= gravity;
+
+      // Add slight wind effect for more realism
+      joint.x += (Math.random() - 0.5) * wind;
+      joint.z += (Math.random() - 0.5) * wind;
+    }
+
+    // Multiple constraint iterations for stability
+    for (let iteration = 0; iteration < 3; iteration++) {
+      for (let i = 1; i < this.joints.length - 1; i++) {
+        const prevJoint = this.joints[i - 1];
+        const joint = this.joints[i];
+        const nextJoint = this.joints[i + 1];
+
+        // Maintain distance constraints
+        this.constrainDistance(i - 1, i, this.segmentLength);
+        this.constrainDistance(i, i + 1, this.segmentLength);
+      }
+    }
+
+    // Update mesh positions and orientations
+    this.segments.forEach((segment, i) => {
+      if (i < this.joints.length - 1) {
+        segment.position.copy(this.joints[i]);
+        segment.lookAt(this.joints[i + 1]);
+      }
+    });
+  }
+
+  private constrainDistance(
+    index1: number,
+    index2: number,
+    targetDistance: number,
+  ) {
+    const joint1 = this.joints[index1];
+    const joint2 = this.joints[index2];
+
+    const delta = joint2.clone().sub(joint1);
+    const distance = delta.length();
+
+    if (distance > 0) {
+      const difference = (distance - targetDistance) / distance;
+      const offset = delta.multiplyScalar(difference * this.stiffness);
+
+      // Don't move the first joint (fixed point)
+      if (index1 > 0) {
+        joint1.add(offset.multiplyScalar(0.5));
+      }
+      if (index2 < this.joints.length - 1) {
+        joint2.sub(offset.multiplyScalar(0.5));
+      }
+    }
+  }
+
+  updateEndPosition(endPos: THREE.Vector3) {
+    // Update the last joint position (claw attachment point)
+    this.joints[this.joints.length - 1].copy(endPos);
+  }
+}
+
+class AudioManager {
+  private audioContext: AudioContext;
+  private sounds: Map<string, AudioBuffer> = new Map();
+  private isEnabled = true;
+
+  constructor() {
+    try {
+      this.audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
+      this.loadSounds();
+    } catch (e) {
+      console.warn("Web Audio API not supported");
+    }
+  }
+
+  async loadSounds() {
+    // Generate procedural sounds since we don't have audio files
+    this.generateProceduralSounds();
+  }
+
+  private generateProceduralSounds() {
+    // Generate basic sound effects using oscillators
+    const soundTypes = [
+      "clawDescend",
+      "clawGrab",
+      "prizeDrop",
+      "win",
+      "ambient",
+      "coin",
+    ];
+
+    soundTypes.forEach((soundName) => {
+      const buffer = this.generateProceduralSound(soundName);
+      if (buffer) this.sounds.set(soundName, buffer);
+    });
+  }
+
+  private generateProceduralSound(soundName: string): AudioBuffer | null {
+    try {
+      const sampleRate = this.audioContext.sampleRate;
+      const duration = this.getSoundDuration(soundName);
+      const buffer = this.audioContext.createBuffer(
+        1,
+        sampleRate * duration,
+        sampleRate,
+      );
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < data.length; i++) {
+        const t = i / sampleRate;
+
+        switch (soundName) {
+          case "clawDescend":
+            // Mechanical whirring sound
+            data[i] =
+              Math.sin(t * 150) * Math.exp(-t * 2) * 0.3 +
+              Math.sin(t * 75) * Math.exp(-t * 1.5) * 0.2;
+            break;
+          case "clawGrab":
+            // Sharp metallic clank
+            data[i] = Math.sin(t * 800) * Math.exp(-t * 8) * 0.4;
+            break;
+          case "prizeDrop":
+            // Soft thud with some bounce
+            const envelope = Math.exp(-t * 3);
+            data[i] =
+              (Math.sin(t * 100) * envelope + Math.random() * 0.1) * 0.3;
+            break;
+          case "win":
+            // Celebratory ascending notes
+            const noteFreq = 220 + (Math.floor(t * 4) % 5) * 110;
+            data[i] =
+              Math.sin(t * noteFreq * 2 * Math.PI) * Math.exp(-t * 0.5) * 0.4;
+            break;
+          case "coin":
+            // Coin dropping sound
+            data[i] = Math.sin(t * 600) * Math.exp(-t * 6) * 0.5;
+            break;
+          default:
+            data[i] = 0;
+        }
+      }
+
+      return buffer;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  private getSoundDuration(soundName: string): number {
+    const durations = {
+      clawDescend: 0.8,
+      clawGrab: 0.3,
+      prizeDrop: 0.6,
+      win: 1.5,
+      ambient: 2.0,
+      coin: 0.4,
+    };
+    return durations[soundName as keyof typeof durations] || 0.5;
+  }
+
+  playSound(name: string, volume = 0.5, pitch = 1.0) {
+    if (!this.isEnabled || !this.sounds.has(name)) return;
+
+    try {
+      const buffer = this.sounds.get(name)!;
+      const source = this.audioContext.createBufferSource();
+      const gainNode = this.audioContext.createGain();
+
+      source.buffer = buffer;
+      source.playbackRate.value = pitch;
+      gainNode.gain.value = Math.min(volume, 1.0);
+
+      source.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+
+      source.start();
+    } catch (e) {
+      console.warn("Failed to play sound:", name);
+    }
+  }
+
+  setEnabled(enabled: boolean) {
+    this.isEnabled = enabled;
+  }
+}
+
+class AtmosphericEffects {
+  dustParticles: THREE.Points[] = [];
+  particleCount = 50;
+
+  constructor(scene: THREE.Scene) {
+    this.createDustParticles(scene);
+  }
+
+  createDustParticles(scene: THREE.Scene) {
+    for (let i = 0; i < this.particleCount; i++) {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(3);
+      const colors = new Float32Array(3);
+
+      // Random positions in cabinet
+      positions[0] = (Math.random() - 0.5) * 20;
+      positions[1] = Math.random() * 15 - 5;
+      positions[2] = (Math.random() - 0.5) * 20;
+
+      colors[0] = 0.8 + Math.random() * 0.2; // Slight yellowish tint
+      colors[1] = 0.7 + Math.random() * 0.2;
+      colors[2] = 0.5 + Math.random() * 0.1;
+
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3),
+      );
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+      const material = new THREE.PointsMaterial({
+        size: 0.05,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.3,
+      });
+
+      const particle = new THREE.Points(geometry, material);
+      this.dustParticles.push(particle);
+      scene.add(particle);
+    }
+  }
+
+  animateDust(windStrength = 0.01) {
+    this.dustParticles.forEach((particle) => {
+      const positions = particle.geometry.attributes.position
+        .array as Float32Array;
+
+      // Gentle floating animation
+      positions[0] += (Math.random() - 0.5) * windStrength;
+      positions[1] += (Math.random() - 0.5) * windStrength * 0.5;
+      positions[2] += (Math.random() - 0.5) * windStrength;
+
+      // Reset particles that float too far
+      if (Math.abs(positions[0]) > 15) positions[0] *= 0.8;
+      if (Math.abs(positions[1]) > 20) positions[1] *= 0.8;
+      if (Math.abs(positions[2]) > 15) positions[2] *= 0.8;
+
+      particle.geometry.attributes.position.needsUpdate = true;
+    });
+  }
 }
 
 class CraneGame {
@@ -25,6 +320,7 @@ class CraneGame {
   clawProng1: THREE.Group;
   clawProng2: THREE.Group;
   clawProng3: THREE.Group;
+  craneRope: CraneRope;
   prizes: Prize[] = [];
   cabinet: THREE.Group;
 
@@ -56,6 +352,12 @@ class CraneGame {
   // UI
   uiElement: HTMLDivElement;
 
+  // Enhanced features
+  audioManager: AudioManager;
+  atmosphericEffects: AtmosphericEffects;
+  clawVelocity = new THREE.Vector3();
+  swingDamping = 0.95;
+
   constructor() {
     this.setupScene();
     this.setupLights();
@@ -64,6 +366,7 @@ class CraneGame {
     this.loadImages();
     this.setupUI();
     this.setupControls();
+    this.initializeEnhancedFeatures();
     this.animate();
 
     window.addEventListener("resize", () => this.onWindowResize());
@@ -151,34 +454,54 @@ class CraneGame {
   }
 
   setupLights() {
-    // Brighter ambient light
-    const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+    // Enhanced ambient lighting with subtle color temperature
+    const ambient = new THREE.AmbientLight(0xfff8e1, 0.6); // Warm ambient light
     this.scene.add(ambient);
 
-    // Spotlight from above (arcade lighting) - brighter
-    const spotLight = new THREE.SpotLight(0xffffff, 2);
-    spotLight.position.set(0, 30, 0);
+    // Main spotlight from above (arcade lighting) - more realistic
+    const spotLight = new THREE.SpotLight(0xffffff, 2.5);
+    spotLight.position.set(0, 25, 0);
     spotLight.castShadow = true;
-    spotLight.angle = Math.PI / 4;
-    spotLight.penumbra = 0.3;
+    spotLight.angle = Math.PI / 3.5;
+    spotLight.penumbra = 0.4;
+    spotLight.shadow.mapSize.width = 2048;
+    spotLight.shadow.mapSize.height = 2048;
+    spotLight.shadow.camera.near = 0.5;
+    spotLight.shadow.camera.far = 50;
+    spotLight.shadow.camera.fov = 60;
     this.scene.add(spotLight);
 
-    // Vibrant colored lights for arcade feel
-    const light1 = new THREE.PointLight(0xff00ff, 1.5, 50);
-    light1.position.set(-15, 10, 15);
+    // Vibrant colored accent lights for arcade feel
+    const light1 = new THREE.PointLight(0xff00ff, 1.8, 40);
+    light1.position.set(-12, 8, 12);
+    light1.castShadow = true;
     this.scene.add(light1);
 
-    const light2 = new THREE.PointLight(0x00ffff, 1.5, 50);
-    light2.position.set(15, 10, 15);
+    const light2 = new THREE.PointLight(0x00ffff, 1.8, 40);
+    light2.position.set(12, 8, 12);
+    light2.castShadow = true;
     this.scene.add(light2);
 
-    const light3 = new THREE.PointLight(0xffff00, 1.2, 50);
-    light3.position.set(0, 10, -15);
+    const light3 = new THREE.PointLight(0xffff00, 1.5, 40);
+    light3.position.set(0, 8, -12);
+    light3.castShadow = true;
     this.scene.add(light3);
 
-    const light4 = new THREE.PointLight(0xff1493, 1.2, 50);
-    light4.position.set(10, 5, 10);
+    const light4 = new THREE.PointLight(0xff1493, 1.5, 35);
+    light4.position.set(8, 4, 8);
+    light4.castShadow = true;
     this.scene.add(light4);
+
+    // Additional rim lighting for dramatic effect
+    const rimLight = new THREE.DirectionalLight(0x88ccff, 0.8);
+    rimLight.position.set(-20, 15, -20);
+    rimLight.castShadow = true;
+    this.scene.add(rimLight);
+
+    // Subtle fill light from below
+    const fillLight = new THREE.PointLight(0x442244, 0.3, 30);
+    fillLight.position.set(0, -5, 0);
+    this.scene.add(fillLight);
   }
 
   cabinetSize = { width: 20, height: 25, depth: 20 };
@@ -194,10 +517,13 @@ class CraneGame {
       baseHeight,
       this.cabinetSize.depth + 2,
     );
-    const baseMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      metalness: 0.3,
-      roughness: 0.7,
+    const baseMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xf8f8f8,
+      metalness: 0.2,
+      roughness: 0.6,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.1,
+      reflectivity: 0.1,
     });
     const base = new THREE.Mesh(baseGeometry, baseMaterial);
     base.position.y = -10 - baseHeight / 2 - 0.5;
@@ -269,13 +595,17 @@ class CraneGame {
 
     // Glass walls (more visible with light cyan tint)
     const glassMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x88ffff,
+      color: 0xaaffff,
       transparent: true,
-      opacity: 0.25,
-      metalness: 0.1,
-      roughness: 0.05,
-      transmission: 0.75,
-      thickness: 0.5,
+      opacity: 0.15,
+      metalness: 0.05,
+      roughness: 0.02,
+      transmission: 0.95,
+      thickness: 0.8,
+      ior: 1.5, // Index of refraction for glass
+      reflectivity: 0.1,
+      clearcoat: 0.1,
+      clearcoatRoughness: 0.05,
     });
 
     // Front wall - full transparent glass
@@ -1025,18 +1355,14 @@ class CraneGame {
   createClaw() {
     this.claw = new THREE.Group();
 
-    // Cable (will be dynamically resized)
-    const cableMaterial = new THREE.MeshStandardMaterial({
-      color: 0x333333,
-      metalness: 0.8,
-      depthTest: false,
+    // Create rope physics system instead of rigid cable
+    const topPosition = new THREE.Vector3(0, 15, 0);
+    this.craneRope = new CraneRope(topPosition, this.clawPosition);
+
+    // Add rope segments to scene
+    this.craneRope.segments.forEach((segment) => {
+      this.scene.add(segment);
     });
-    // Start with a placeholder geometry, will be updated in updateClaw
-    const cableGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 8);
-    this.clawArm = new THREE.Mesh(cableGeometry, cableMaterial);
-    // Make cable always render on top
-    this.clawArm.renderOrder = 999;
-    this.claw.add(this.clawArm);
 
     // Claw base (connector) - bright and glowing
     const baseGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 8);
@@ -1255,6 +1581,15 @@ class CraneGame {
           grabbed: false,
           settled: false, // Starts unsettled so it can fall
           imageUrl,
+          weight: Random.numberBetween(0.8, 1.2),
+          deformability: Random.numberBetween(0.1, 0.8),
+          bounciness: Random.numberBetween(0.1, 0.3),
+          materialType: Random.itemInArray([
+            "plush",
+            "ball",
+            "box",
+            "cylinder",
+          ] as const),
         };
 
         this.prizes.push(prize);
@@ -1357,6 +1692,15 @@ class CraneGame {
         grabbed: false,
         settled: false, // Starts unsettled so it can fall
         imageUrl,
+        weight: Random.numberBetween(0.8, 1.2),
+        deformability: Random.numberBetween(0.1, 0.8),
+        bounciness: Random.numberBetween(0.1, 0.3),
+        materialType: Random.itemInArray([
+          "plush",
+          "ball",
+          "box",
+          "cylinder",
+        ] as const),
       };
 
       this.prizes.push(prize);
@@ -1412,39 +1756,71 @@ class CraneGame {
       if (key in keys) keys[key as keyof typeof keys] = false;
     });
 
-    // Movement in update loop
-    this.updateClawMovement = () => {
-      if (
-        this.isDescending ||
-        this.isAscending ||
-        this.isMovingToBin ||
-        this.isReturning
-      )
-        return;
-
-      if (keys.w) this.targetPosition.y -= moveSpeed;
-      if (keys.s) this.targetPosition.y += moveSpeed;
-      if (keys.a) this.targetPosition.x -= moveSpeed;
-      if (keys.d) this.targetPosition.x += moveSpeed;
-
-      // Clamp to cabinet bounds
-      this.targetPosition.x = THREE.MathUtils.clamp(
-        this.targetPosition.x,
-        -8,
-        8,
-      );
-      this.targetPosition.y = THREE.MathUtils.clamp(
-        this.targetPosition.y,
-        -8,
-        8,
-      );
-
-      this.clawPosition.x = this.targetPosition.x;
-      this.clawPosition.z = this.targetPosition.y;
-    };
+    // Store keys reference for movement
+    (this as any).keys = keys;
+    (this as any).moveSpeed = moveSpeed;
   }
 
-  updateClawMovement = () => {};
+  updateClawMovement() {
+    const keys = (this as any).keys;
+    const moveSpeed = (this as any).moveSpeed;
+
+    if (
+      this.isDescending ||
+      this.isAscending ||
+      this.isMovingToBin ||
+      this.isReturning
+    )
+      return;
+
+    // Calculate movement input
+    const moveVector = new THREE.Vector3();
+    if (keys.w) moveVector.z -= moveSpeed;
+    if (keys.s) moveVector.z += moveSpeed;
+    if (keys.a) moveVector.x -= moveSpeed;
+    if (keys.d) moveVector.x += moveSpeed;
+
+    if (moveVector.length() > 0) {
+      // Add momentum to claw movement
+      this.clawVelocity.add(moveVector.multiplyScalar(0.1));
+      this.clawVelocity.multiplyScalar(0.92); // Gradual deceleration
+
+      // Apply movement with momentum
+      this.clawPosition.add(this.clawVelocity);
+
+      // Add slight swing based on movement direction and speed
+      const swingIntensity = this.clawVelocity.length() * 0.05;
+      const swingAngle = Math.sin(Date.now() * 0.01) * swingIntensity;
+      this.claw.rotation.z = swingAngle;
+    } else {
+      // Apply gentle return swing when not moving
+      this.clawVelocity.multiplyScalar(0.95);
+      this.claw.rotation.z *= 0.95;
+    }
+
+    // Clamp to cabinet bounds with slight bounce
+    const oldX = this.clawPosition.x;
+    const oldZ = this.clawPosition.z;
+
+    this.clawPosition.x = THREE.MathUtils.clamp(this.clawPosition.x, -8, 8);
+    this.clawPosition.z = THREE.MathUtils.clamp(this.clawPosition.z, -8, 8);
+
+    // Add bounce effect if hitting walls
+    if (Math.abs(this.clawPosition.x) === 8 && Math.abs(oldX) < 8) {
+      this.clawVelocity.x *= -0.3;
+      this.audioManager.playSound("clawGrab", 0.2, 1.2);
+    }
+    if (Math.abs(this.clawPosition.z) === 8 && Math.abs(oldZ) < 8) {
+      this.clawVelocity.z *= -0.3;
+      this.audioManager.playSound("clawGrab", 0.2, 1.2);
+    }
+
+    // Smooth the target position towards actual position
+    this.targetPosition.x +=
+      (this.clawPosition.x - this.targetPosition.x) * 0.1;
+    this.targetPosition.y +=
+      (this.clawPosition.z - this.targetPosition.y) * 0.1;
+  }
 
   dropClaw() {
     if (this.credits <= 0) {
@@ -1460,6 +1836,9 @@ class CraneGame {
     this.grabbedPrizes = [];
 
     console.log("Starting new claw drop, cleared grabbedPrizes array");
+
+    // Play claw descend sound
+    this.audioManager.playSound("clawDescend", 0.3, 0.9);
 
     this.updateUI();
   }
@@ -1505,6 +1884,13 @@ class CraneGame {
         console.log("Reached bin, releasing prizes now");
         this.releasePrizesPhysics();
 
+        // Play prize drop sound
+        this.audioManager.playSound(
+          "prizeDrop",
+          0.4,
+          0.8 + Math.random() * 0.4,
+        );
+
         // Open the claw
         setTimeout(() => {
           this.isGrabbing = false;
@@ -1539,13 +1925,9 @@ class CraneGame {
       }
     }
 
-    // Update cable length dynamically based on claw height
-    const topY = 15; // Top of the cabinet
-    const cableLength = topY - this.clawPosition.y;
-    const cableGeometry = new THREE.CylinderGeometry(0.1, 0.1, cableLength, 8);
-    this.clawArm.geometry.dispose(); // Clean up old geometry
-    this.clawArm.geometry = cableGeometry;
-    this.clawArm.position.y = cableLength / 2; // Position at center of cable
+    // Update rope physics instead of rigid cable
+    this.craneRope.updateEndPosition(this.clawPosition);
+    this.craneRope.updatePhysics(0.02, 0.01);
 
     // Update claw prongs (opening/closing animation)
     if (this.isGrabbing) {
@@ -1664,6 +2046,9 @@ class CraneGame {
 
     if (this.grabbedPrizes.length > 0) {
       this.showMessage("YOU WIN!");
+
+      // Play win sound effect
+      this.audioManager.playSound("win", 0.6, 1.0);
 
       // Store the prizes we're releasing in a local variable
       const prizesToRelease = [...this.grabbedPrizes];
@@ -1828,6 +2213,22 @@ class CraneGame {
     });
   }
 
+  initializeEnhancedFeatures() {
+    // Initialize audio system
+    this.audioManager = new AudioManager();
+
+    // Initialize atmospheric effects
+    this.atmosphericEffects = new AtmosphericEffects(this.scene);
+
+    // Play ambient arcade sounds
+    setInterval(() => {
+      if (Math.random() < 0.1) {
+        // 10% chance every interval
+        this.audioManager.playSound("ambient", 0.2, 0.8 + Math.random() * 0.4);
+      }
+    }, 5000);
+  }
+
   onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
@@ -1840,6 +2241,9 @@ class CraneGame {
     this.updateClaw();
     this.updatePhysics();
     this.updateArcadeEffects();
+
+    // Update atmospheric effects
+    this.atmosphericEffects.animateDust(0.01);
 
     this.renderer.render(this.scene, this.camera);
   };
