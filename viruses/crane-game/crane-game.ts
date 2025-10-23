@@ -1632,46 +1632,8 @@ class CraneGame {
         const imageUrl =
           this.images[Math.floor(Math.random() * this.images.length)];
 
-        // Vary prize dimensions for more organic look (avoid flat shapes)
-        const widthVariation = Random.numberBetween(0.95, 1.15);
-        const heightVariation = Random.numberBetween(0.95, 1.25); // Some taller, but not flat
-        const depthVariation = Random.numberBetween(0.95, 1.15);
-
-        // Randomly choose different shapes for variety (more like real plush toys)
-        const shapeType = Random.int(3); // 0: cylinder, 1: capsule, 2: rounded box
-        let geometry: THREE.BufferGeometry;
-
-        if (shapeType === 0) {
-          // Cylinder shape (like rolled plushies)
-          geometry = new THREE.CylinderGeometry(
-            this.prizeSize * 0.5 * widthVariation,
-            this.prizeSize * 0.5 * depthVariation,
-            this.prizeSize * heightVariation,
-            16,
-          );
-        } else if (shapeType === 1) {
-          // Capsule shape (sphere + cylinder = plush toy shape)
-          const cylinderHeight = this.prizeSize * heightVariation * 0.6;
-          const radius = this.prizeSize * 0.5 * widthVariation;
-
-          const cylinder = new THREE.CylinderGeometry(
-            radius,
-            radius,
-            cylinderHeight,
-            16,
-          );
-
-          // Merge geometries for capsule
-          geometry = cylinder;
-          geometry.translate(0, 0, 0);
-        } else {
-          // Sphere shape (round plushies)
-          geometry = new THREE.SphereGeometry(
-            this.prizeSize * 0.6 * widthVariation,
-            16,
-            12,
-          );
-        }
+        // Create uniform sphere geometry
+        const geometry = new THREE.SphereGeometry(this.prizeSize * 0.6, 16, 12);
 
         // Load texture
         const texture = this.textureLoader.load(imageUrl);
@@ -1726,12 +1688,7 @@ class CraneGame {
         mesh.position.set(x, y, z);
         mesh.rotation.y = Random.numberBetween(0, Math.PI * 2);
 
-        // Store shape info for better collision detection
-        mesh.userData = mesh.userData || {};
-        mesh.userData.prizeRadius =
-          shapeType === 2
-            ? this.prizeSize * 0.6 * widthVariation
-            : this.prizeSize * 0.5 * Math.max(widthVariation, depthVariation);
+        // No longer need to store radius in userData
 
         this.scene.add(mesh);
 
@@ -1783,36 +1740,8 @@ class CraneGame {
 
       if (attempts >= 20) continue; // Skip if can't find good spot
 
-      // Random shape and size variations (avoid flat shapes)
-      const widthVariation = Random.numberBetween(0.95, 1.15);
-      const heightVariation = Random.numberBetween(0.95, 1.25);
-      const depthVariation = Random.numberBetween(0.95, 1.15);
-      const shapeType = Random.int(3);
-
-      let geometry: THREE.BufferGeometry;
-      if (shapeType === 0) {
-        geometry = new THREE.CylinderGeometry(
-          this.prizeSize * 0.5 * widthVariation,
-          this.prizeSize * 0.5 * depthVariation,
-          this.prizeSize * heightVariation,
-          16,
-        );
-      } else if (shapeType === 1) {
-        const cylinderHeight = this.prizeSize * heightVariation * 0.6;
-        const radius = this.prizeSize * 0.5 * widthVariation;
-        geometry = new THREE.CylinderGeometry(
-          radius,
-          radius,
-          cylinderHeight,
-          16,
-        );
-      } else {
-        geometry = new THREE.SphereGeometry(
-          this.prizeSize * 0.6 * widthVariation,
-          16,
-          12,
-        );
-      }
+      // Create uniform sphere geometry
+      const geometry = new THREE.SphereGeometry(this.prizeSize * 0.6, 16, 12);
 
       const texture = this.textureLoader.load(imageUrl);
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -1847,11 +1776,7 @@ class CraneGame {
       mesh.position.set(x, y, z);
       mesh.rotation.y = Random.numberBetween(0, Math.PI * 2);
 
-      mesh.userData = mesh.userData || {};
-      mesh.userData.prizeRadius =
-        shapeType === 2
-          ? this.prizeSize * 0.6 * widthVariation
-          : this.prizeSize * 0.5 * Math.max(widthVariation, depthVariation);
+      // No longer need to store radius in userData
 
       this.scene.add(mesh);
 
@@ -2184,9 +2109,8 @@ class CraneGame {
       // Check distance from claw to prize
       const distance = prize.mesh.position.distanceTo(this.clawPosition);
 
-      // Get prize's effective radius for better collision
-      const prizeRadius =
-        (prize.mesh.userData?.prizeRadius as number) || this.prizeRadius;
+      // All prizes now have the same fixed radius
+      const prizeRadius = this.prizeSize * 0.6;
       const effectiveGrabDistance = grabRadius + prizeRadius;
 
       if (distance < effectiveGrabDistance) {
@@ -2423,9 +2347,8 @@ class CraneGame {
         prize.mesh.position.add(prize.body.velocity);
         prize.body.position.copy(prize.mesh.position);
 
-        // Prize-to-prize collision detection
-        const prizeRadius =
-          (prize.mesh.userData?.prizeRadius as number) || this.prizeRadius;
+        // Prize-to-prize collision detection - all prizes now have same radius
+        const prizeRadius = this.prizeSize * 0.6;
 
         for (let i = 0; i < this.prizes.length; i++) {
           if (i === index) continue; // Skip self
@@ -2433,9 +2356,7 @@ class CraneGame {
           const otherPrize = this.prizes[i];
           if (otherPrize.grabbed) continue; // Skip grabbed prizes
 
-          const otherRadius =
-            (otherPrize.mesh.userData?.prizeRadius as number) ||
-            this.prizeRadius;
+          const otherRadius = this.prizeSize * 0.6;
           const distance = prize.mesh.position.distanceTo(
             otherPrize.mesh.position,
           );
@@ -2474,8 +2395,8 @@ class CraneGame {
           }
         }
 
-        // Floor collision - adjust for different shapes
-        const minY = floorY + prizeRadius;
+        // Floor collision
+        const minY = floorY + this.prizeSize * 0.6;
         const onGround = prize.mesh.position.y <= minY + 0.1;
 
         if (prize.mesh.position.y <= minY) {

@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import "./sphere.scss";
 import * as THREE from "three";
-// @ts-expect-error doesn't work without this
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Random from "../../utils/random";
 
@@ -76,7 +75,7 @@ class Sphere {
       100,
       segments,
       18,
-      ...extraOptions
+      ...extraOptions,
     );
     const random_color = Math.random() * 0xffffff;
     const material = new THREE.MeshBasicMaterial({
@@ -119,7 +118,7 @@ class Sphere {
     objMesh.material.color.setRGB(
       Math.round(Math.random()),
       Math.round(Math.random()),
-      Math.round(Math.random())
+      Math.round(Math.random()),
     );
   }
 

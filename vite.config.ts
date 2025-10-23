@@ -122,6 +122,7 @@ export default defineConfig(() => {
 
     // Development server configuration
     server: {
+      port: 5174,
       open: true,
       // Ensure virus directories are served correctly in development
       fs: {

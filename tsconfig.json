@@ -4,7 +4,7 @@
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "downlevelIteration": true,
     "lib": ["ESNext", "dom", "dom.iterable", "ES2020"],
     "target": "es2020",

@@ -496,7 +496,8 @@ export function showVirusThumbnailOverlay({
   }
 
   // Store cleanup function on overlay for potential external cleanup
-  (overlay as HTMLElement & { cleanup: () => void }).cleanup = cleanup;
+  (overlay as unknown as HTMLElement & { cleanup: () => void }).cleanup =
+    cleanup;
 
   // Auto-cleanup when overlay is removed
   const observer = new MutationObserver((mutations) => {
