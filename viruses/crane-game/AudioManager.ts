@@ -25,15 +25,7 @@ export class AudioManager {
 
   private generateProceduralSounds() {
     // Generate basic sound effects using oscillators
-    const soundTypes = [
-      "clawDescend",
-      "clawGrab",
-      "prizeDrop",
-      "win",
-      "lose",
-      "ambient",
-      "coin",
-    ];
+    const soundTypes = ["clawDescend", "clawBounce", "win", "lose"];
 
     soundTypes.forEach((soundName) => {
       const buffer = this.generateProceduralSound(soundName);
@@ -57,21 +49,38 @@ export class AudioManager {
 
         switch (soundName) {
           case "clawDescend": {
-            // Mechanical whirring sound
+            // Clean mechanical whirring sound - no random noise
+            const motorFreq = 100 + t * 40; // Rising pitch like a motor speeding up
+            const harmonicFreq = motorFreq * 1.5; // Slight detuning for mechanical character
+            const envelope = Math.exp(-t * 1.5); // Natural decay
+
             data[i] =
-              Math.sin(t * 150) * Math.exp(-t * 2) * 0.3 +
-              Math.sin(t * 75) * Math.exp(-t * 1.5) * 0.2;
+              Math.sin(t * motorFreq * 2 * Math.PI) * envelope * 0.7 +
+              Math.sin(t * harmonicFreq * 2 * Math.PI) * envelope * 0.2;
             break;
           }
-          case "clawGrab":
-            // Sharp metallic clank
-            data[i] = Math.sin(t * 800) * Math.exp(-t * 8) * 0.4;
-            break;
-          case "prizeDrop": {
-            // Soft thud with some bounce
-            const envelope = Math.exp(-t * 3);
+          case "clawBounce": {
+            // Video game style collision sound - sharp impact with harmonics
+            const impactFreq = 150 + t * 100; // Low fundamental for solid impact feel
+            const envelope = Math.exp(-t * 8); // Sharp attack, quick decay
+
+            // Multiple harmonics for rich collision sound
+            const fundamental = Math.sin(t * impactFreq * 2 * Math.PI) * 0.6;
+            const harmonic1 =
+              Math.sin(t * impactFreq * 2.5 * 2 * Math.PI) * 0.3;
+            const harmonic2 = Math.sin(t * impactFreq * 4 * 2 * Math.PI) * 0.2;
+
+            // Add click/attack transient for video game feel
+            const click =
+              t < 0.05
+                ? Math.sin(t * impactFreq * 20 * 2 * Math.PI) *
+                  Math.exp(-t * 50) *
+                  0.4
+                : 0;
+
+            // Combine for video game collision sound
             data[i] =
-              (Math.sin(t * 100) * envelope + Math.random() * 0.1) * 0.3;
+              (fundamental + harmonic1 + harmonic2 + click) * envelope * 0.7;
             break;
           }
           case "win": {
@@ -81,13 +90,8 @@ export class AudioManager {
               Math.sin(t * noteFreq * 2 * Math.PI) * Math.exp(-t * 0.5) * 0.4;
             break;
           }
-          case "coin": {
-            // Coin dropping sound
-            data[i] = Math.sin(t * 600) * Math.exp(-t * 6) * 0.5;
-            break;
-          }
           case "lose": {
-            // Depressing descending notes (opposite of win sound)
+            // Depressing descending notes with smooth fade-out (no clipping)
             const loseNoteFreq = 220 - (Math.floor(t * 3) % 4) * 80; // Descending minor scale
             data[i] =
               Math.sin(t * loseNoteFreq * 2 * Math.PI) *
@@ -110,13 +114,10 @@ export class AudioManager {
 
   private getSoundDuration(soundName: string): number {
     const durations = {
-      clawDescend: 0.8,
-      clawGrab: 0.3,
-      prizeDrop: 0.6,
+      clawDescend: 2.0,
+      clawBounce: 0.3,
       win: 1.5,
       lose: 1.2,
-      ambient: 2.0,
-      coin: 0.4,
     };
     return durations[soundName as keyof typeof durations] || 0.5;
   }

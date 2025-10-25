@@ -1774,12 +1774,12 @@ class CraneGame {
     // Apply swing rotation to visual
     this.claw.rotation.z = this.clawPhysics.getSwingRotation();
 
-    // Play sound on boundary bounce
+    // Play sound on boundary bounce (only when very close to actual boundary)
     if (
-      (Math.abs(this.clawPhysics.position.x) === 8 && Math.abs(oldX) < 8) ||
-      (Math.abs(this.clawPhysics.position.z) === 8 && Math.abs(oldZ) < 8)
+      (Math.abs(this.clawPhysics.position.x) >= 7.9 && Math.abs(oldX) < 7.9) ||
+      (Math.abs(this.clawPhysics.position.z) >= 7.9 && Math.abs(oldZ) < 7.9)
     ) {
-      this.audioManager.playSound("clawGrab", 0.2, 1.2);
+      this.audioManager.playSound("clawBounce", 0.6, 1.0); // Boundary collision sound
     }
   }
 
@@ -1799,7 +1799,7 @@ class CraneGame {
     console.log("Starting new claw drop, cleared grabbedPrizes array");
 
     // Play claw descend sound
-    this.audioManager.playSound("clawDescend", 0.3, 0.9);
+    this.audioManager.playSound("clawDescend", 0.7, 0.9); // Increased volume for better audibility
 
     this.updateUI();
   }
@@ -2308,14 +2308,6 @@ class CraneGame {
 
     // Initialize atmospheric effects
     this.atmosphericEffects = new AtmosphericEffects(this.scene);
-
-    // Play ambient arcade sounds
-    setInterval(() => {
-      if (Math.random() < 0.1) {
-        // 10% chance every interval
-        this.audioManager.playSound("ambient", 0.2, 0.8 + Math.random() * 0.4);
-      }
-    }, 5000);
   }
 
   onWindowResize() {
@@ -2407,13 +2399,6 @@ class CraneGame {
             z: (Math.random() - 0.5) * 0.1,
           },
           true,
-        );
-
-        // Play drop sound
-        this.audioManager.playSound(
-          "prizeDrop",
-          0.3,
-          0.8 + Math.random() * 0.4,
         );
 
         // Show drop effect
