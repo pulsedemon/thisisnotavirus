@@ -170,7 +170,8 @@ export class AtmosphericEffects {
 
     // Update texture for background sphere
     if (this.backgroundSphere && this.backgroundSphere.material) {
-      const material = this.backgroundSphere.material as THREE.MeshBasicMaterial;
+      const material = this.backgroundSphere
+        .material as THREE.MeshBasicMaterial;
       if (material.map) {
         material.map.needsUpdate = true;
       }
