@@ -2005,7 +2005,7 @@ class CraneGame {
           Math.pow(this.binPosition.z - this.clawPosition.z, 2),
       );
 
-      if (distanceToBin < 0.5) {
+      if (distanceToBin < 0.05) {
         this.isMovingToBin = false;
 
         // Immediately release prizes when we reach the bin
@@ -2249,10 +2249,6 @@ class CraneGame {
 
     if (this.grabbedPrizes.length > 0) {
       console.log(`About to release ${this.grabbedPrizes.length} prizes`);
-      this.showMessage("YOU WIN!");
-
-      // Play win sound effect
-      this.audioManager.playSound("win", 0.6, 1.0);
 
       // Store the prizes we're releasing in a local variable
       const prizesToRelease = [...this.grabbedPrizes];
@@ -2302,10 +2298,8 @@ class CraneGame {
           (material.userData?.originalEmissiveColor as THREE.Color) ||
           new THREE.Color("#222222");
 
-        this.wonPrizes.push(prize);
+        // Don't add to wonPrizes here - let the bin detection handle it
       });
-
-      this.credits += 3; // Bonus credits
 
       // Remove won prizes from scene after they've fallen and settled
       setTimeout(() => {
@@ -2427,6 +2421,19 @@ class CraneGame {
           material.emissive =
             (material.userData?.originalEmissiveColor as THREE.Color) ||
             new THREE.Color("#222222");
+        }
+
+        // Check if prize has entered the bin
+        const inBinX = Math.abs(prize.mesh.position.x - this.binPosition.x) < 2;
+        const inBinZ = Math.abs(prize.mesh.position.z - this.binPosition.z) < 2;
+        const inBinY = prize.mesh.position.y < -7; // Below bin opening
+
+        if (inBinX && inBinZ && inBinY && !this.wonPrizes.includes(prize)) {
+          // Prize has entered the bin! Mark as won
+          this.wonPrizes.push(prize);
+          this.showMessage("YOU WIN!");
+          this.audioManager.playSound("win", 0.6, 1.0);
+          this.updateUI();
         }
       }
     });
