@@ -1800,7 +1800,7 @@ class CraneGame {
             "ball",
             "box",
             "cylinder",
-          ]) as "plush" | "ball" | "box" | "cylinder",
+          ]),
           gripStrength: 0, // Will be set when grabbed
           dropChance: 0, // Will be set when grabbed
         };
@@ -1881,12 +1881,7 @@ class CraneGame {
         weight: Random.floatBetween(0.8, 1.2),
         deformability: Random.floatBetween(0.1, 0.8),
         bounciness: Random.floatBetween(0.1, 0.3),
-        materialType: Random.itemInArray([
-          "plush",
-          "ball",
-          "box",
-          "cylinder",
-        ]) as "plush" | "ball" | "box" | "cylinder",
+        materialType: Random.itemInArray(["plush", "ball", "box", "cylinder"]),
         gripStrength: 0, // Will be set when grabbed
         dropChance: 0, // Will be set when grabbed
       };
