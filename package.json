@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@dimforge/rapier3d-compat": "0.19.2",
     "@eslint/js": "9.33.0",
     "@sentry/browser": "10.5.0",
     "@types/three": "0.179.0",

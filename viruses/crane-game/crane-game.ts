@@ -1,14 +1,13 @@
 import "./crane-game.scss";
 import * as THREE from "three";
 import Random from "../../utils/random";
+import RAPIER from "@dimforge/rapier3d-compat";
+import { PhysicsManager } from "./PhysicsManager";
+import { CraneRope } from "./CraneRope";
 
 interface Prize {
   mesh: THREE.Mesh;
-  body: {
-    position: THREE.Vector3;
-    velocity: THREE.Vector3;
-    mass: number;
-  };
+  rigidBody: RAPIER.RigidBody; // Rapier physics body
   grabbed: boolean;
   settled: boolean; // True when prize has come to rest
   imageUrl: string;
@@ -22,104 +21,6 @@ interface Prize {
 
 interface ImagesResponse {
   images: string[];
-}
-
-class CraneRope {
-  segments: THREE.Mesh[] = [];
-  joints: THREE.Vector3[] = [];
-  segmentLength = 0.5;
-  segmentCount = 20;
-  damping = 0.98;
-  stiffness = 0.95;
-
-  constructor(startPos: THREE.Vector3, endPos: THREE.Vector3) {
-    this.createRope(startPos, endPos);
-  }
-
-  createRope(start: THREE.Vector3, end: THREE.Vector3) {
-    // Create rope segments with physics
-    for (let i = 0; i <= this.segmentCount; i++) {
-      const geometry = new THREE.CylinderGeometry(
-        0.02,
-        0.02,
-        this.segmentLength,
-      );
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x333333,
-        metalness: 0.8,
-        roughness: 0.2,
-      });
-      const segment = new THREE.Mesh(geometry, material);
-
-      // Position segments along rope
-      const t = i / this.segmentCount;
-      segment.position.lerpVectors(start, end, t);
-      this.segments.push(segment);
-
-      this.joints.push(segment.position.clone());
-    }
-  }
-
-  updatePhysics(gravity = 0.02, wind = 0.01) {
-    // Apply gravity and wind to all joints except fixed ends
-    for (let i = 1; i < this.joints.length - 1; i++) {
-      const joint = this.joints[i];
-
-      // Apply gravity
-      joint.y -= gravity;
-
-      // Add slight wind effect for more realism
-      joint.x += (Math.random() - 0.5) * wind;
-      joint.z += (Math.random() - 0.5) * wind;
-    }
-
-    // Multiple constraint iterations for stability
-    for (let iteration = 0; iteration < 3; iteration++) {
-      for (let i = 1; i < this.joints.length - 1; i++) {
-        // Maintain distance constraints
-        this.constrainDistance(i - 1, i, this.segmentLength);
-        this.constrainDistance(i, i + 1, this.segmentLength);
-      }
-    }
-
-    // Update mesh positions and orientations
-    this.segments.forEach((segment, i) => {
-      if (i < this.joints.length - 1) {
-        segment.position.copy(this.joints[i]);
-        segment.lookAt(this.joints[i + 1]);
-      }
-    });
-  }
-
-  private constrainDistance(
-    index1: number,
-    index2: number,
-    targetDistance: number,
-  ) {
-    const joint1 = this.joints[index1];
-    const joint2 = this.joints[index2];
-
-    const delta = joint2.clone().sub(joint1);
-    const distance = delta.length();
-
-    if (distance > 0) {
-      const difference = (distance - targetDistance) / distance;
-      const offset = delta.multiplyScalar(difference * this.stiffness);
-
-      // Don't move the first joint (fixed point)
-      if (index1 > 0) {
-        joint1.add(offset.multiplyScalar(0.5));
-      }
-      if (index2 < this.joints.length - 1) {
-        joint2.sub(offset.multiplyScalar(0.5));
-      }
-    }
-  }
-
-  updateEndPosition(endPos: THREE.Vector3) {
-    // Update the last joint position (claw attachment point)
-    this.joints[this.joints.length - 1].copy(endPos);
-  }
 }
 
 class AudioManager {
@@ -379,6 +280,7 @@ class CraneGame {
   // Enhanced features
   audioManager: AudioManager;
   atmosphericEffects: AtmosphericEffects;
+  physicsManager: PhysicsManager;
   clawVelocity: THREE.Vector3 = new THREE.Vector3();
   swingDamping = 0.95;
 
@@ -386,7 +288,7 @@ class CraneGame {
   keys: Record<string, boolean> = {};
   moveSpeed = 0.3;
 
-  // Spatial partitioning for collision detection
+  // Spatial partitioning for collision detection (deprecated - Rapier handles this)
   spatialGrid = new Map<string, Prize[]>();
   gridCellSize = 4; // Size of each grid cell
   gridColumns = 5; // 20 / 4 = 5 columns
@@ -409,17 +311,67 @@ class CraneGame {
   ledStrips: THREE.Mesh[] = [];
 
   constructor() {
+    void this.init();
+  }
+
+  async init() {
+    // Initialize Rapier WASM module first
+    await RAPIER.init();
+
+    // Now create physics manager after WASM is loaded
+    this.physicsManager = new PhysicsManager();
+
+    // Create physics boundaries (floor and walls)
+    this.createPhysicsBoundaries();
+
     this.setupScene();
     this.setupLights();
     this.createCabinet();
     this.createClaw();
-    void this.loadImages();
+    await this.loadImages();
     this.setupUI();
     this.setupControls();
     this.initializeEnhancedFeatures();
     this.animate();
 
     window.addEventListener("resize", () => this.onWindowResize());
+  }
+
+  createPhysicsBoundaries() {
+    // Create static floor collider
+    const floorY = -10;
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(0, floorY, 0),
+      new THREE.Vector3(10, 0.25, 10), // Half extents
+    );
+
+    // Create static wall colliders
+    const wallHeight = 12.5;
+    const wallY = -10 + wallHeight;
+
+    // Left wall
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(-10, wallY, 0),
+      new THREE.Vector3(0.1, wallHeight, 10),
+    );
+
+    // Right wall
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(10, wallY, 0),
+      new THREE.Vector3(0.1, wallHeight, 10),
+    );
+
+    // Back wall
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(0, wallY, -10),
+      new THREE.Vector3(10, wallHeight, 0.1),
+    );
+
+    // Front wall
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(0, wallY, 10),
+      new THREE.Vector3(10, wallHeight, 0.1),
+    );
   }
 
   setupScene() {
@@ -1462,6 +1414,7 @@ class CraneGame {
     const binWidth = 4;
     const binDepth = 4;
     const binHeight = 5; // Taller bin
+    const binFloorY = -10;
 
     // Bin walls
     const binMaterial = new THREE.MeshStandardMaterial({
@@ -1479,7 +1432,7 @@ class CraneGame {
     );
     backWall.position.set(
       this.binPosition.x,
-      -10 + binHeight / 2,
+      binFloorY + binHeight / 2,
       this.binPosition.z - binDepth / 2,
     );
     this.cabinet.add(backWall);
@@ -1491,7 +1444,7 @@ class CraneGame {
     );
     leftWall.position.set(
       this.binPosition.x - binWidth / 2,
-      -10 + binHeight / 2,
+      binFloorY + binHeight / 2,
       this.binPosition.z,
     );
     this.cabinet.add(leftWall);
@@ -1503,10 +1456,51 @@ class CraneGame {
     );
     rightWall.position.set(
       this.binPosition.x + binWidth / 2,
-      -10 + binHeight / 2,
+      binFloorY + binHeight / 2,
       this.binPosition.z,
     );
     this.cabinet.add(rightWall);
+
+    // Create physics colliders for bin walls
+    // Back wall collider
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(
+        this.binPosition.x,
+        binFloorY + binHeight / 2,
+        this.binPosition.z - binDepth / 2,
+      ),
+      new THREE.Vector3(binWidth / 2, binHeight / 2, 0.1),
+    );
+
+    // Left wall collider
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(
+        this.binPosition.x - binWidth / 2,
+        binFloorY + binHeight / 2,
+        this.binPosition.z,
+      ),
+      new THREE.Vector3(0.1, binHeight / 2, binDepth / 2),
+    );
+
+    // Right wall collider
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(
+        this.binPosition.x + binWidth / 2,
+        binFloorY + binHeight / 2,
+        this.binPosition.z,
+      ),
+      new THREE.Vector3(0.1, binHeight / 2, binDepth / 2),
+    );
+
+    // Bin floor collider (slightly raised from main floor)
+    this.physicsManager.createStaticBox(
+      new THREE.Vector3(
+        this.binPosition.x,
+        binFloorY + 0.1,
+        this.binPosition.z,
+      ),
+      new THREE.Vector3(binWidth / 2, 0.1, binDepth / 2),
+    );
 
     // Add glowing edges to bin
     [backWall, leftWall, rightWall].forEach((wall) => {
@@ -1538,7 +1532,7 @@ class CraneGame {
   createClaw() {
     this.claw = new THREE.Group();
 
-    // Create rope physics system instead of rigid cable
+    // Create rope physics system
     const topPosition = new THREE.Vector3(0, 15, 0);
     this.craneRope = new CraneRope(topPosition, this.clawPosition);
 
@@ -1782,19 +1776,28 @@ class CraneGame {
 
         this.scene.add(mesh);
 
+        // Create Rapier physics body for the prize
+        const prizeRadius = this.prizeSize * 0.6;
+        const weight = Random.floatBetween(0.8, 1.2);
+        const bounciness = Random.floatBetween(0.1, 0.3);
+
+        const rigidBody = this.physicsManager.createDynamicSphere(
+          mesh.position,
+          prizeRadius,
+          weight,
+          bounciness,
+          0.8, // friction
+        );
+
         const prize: Prize = {
           mesh,
-          body: {
-            position: mesh.position.clone(),
-            velocity: new THREE.Vector3(0, 0, 0),
-            mass: 1,
-          },
+          rigidBody,
           grabbed: false,
           settled: false, // Starts unsettled so it can fall
           imageUrl,
-          weight: Random.floatBetween(0.8, 1.2),
+          weight,
           deformability: Random.floatBetween(0.1, 0.8),
-          bounciness: Random.floatBetween(0.1, 0.3),
+          bounciness,
           materialType: Random.itemInArray([
             "plush",
             "ball",
@@ -1868,19 +1871,28 @@ class CraneGame {
 
       this.scene.add(mesh);
 
+      // Create Rapier physics body for the filler prize
+      const prizeRadius = this.prizeSize * 0.6;
+      const weight = Random.floatBetween(0.8, 1.2);
+      const bounciness = Random.floatBetween(0.1, 0.3);
+
+      const rigidBody = this.physicsManager.createDynamicSphere(
+        mesh.position,
+        prizeRadius,
+        weight,
+        bounciness,
+        0.8, // friction
+      );
+
       const prize: Prize = {
         mesh,
-        body: {
-          position: mesh.position.clone(),
-          velocity: new THREE.Vector3(0, 0, 0),
-          mass: 1,
-        },
+        rigidBody,
         grabbed: false,
         settled: false, // Starts unsettled so it can fall
         imageUrl,
-        weight: Random.floatBetween(0.8, 1.2),
+        weight,
         deformability: Random.floatBetween(0.1, 0.8),
-        bounciness: Random.floatBetween(0.1, 0.3),
+        bounciness,
         materialType: Random.itemInArray(["plush", "ball", "box", "cylinder"]),
         gripStrength: 0, // Will be set when grabbed
         dropChance: 0, // Will be set when grabbed
@@ -2131,7 +2143,7 @@ class CraneGame {
       }
     }
 
-    // Update rope physics instead of rigid cable
+    // Update rope physics
     this.craneRope.updateEndPosition(this.clawPosition);
     this.craneRope.updatePhysics(0.02, 0.01);
 
@@ -2250,10 +2262,15 @@ class CraneGame {
           );
           if (distToOther < 2) {
             otherPrize.settled = false;
+            // Apply impulse to nearby prizes using Rapier
             const pushDir = new THREE.Vector3()
               .subVectors(otherPrize.mesh.position, prize.mesh.position)
-              .normalize();
-            otherPrize.body.velocity.add(pushDir.multiplyScalar(0.03));
+              .normalize()
+              .multiplyScalar(0.03);
+            otherPrize.rigidBody.applyImpulse(
+              { x: pushDir.x, y: pushDir.y, z: pushDir.z },
+              true,
+            );
           }
         });
       }
@@ -2314,12 +2331,13 @@ class CraneGame {
 
       console.log(`Valid prizes to release: ${validPrizesToRelease.length}`);
 
-      // Release prizes and let them fall with physics
+      // Release prizes and let them fall with Rapier physics
       validPrizesToRelease.forEach((prize) => {
         prize.grabbed = false;
         prize.settled = false; // Mark as unsettled so it can fall
-        // Give them a slight downward velocity to start falling
-        prize.body.velocity.set(0, -0.2, 0);
+
+        // Give them a strong downward velocity to start falling fast (using Rapier)
+        prize.rigidBody.setLinvel({ x: 0, y: -5.0, z: 0 }, true);
 
         // Reset visual effects when prize is released
         const material = prize.mesh.material as THREE.MeshStandardMaterial;
@@ -2334,14 +2352,20 @@ class CraneGame {
 
       this.credits += 3; // Bonus credits
 
-      // Remove won prizes from scene after they've fallen
+      // Remove won prizes from scene after they've fallen and settled
       setTimeout(() => {
         validPrizesToRelease.forEach((prize) => {
+          // Remove from Three.js scene
           this.scene.remove(prize.mesh);
+
+          // Remove from Rapier physics world
+          this.physicsManager.removeBody(prize.rigidBody);
+
+          // Remove from prizes array
           const index = this.prizes.indexOf(prize);
           if (index > -1) this.prizes.splice(index, 1);
         });
-      }, 2000); // Give them 2 seconds to fall into the bin visually
+      }, 5000); // Give them 5 seconds to fall into the bin and settle
     } else {
       console.log(`No prizes to release! grabbedPrizes array is empty`);
       console.log(`Current grabbedPrizes state:`, this.grabbedPrizes);
@@ -2382,12 +2406,10 @@ class CraneGame {
   }
 
   updatePhysics() {
-    const floorY = -9.5;
-    const settleVelocityThreshold = 0.05; // If velocity is below this, prize can settle (increased)
+    // Step the Rapier physics world
+    this.physicsManager.step();
 
-    // Update spatial grid for collision detection optimization
-    this.updateSpatialGrid();
-
+    // Update prizes
     this.prizes.forEach((prize) => {
       if (prize.grabbed) {
         // Mark as unsettled when grabbed
@@ -2403,122 +2425,53 @@ class CraneGame {
         prize.mesh.position.y += (targetY - prize.mesh.position.y) * 0.3;
         prize.mesh.position.z += (targetZ - prize.mesh.position.z) * 0.3;
 
-        // Reset velocity while being held
-        prize.body.velocity.set(0, 0, 0);
-
-        // Update body position to match mesh
-        prize.body.position.copy(prize.mesh.position);
+        // Update Rapier body to match the grabbed position (kinematic control)
+        prize.rigidBody.setTranslation(
+          {
+            x: prize.mesh.position.x,
+            y: prize.mesh.position.y,
+            z: prize.mesh.position.z,
+          },
+          true,
+        );
+        prize.rigidBody.setLinvel({ x: 0, y: 0, z: 0 }, true);
 
         // Make grabbed prizes extremely visible with intense glow and color tint
         const material = prize.mesh.material as THREE.MeshStandardMaterial;
         material.emissiveIntensity = 1.5; // Very strong glow to make grabbed prizes obvious
         material.emissive = new THREE.Color(0x00ffff); // Bright cyan glow for grabbed prizes
 
-        // Debug: log grabbed prize position and array membership (increased frequency for testing)
-        if (Math.random() < 0.1) {
-          // Log ~10% of the time to see more detail
+        // Debug: log grabbed prize position and array membership (reduced frequency)
+        if (Math.random() < 0.01) {
           const inArray = this.grabbedPrizes.includes(prize);
           console.log(
             `Grabbed prize ${prize.mesh.id}: position: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}, inArray: ${inArray}`,
           );
-          console.log(
-            `Claw position: ${this.clawPosition.x.toFixed(2)}, ${this.clawPosition.y.toFixed(2)}, ${this.clawPosition.z.toFixed(2)}`,
-          );
         }
-      } else if (!prize.grabbed && !prize.settled) {
-        // Apply gravity
-        prize.body.velocity.y += this.gravity;
+      } else {
+        // Sync Three.js mesh with Rapier physics body
+        this.physicsManager.syncMeshWithBody(prize.mesh, prize.rigidBody);
 
-        // Update position
-        prize.mesh.position.add(prize.body.velocity);
-        prize.body.position.copy(prize.mesh.position);
+        // Check if prize has settled (very low velocity)
+        const linvel = prize.rigidBody.linvel();
+        const speed = Math.sqrt(
+          linvel.x * linvel.x + linvel.y * linvel.y + linvel.z * linvel.z,
+        );
 
-        // Prize-to-prize collision detection using spatial partitioning
-        const prizeRadius = this.prizeSize * 0.6;
-
-        // Only check nearby prizes instead of all prizes (spatial optimization)
-        const nearbyPrizes = this.getNearbyPrizes(prize);
-
-        for (const otherPrize of nearbyPrizes) {
-          if (otherPrize === prize) continue; // Skip self
-          if (otherPrize.grabbed) continue; // Skip grabbed prizes
-
-          const otherRadius = this.prizeSize * 0.6;
-          const distance = prize.mesh.position.distanceTo(
-            otherPrize.mesh.position,
-          );
-          const minDistance = prizeRadius + otherRadius;
-
-          // Check for collision
-          if (distance < minDistance && distance > 0) {
-            // Calculate collision normal
-            const normal = new THREE.Vector3()
-              .subVectors(prize.mesh.position, otherPrize.mesh.position)
-              .normalize();
-
-            // Separate prizes
-            const overlap = minDistance - distance;
-            const separation = normal.multiplyScalar(overlap * 0.5);
-
-            prize.mesh.position.add(separation);
-            prize.body.position.copy(prize.mesh.position);
-
-            // Apply collision response to velocity
-            const relativeVelocity = prize.body.velocity
-              .clone()
-              .sub(otherPrize.body.velocity);
-            const velocityAlongNormal = relativeVelocity.dot(normal);
-
-            if (velocityAlongNormal < 0) {
-              const restitution = 0.1; // Very low bounciness for faster settling
-              const impulse = normal.multiplyScalar(
-                -(1 + restitution) * velocityAlongNormal * 0.5,
-              );
-              prize.body.velocity.add(impulse);
-
-              // Add stronger friction to prevent rolling
-              prize.body.velocity.multiplyScalar(0.85);
-            }
-          }
-        }
-
-        // Floor collision
-        const minY = floorY + this.prizeSize * 0.6;
-        const onGround = prize.mesh.position.y <= minY + 0.1;
-
-        if (prize.mesh.position.y <= minY) {
-          prize.mesh.position.y = minY;
-          prize.body.position.y = minY;
-          prize.body.velocity.y = 0;
-          prize.body.velocity.multiplyScalar(this.friction);
-        }
-
-        // Wall collisions
-        if (Math.abs(prize.mesh.position.x) > 9) {
-          prize.mesh.position.x = Math.sign(prize.mesh.position.x) * 9;
-          prize.body.velocity.x *= -0.5;
-        }
-        if (Math.abs(prize.mesh.position.z) > 9) {
-          prize.mesh.position.z = Math.sign(prize.mesh.position.z) * 9;
-          prize.body.velocity.z *= -0.5;
-        }
-
-        // Slow rotation (reduced for less rolling)
-        prize.mesh.rotation.x += prize.body.velocity.y * 0.05;
-        prize.mesh.rotation.z += prize.body.velocity.x * 0.05;
-
-        // Apply damping when on ground to help settle
-        if (onGround) {
-          prize.body.velocity.multiplyScalar(0.96);
-        }
-
-        // Check if prize should settle (velocity is very low AND on ground)
-        const speed = prize.body.velocity.length();
-
-        // Only settle if on ground and barely moving
-        if (onGround && speed < settleVelocityThreshold) {
+        if (speed < 0.05 && prize.mesh.position.y < -8) {
           prize.settled = true;
-          prize.body.velocity.set(0, 0, 0); // Stop all movement
+        } else {
+          prize.settled = false;
+        }
+
+        // Reset visual effects for non-grabbed prizes
+        const material = prize.mesh.material as THREE.MeshStandardMaterial;
+        if (material.emissiveIntensity > 0.2) {
+          material.emissiveIntensity =
+            (material.userData?.originalEmissiveIntensity as number) || 0.05;
+          material.emissive =
+            (material.userData?.originalEmissiveColor as THREE.Color) ||
+            new THREE.Color("#222222");
         }
       }
     });
@@ -2621,13 +2574,15 @@ class CraneGame {
         prize.grabbed = false;
         prize.settled = false;
 
-        // Give it a slight downward and outward velocity
-        const dropDirection = new THREE.Vector3(
-          (Math.random() - 0.5) * 0.1,
-          -Math.random() * 0.05 - 0.02,
-          (Math.random() - 0.5) * 0.1,
+        // Give it a slight downward and outward velocity (using Rapier)
+        prize.rigidBody.setLinvel(
+          {
+            x: (Math.random() - 0.5) * 0.1,
+            y: -Math.random() * 0.05 - 0.02,
+            z: (Math.random() - 0.5) * 0.1,
+          },
+          true,
         );
-        prize.body.velocity.copy(dropDirection);
 
         // Play drop sound
         this.audioManager.playSound(
