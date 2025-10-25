@@ -4,6 +4,7 @@ import Random from "../../utils/random";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { PhysicsManager } from "./PhysicsManager";
 import { CraneRope } from "./CraneRope";
+import { ClawPhysics } from "./ClawPhysics";
 
 interface Prize {
   mesh: THREE.Mesh;
@@ -274,7 +275,7 @@ class CraneGame {
   audioManager: AudioManager;
   atmosphericEffects: AtmosphericEffects;
   physicsManager: PhysicsManager;
-  clawVelocity: THREE.Vector3 = new THREE.Vector3();
+  clawPhysics?: ClawPhysics;
 
   // Control properties
   keys: Record<string, boolean> = {};
@@ -306,6 +307,13 @@ class CraneGame {
 
     // Now create physics manager after WASM is loaded
     this.physicsManager = new PhysicsManager();
+
+    // Initialize claw physics
+    this.clawPhysics = new ClawPhysics(
+      this.physicsManager,
+      RAPIER,
+      this.clawPosition,
+    );
 
     // Create physics boundaries (floor and walls)
     this.createPhysicsBoundaries();
@@ -1880,64 +1888,36 @@ class CraneGame {
   }
 
   updateClawMovement() {
-    const keys = this.keys;
-    const moveSpeed = this.moveSpeed;
-
     if (
       this.isDescending ||
       this.isAscending ||
       this.isMovingToBin ||
-      this.isReturning
+      this.isReturning ||
+      !this.clawPhysics
     )
       return;
 
-    // Calculate movement input (support both WASD and Arrow keys)
-    const moveVector = new THREE.Vector3();
-    if (keys["w"] || keys["ArrowUp"]) moveVector.z -= moveSpeed;
-    if (keys["s"] || keys["ArrowDown"]) moveVector.z += moveSpeed;
-    if (keys["a"] || keys["ArrowLeft"]) moveVector.x -= moveSpeed;
-    if (keys["d"] || keys["ArrowRight"]) moveVector.x += moveSpeed;
+    // Store old position for bounce detection
+    const oldX = this.clawPhysics.position.x;
+    const oldZ = this.clawPhysics.position.z;
 
-    if (moveVector.length() > 0) {
-      // Add momentum to claw movement
-      this.clawVelocity.add(moveVector.multiplyScalar(0.1));
-      this.clawVelocity.multiplyScalar(0.92); // Gradual deceleration
+    // Update physics-based movement
+    this.clawPhysics.updateMovement(this.keys);
 
-      // Apply movement with momentum
-      this.clawPosition.add(this.clawVelocity);
+    // Sync clawPosition with physics
+    this.clawPosition.copy(this.clawPhysics.position);
+    this.targetPosition.copy(this.clawPhysics.targetPosition);
 
-      // Add slight swing based on movement direction and speed
-      const swingIntensity = this.clawVelocity.length() * 0.05;
-      const swingAngle = Math.sin(Date.now() * 0.01) * swingIntensity;
-      this.claw.rotation.z = swingAngle;
-    } else {
-      // Apply gentle return swing when not moving
-      this.clawVelocity.multiplyScalar(0.95);
-      this.claw.rotation.z *= 0.95;
-    }
+    // Apply swing rotation to visual
+    this.claw.rotation.z = this.clawPhysics.getSwingRotation();
 
-    // Clamp to cabinet bounds with slight bounce
-    const oldX = this.clawPosition.x;
-    const oldZ = this.clawPosition.z;
-
-    this.clawPosition.x = THREE.MathUtils.clamp(this.clawPosition.x, -8, 8);
-    this.clawPosition.z = THREE.MathUtils.clamp(this.clawPosition.z, -8, 8);
-
-    // Add bounce effect if hitting walls
-    if (Math.abs(this.clawPosition.x) === 8 && Math.abs(oldX) < 8) {
-      this.clawVelocity.x *= -0.3;
+    // Play sound on boundary bounce
+    if (
+      (Math.abs(this.clawPhysics.position.x) === 8 && Math.abs(oldX) < 8) ||
+      (Math.abs(this.clawPhysics.position.z) === 8 && Math.abs(oldZ) < 8)
+    ) {
       this.audioManager.playSound("clawGrab", 0.2, 1.2);
     }
-    if (Math.abs(this.clawPosition.z) === 8 && Math.abs(oldZ) < 8) {
-      this.clawVelocity.z *= -0.3;
-      this.audioManager.playSound("clawGrab", 0.2, 1.2);
-    }
-
-    // Smooth the target position towards actual position
-    this.targetPosition.x +=
-      (this.clawPosition.x - this.targetPosition.x) * 0.1;
-    this.targetPosition.y +=
-      (this.clawPosition.z - this.targetPosition.y) * 0.1;
   }
 
   dropClaw() {
@@ -1973,6 +1953,10 @@ class CraneGame {
         this.isGrabbing = true;
         this.startGrabbing();
       }
+      // Sync Y position with physics
+      if (this.clawPhysics) {
+        this.clawPhysics.setY(this.clawPosition.y);
+      }
     }
 
     // Ascending
@@ -1987,12 +1971,31 @@ class CraneGame {
         this.isAscending = false;
         this.isMovingToBin = true;
       }
+      // Sync Y position with physics
+      if (this.clawPhysics) {
+        this.clawPhysics.setY(this.clawPosition.y);
+      }
     }
 
     // Moving to bin
     if (this.isMovingToBin) {
       this.clawPosition.x += (this.binPosition.x - this.clawPosition.x) * 0.08;
       this.clawPosition.z += (this.binPosition.z - this.clawPosition.z) * 0.08;
+
+      // Sync physics position during bin movement
+      if (this.clawPhysics) {
+        this.clawPhysics.position.x = this.clawPosition.x;
+        this.clawPhysics.position.z = this.clawPosition.z;
+        this.clawPhysics.rigidBody.setTranslation(
+          {
+            x: this.clawPosition.x,
+            y: this.clawPosition.y,
+            z: this.clawPosition.z,
+          },
+          true,
+        );
+        this.clawPhysics.stop(); // Stop any velocity
+      }
 
       // Check for prize drops during transport
       this.checkForPrizeDrops();
@@ -2040,21 +2043,57 @@ class CraneGame {
 
     // Returning to center
     if (this.isReturning) {
-      // Smoother, slower movement back to center
-      this.clawPosition.x += (0 - this.clawPosition.x) * 0.03;
-      this.clawPosition.z += (0 - this.clawPosition.z) * 0.03;
-      this.clawPosition.y +=
-        (this.clawRestingHeight - this.clawPosition.y) * 0.03;
+      // Calculate distance to target
+      const distanceToCenter = Math.sqrt(
+        this.clawPosition.x * this.clawPosition.x +
+          this.clawPosition.z * this.clawPosition.z +
+          Math.pow(this.clawPosition.y - this.clawRestingHeight, 2),
+      );
 
-      if (
-        Math.abs(this.clawPosition.x) < 0.1 &&
-        Math.abs(this.clawPosition.z) < 0.1 &&
-        Math.abs(this.clawPosition.y - this.clawRestingHeight) < 0.1
-      ) {
+      // Use faster interpolation when far, slower when close
+      const speed = distanceToCenter > 1 ? 0.08 : 0.15;
+
+      // Smoother movement back to center
+      this.clawPosition.x += (0 - this.clawPosition.x) * speed;
+      this.clawPosition.z += (0 - this.clawPosition.z) * speed;
+      this.clawPosition.y +=
+        (this.clawRestingHeight - this.clawPosition.y) * speed;
+
+      // Sync physics position with the return movement
+      if (this.clawPhysics) {
+        this.clawPhysics.position.copy(this.clawPosition);
+        this.clawPhysics.rigidBody.setTranslation(
+          {
+            x: this.clawPosition.x,
+            y: this.clawPosition.y,
+            z: this.clawPosition.z,
+          },
+          true,
+        );
+        this.clawPhysics.stop(); // Stop any velocity
+      }
+
+      // When very close, snap to final position to avoid endless interpolation
+      if (distanceToCenter < 0.01) {
         this.clawPosition.x = 0;
         this.clawPosition.z = 0;
         this.clawPosition.y = this.clawRestingHeight;
         this.targetPosition.set(0, 0);
+
+        // Sync final position with physics
+        if (this.clawPhysics) {
+          this.clawPhysics.position.copy(this.clawPosition);
+          this.clawPhysics.targetPosition.set(0, 0);
+          this.clawPhysics.rigidBody.setTranslation(
+            {
+              x: this.clawPosition.x,
+              y: this.clawPosition.y,
+              z: this.clawPosition.z,
+            },
+            true,
+          );
+        }
+
         this.isReturning = false;
       }
     }
@@ -2466,7 +2505,7 @@ class CraneGame {
       const distanceFromClaw = prize.mesh.position.distanceTo(
         this.clawPosition,
       );
-      const movementSpeed = this.clawVelocity.length();
+      const movementSpeed = this.clawPhysics?.getSpeed() || 0;
       const heightFactor = Math.max(0, (prize.mesh.position.y + 5) / 15); // Higher = more likely to drop
 
       // Base drop chance plus movement and height factors (reduced for better balance)
