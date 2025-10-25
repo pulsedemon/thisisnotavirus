@@ -262,17 +262,10 @@ class CraneGame {
   wonPrizes: Prize[] = [];
   credits = 15; // More starting credits for better experience
 
-  // Physics
-  gravity = -0.05;
-  friction = 0.95;
-
   // Images
   images: string[] = [];
   textureLoader = new THREE.TextureLoader();
   textureCache = new Map<string, THREE.Texture>();
-
-  // Prize properties
-  prizeRadius = 0.75;
 
   // UI
   uiElement: HTMLDivElement;
@@ -282,17 +275,10 @@ class CraneGame {
   atmosphericEffects: AtmosphericEffects;
   physicsManager: PhysicsManager;
   clawVelocity: THREE.Vector3 = new THREE.Vector3();
-  swingDamping = 0.95;
 
   // Control properties
   keys: Record<string, boolean> = {};
   moveSpeed = 0.3;
-
-  // Spatial partitioning for collision detection (deprecated - Rapier handles this)
-  spatialGrid = new Map<string, Prize[]>();
-  gridCellSize = 4; // Size of each grid cell
-  gridColumns = 5; // 20 / 4 = 5 columns
-  gridRows = 5; // 20 / 4 = 5 rows
 
   // Crane mechanism components
   mainGear?: THREE.Mesh;
@@ -1624,76 +1610,6 @@ class CraneGame {
 
     this.textureCache.set(imageUrl, texture);
     return texture;
-  }
-
-  getGridCellKey(x: number, z: number): string {
-    // Convert world position to grid cell coordinates
-    // Cabinet bounds are -10 to 10, so offset by 10 to get 0 to 20
-    const cellX = Math.floor((x + 10) / this.gridCellSize);
-    const cellZ = Math.floor((z + 10) / this.gridCellSize);
-
-    // Clamp to grid bounds
-    const clampedX = Math.max(0, Math.min(this.gridColumns - 1, cellX));
-    const clampedZ = Math.max(0, Math.min(this.gridRows - 1, cellZ));
-
-    return `${clampedX},${clampedZ}`;
-  }
-
-  updateSpatialGrid() {
-    // Clear the grid
-    this.spatialGrid.clear();
-
-    // Add all ungrabbed prizes to the grid (including settled ones for collision detection)
-    this.prizes.forEach((prize) => {
-      if (prize.grabbed) return; // Skip grabbed prizes (they follow claw)
-
-      const cellKey = this.getGridCellKey(
-        prize.mesh.position.x,
-        prize.mesh.position.z,
-      );
-
-      if (!this.spatialGrid.has(cellKey)) {
-        this.spatialGrid.set(cellKey, []);
-      }
-      this.spatialGrid.get(cellKey)!.push(prize);
-    });
-  }
-
-  getNearbyPrizes(prize: Prize): Prize[] {
-    // Get prizes in same cell and adjacent cells
-    const x = prize.mesh.position.x;
-    const z = prize.mesh.position.z;
-    const cellX = Math.floor((x + 10) / this.gridCellSize);
-    const cellZ = Math.floor((z + 10) / this.gridCellSize);
-
-    const nearbyPrizes: Prize[] = [];
-
-    // Check 3x3 grid around the prize (current cell + 8 adjacent cells)
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dz = -1; dz <= 1; dz++) {
-        const checkX = cellX + dx;
-        const checkZ = cellZ + dz;
-
-        // Skip out of bounds cells
-        if (
-          checkX < 0 ||
-          checkX >= this.gridColumns ||
-          checkZ < 0 ||
-          checkZ >= this.gridRows
-        ) {
-          continue;
-        }
-
-        const cellKey = `${checkX},${checkZ}`;
-        const cellPrizes = this.spatialGrid.get(cellKey);
-
-        if (cellPrizes) {
-          nearbyPrizes.push(...cellPrizes);
-        }
-      }
-    }
-
-    return nearbyPrizes;
   }
 
   createPrizes() {
