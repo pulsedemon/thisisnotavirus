@@ -386,6 +386,12 @@ class CraneGame {
   keys: Record<string, boolean> = {};
   moveSpeed = 0.3;
 
+  // Spatial partitioning for collision detection
+  spatialGrid = new Map<string, Prize[]>();
+  gridCellSize = 4; // Size of each grid cell
+  gridColumns = 5; // 20 / 4 = 5 columns
+  gridRows = 5; // 20 / 4 = 5 rows
+
   // Crane mechanism components
   mainGear?: THREE.Mesh;
   smallGears: THREE.Mesh[] = [];
@@ -481,16 +487,16 @@ class CraneGame {
 
       const particle = new THREE.Mesh(geometry, material);
       particle.position.set(
-        Random.numberBetween(-50, 50),
-        Random.numberBetween(-20, 40),
-        Random.numberBetween(-60, -20),
+        Random.floatBetween(-50, 50),
+        Random.floatBetween(-20, 40),
+        Random.floatBetween(-60, -20),
       );
 
       // Store animation data
       particle.userData = particle.userData || {};
-      particle.userData.floatSpeed = Random.numberBetween(0.01, 0.03);
-      particle.userData.floatOffset = Random.numberBetween(0, Math.PI * 2);
-      particle.userData.horizontalSpeed = Random.numberBetween(0.005, 0.015);
+      particle.userData.floatSpeed = Random.floatBetween(0.01, 0.03);
+      particle.userData.floatOffset = Random.floatBetween(0, Math.PI * 2);
+      particle.userData.horizontalSpeed = Random.floatBetween(0.005, 0.015);
 
       this.scene.add(particle);
       this.particles.push(particle);
@@ -1626,6 +1632,76 @@ class CraneGame {
     return texture;
   }
 
+  getGridCellKey(x: number, z: number): string {
+    // Convert world position to grid cell coordinates
+    // Cabinet bounds are -10 to 10, so offset by 10 to get 0 to 20
+    const cellX = Math.floor((x + 10) / this.gridCellSize);
+    const cellZ = Math.floor((z + 10) / this.gridCellSize);
+
+    // Clamp to grid bounds
+    const clampedX = Math.max(0, Math.min(this.gridColumns - 1, cellX));
+    const clampedZ = Math.max(0, Math.min(this.gridRows - 1, cellZ));
+
+    return `${clampedX},${clampedZ}`;
+  }
+
+  updateSpatialGrid() {
+    // Clear the grid
+    this.spatialGrid.clear();
+
+    // Add all ungrabbed prizes to the grid (including settled ones for collision detection)
+    this.prizes.forEach((prize) => {
+      if (prize.grabbed) return; // Skip grabbed prizes (they follow claw)
+
+      const cellKey = this.getGridCellKey(
+        prize.mesh.position.x,
+        prize.mesh.position.z,
+      );
+
+      if (!this.spatialGrid.has(cellKey)) {
+        this.spatialGrid.set(cellKey, []);
+      }
+      this.spatialGrid.get(cellKey)!.push(prize);
+    });
+  }
+
+  getNearbyPrizes(prize: Prize): Prize[] {
+    // Get prizes in same cell and adjacent cells
+    const x = prize.mesh.position.x;
+    const z = prize.mesh.position.z;
+    const cellX = Math.floor((x + 10) / this.gridCellSize);
+    const cellZ = Math.floor((z + 10) / this.gridCellSize);
+
+    const nearbyPrizes: Prize[] = [];
+
+    // Check 3x3 grid around the prize (current cell + 8 adjacent cells)
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dz = -1; dz <= 1; dz++) {
+        const checkX = cellX + dx;
+        const checkZ = cellZ + dz;
+
+        // Skip out of bounds cells
+        if (
+          checkX < 0 ||
+          checkX >= this.gridColumns ||
+          checkZ < 0 ||
+          checkZ >= this.gridRows
+        ) {
+          continue;
+        }
+
+        const cellKey = `${checkX},${checkZ}`;
+        const cellPrizes = this.spatialGrid.get(cellKey);
+
+        if (cellPrizes) {
+          nearbyPrizes.push(...cellPrizes);
+        }
+      }
+    }
+
+    return nearbyPrizes;
+  }
+
   createPrizes() {
     const floorY = -9.5;
 
@@ -1656,8 +1732,8 @@ class CraneGame {
         const texture = this.getOrLoadTexture(imageUrl);
 
         // Randomly vary material properties for variety
-        const brightness = Random.numberBetween(0.05, 0.15);
-        const roughness = Random.numberBetween(0.6, 0.9);
+        const brightness = Random.floatBetween(0.05, 0.15);
+        const roughness = Random.floatBetween(0.6, 0.9);
 
         // Single material that wraps around the geometry
         const material = new THREE.MeshStandardMaterial({
@@ -1681,8 +1757,8 @@ class CraneGame {
         mesh.frustumCulled = false; // Ensure prizes are always rendered
 
         // Position in grid with slight randomness
-        const x = offsetX + col * spacingX + Random.numberBetween(-0.15, 0.15);
-        const z = offsetZ + row * spacingZ + Random.numberBetween(-0.15, 0.15);
+        const x = offsetX + col * spacingX + Random.floatBetween(-0.15, 0.15);
+        const z = offsetZ + row * spacingZ + Random.floatBetween(-0.15, 0.15);
 
         // Skip prizes that would spawn in the bin area (front-right corner)
         const distanceToBin = Math.sqrt(
@@ -1695,12 +1771,12 @@ class CraneGame {
         }
 
         // Drop prizes from random heights to let physics stack them naturally
-        const dropHeight = Random.numberBetween(2, 15);
+        const dropHeight = Random.floatBetween(2, 15);
 
         const y = floorY + dropHeight;
 
         mesh.position.set(x, y, z);
-        mesh.rotation.y = Random.numberBetween(0, Math.PI * 2);
+        mesh.rotation.y = Random.floatBetween(0, Math.PI * 2);
 
         // No longer need to store radius in userData
 
@@ -1716,9 +1792,9 @@ class CraneGame {
           grabbed: false,
           settled: false, // Starts unsettled so it can fall
           imageUrl,
-          weight: Random.numberBetween(0.8, 1.2),
-          deformability: Random.numberBetween(0.1, 0.8),
-          bounciness: Random.numberBetween(0.1, 0.3),
+          weight: Random.floatBetween(0.8, 1.2),
+          deformability: Random.floatBetween(0.1, 0.8),
+          bounciness: Random.floatBetween(0.1, 0.3),
           materialType: Random.itemInArray([
             "plush",
             "ball",
@@ -1743,8 +1819,8 @@ class CraneGame {
       let x, z, distanceToBin;
       let attempts = 0;
       do {
-        x = Random.numberBetween(-8, 8);
-        z = Random.numberBetween(-8, 8);
+        x = Random.floatBetween(-8, 8);
+        z = Random.floatBetween(-8, 8);
         distanceToBin = Math.sqrt(
           Math.pow(x - this.binPosition.x, 2) +
             Math.pow(z - this.binPosition.z, 2),
@@ -1760,8 +1836,8 @@ class CraneGame {
       // Load texture from cache
       const texture = this.getOrLoadTexture(imageUrl);
 
-      const brightness = Random.numberBetween(0.05, 0.15);
-      const roughness = Random.numberBetween(0.6, 0.9);
+      const brightness = Random.floatBetween(0.05, 0.15);
+      const roughness = Random.floatBetween(0.6, 0.9);
 
       const material = new THREE.MeshStandardMaterial({
         map: texture,
@@ -1782,11 +1858,11 @@ class CraneGame {
       mesh.frustumCulled = false; // Ensure prizes are always rendered
 
       // Drop from random height to let physics handle stacking
-      const dropHeight = Random.numberBetween(2, 15);
+      const dropHeight = Random.floatBetween(2, 15);
       const y = floorY + dropHeight;
 
       mesh.position.set(x, y, z);
-      mesh.rotation.y = Random.numberBetween(0, Math.PI * 2);
+      mesh.rotation.y = Random.floatBetween(0, Math.PI * 2);
 
       // No longer need to store radius in userData
 
@@ -1802,9 +1878,9 @@ class CraneGame {
         grabbed: false,
         settled: false, // Starts unsettled so it can fall
         imageUrl,
-        weight: Random.numberBetween(0.8, 1.2),
-        deformability: Random.numberBetween(0.1, 0.8),
-        bounciness: Random.numberBetween(0.1, 0.3),
+        weight: Random.floatBetween(0.8, 1.2),
+        deformability: Random.floatBetween(0.1, 0.8),
+        bounciness: Random.floatBetween(0.1, 0.3),
         materialType: Random.itemInArray([
           "plush",
           "ball",
@@ -2314,7 +2390,10 @@ class CraneGame {
     const floorY = -9.5;
     const settleVelocityThreshold = 0.05; // If velocity is below this, prize can settle (increased)
 
-    this.prizes.forEach((prize, index) => {
+    // Update spatial grid for collision detection optimization
+    this.updateSpatialGrid();
+
+    this.prizes.forEach((prize) => {
       if (prize.grabbed) {
         // Mark as unsettled when grabbed
         prize.settled = false;
@@ -2359,13 +2438,14 @@ class CraneGame {
         prize.mesh.position.add(prize.body.velocity);
         prize.body.position.copy(prize.mesh.position);
 
-        // Prize-to-prize collision detection - all prizes now have same radius
+        // Prize-to-prize collision detection using spatial partitioning
         const prizeRadius = this.prizeSize * 0.6;
 
-        for (let i = 0; i < this.prizes.length; i++) {
-          if (i === index) continue; // Skip self
+        // Only check nearby prizes instead of all prizes (spatial optimization)
+        const nearbyPrizes = this.getNearbyPrizes(prize);
 
-          const otherPrize = this.prizes[i];
+        for (const otherPrize of nearbyPrizes) {
+          if (otherPrize === prize) continue; // Skip self
           if (otherPrize.grabbed) continue; // Skip grabbed prizes
 
           const otherRadius = this.prizeSize * 0.6;

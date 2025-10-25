@@ -9,6 +9,10 @@ export default class Random {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
+  static floatBetween(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+  }
+
   static rgbColor() {
     return (
       "" +
