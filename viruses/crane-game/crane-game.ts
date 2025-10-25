@@ -368,6 +368,7 @@ class CraneGame {
   // Images
   images: string[] = [];
   textureLoader = new THREE.TextureLoader();
+  textureCache = new Map<string, THREE.Texture>();
 
   // Prize properties
   prizeRadius = 0.75;
@@ -1609,6 +1610,22 @@ class CraneGame {
     }
   }
 
+  getOrLoadTexture(imageUrl: string): THREE.Texture {
+    // Check if texture is already in cache
+    if (this.textureCache.has(imageUrl)) {
+      return this.textureCache.get(imageUrl)!;
+    }
+
+    // Load texture and add to cache
+    const texture = this.textureLoader.load(imageUrl);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+
+    this.textureCache.set(imageUrl, texture);
+    return texture;
+  }
+
   createPrizes() {
     const floorY = -9.5;
 
@@ -1635,11 +1652,8 @@ class CraneGame {
         // Create uniform sphere geometry
         const geometry = new THREE.SphereGeometry(this.prizeSize * 0.6, 16, 12);
 
-        // Load texture
-        const texture = this.textureLoader.load(imageUrl);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
+        // Load texture from cache
+        const texture = this.getOrLoadTexture(imageUrl);
 
         // Randomly vary material properties for variety
         const brightness = Random.numberBetween(0.05, 0.15);
@@ -1743,10 +1757,8 @@ class CraneGame {
       // Create uniform sphere geometry
       const geometry = new THREE.SphereGeometry(this.prizeSize * 0.6, 16, 12);
 
-      const texture = this.textureLoader.load(imageUrl);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
+      // Load texture from cache
+      const texture = this.getOrLoadTexture(imageUrl);
 
       const brightness = Random.numberBetween(0.05, 0.15);
       const roughness = Random.numberBetween(0.6, 0.9);
