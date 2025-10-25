@@ -1,14 +1,19 @@
 import * as THREE from "three";
+import { GAME_CONFIG } from "./config";
 
 export class CraneRope {
   segments: THREE.Mesh[] = [];
   joints: THREE.Vector3[] = [];
-  segmentLength = 0.5;
-  segmentCount = 20;
-  damping = 0.98;
-  stiffness = 0.95;
+  segmentLength: number;
+  segmentCount: number;
+  damping: number;
+  stiffness: number;
 
   constructor(startPos: THREE.Vector3, endPos: THREE.Vector3) {
+    this.segmentLength = GAME_CONFIG.animation.ropeSegmentLength;
+    this.segmentCount = GAME_CONFIG.animation.ropeSegmentCount;
+    this.damping = GAME_CONFIG.animation.ropeDamping;
+    this.stiffness = GAME_CONFIG.animation.ropeStiffness;
     this.createRope(startPos, endPos);
   }
 

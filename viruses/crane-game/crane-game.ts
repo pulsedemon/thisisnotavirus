@@ -5,6 +5,7 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { PhysicsManager } from "./PhysicsManager";
 import { CraneRope } from "./CraneRope";
 import { ClawPhysics } from "./ClawPhysics";
+import { GAME_CONFIG } from "./config";
 
 interface Prize {
   mesh: THREE.Mesh;
@@ -247,10 +248,14 @@ class CraneGame {
   cabinet: THREE.Group;
 
   // Game state
-  clawRestingHeight = 10; // Height where claw waits
-  clawPosition: THREE.Vector3 = new THREE.Vector3(0, 10, 0);
+  clawRestingHeight = GAME_CONFIG.claw.restingHeight;
+  clawPosition: THREE.Vector3 = new THREE.Vector3(
+    0,
+    GAME_CONFIG.claw.restingHeight,
+    0,
+  );
   targetPosition: THREE.Vector2 = new THREE.Vector2(0, 0);
-  binPosition: THREE.Vector3 = new THREE.Vector3(8, -5, 8); // Prize bin location (raised)
+  binPosition: THREE.Vector3 = GAME_CONFIG.physics.binPosition.clone();
   isDescending = false;
   isGrabbing = false;
   isAscending = false;
@@ -261,7 +266,7 @@ class CraneGame {
   currentClawAngle = Math.PI / 6;
   grabbedPrizes: Prize[] = [];
   wonPrizes: Prize[] = [];
-  credits = 15; // More starting credits for better experience
+  credits = GAME_CONFIG.startingCredits;
 
   // Images
   images: string[] = [];
@@ -333,7 +338,7 @@ class CraneGame {
 
   createPhysicsBoundaries() {
     // Create static floor collider
-    const floorY = -10;
+    const floorY = GAME_CONFIG.physics.floorY;
     this.physicsManager.createStaticBox(
       new THREE.Vector3(0, floorY, 0),
       new THREE.Vector3(10, 0.25, 10), // Half extents
@@ -341,7 +346,7 @@ class CraneGame {
 
     // Create static wall colliders
     const wallHeight = 12.5;
-    const wallY = -10 + wallHeight;
+    const wallY = GAME_CONFIG.physics.floorY + wallHeight;
 
     // Left wall
     this.physicsManager.createStaticBox(
@@ -500,8 +505,8 @@ class CraneGame {
     this.scene.add(fillLight);
   }
 
-  cabinetSize = { width: 20, height: 25, depth: 20 };
-  prizeSize = 1.3; // Slightly smaller for more prizes
+  cabinetSize = GAME_CONFIG.cabinet;
+  prizeSize = GAME_CONFIG.cabinet.prizeSize;
 
   createCabinet() {
     this.cabinet = new THREE.Group();
@@ -1621,12 +1626,11 @@ class CraneGame {
   }
 
   createPrizes() {
-    const floorY = -9.5;
+    const floorY = GAME_CONFIG.physics.floorY + 0.5;
 
     // Calculate grid dimensions based on cabinet and prize size
-
-    const usableWidth = this.cabinetSize.width - 2; // Leave 1 unit padding on each side
-    const usableDepth = this.cabinetSize.depth - 2;
+    const usableWidth = this.cabinetSize.width - GAME_CONFIG.prizes.gridPadding;
+    const usableDepth = this.cabinetSize.depth - GAME_CONFIG.prizes.gridPadding;
 
     const cols = Math.floor(usableWidth / this.prizeSize);
     const rows = Math.floor(usableDepth / this.prizeSize);
@@ -1689,7 +1693,10 @@ class CraneGame {
         }
 
         // Drop prizes from random heights to let physics stack them naturally
-        const dropHeight = Random.floatBetween(2, 15);
+        const dropHeight = Random.floatBetween(
+          GAME_CONFIG.prizes.dropHeightRange[0],
+          GAME_CONFIG.prizes.dropHeightRange[1],
+        );
 
         const y = floorY + dropHeight;
 
@@ -1737,7 +1744,7 @@ class CraneGame {
     }
 
     // Add extra "filler" prizes in random positions to make it look full
-    const numFillerPrizes = 200; // Add 200 more random prizes for completely packed look
+    const numFillerPrizes = GAME_CONFIG.prizes.numFillerPrizes;
 
     for (let i = 0; i < numFillerPrizes; i++) {
       const imageUrl = Random.itemInArray(this.images);
@@ -1946,7 +1953,7 @@ class CraneGame {
 
     // Descending
     if (this.isDescending) {
-      this.clawPosition.y -= 0.2;
+      this.clawPosition.y -= GAME_CONFIG.claw.descendSpeed;
       if (this.clawPosition.y <= -7) {
         this.clawPosition.y = -7;
         this.isDescending = false;
@@ -1961,7 +1968,7 @@ class CraneGame {
 
     // Ascending
     if (this.isAscending) {
-      this.clawPosition.y += 0.15;
+      this.clawPosition.y += GAME_CONFIG.claw.ascendSpeed;
 
       // Check for prize drops during ascent
       this.checkForPrizeDrops();
@@ -2147,8 +2154,8 @@ class CraneGame {
   }
 
   checkGrabbedPrizes() {
-    const grabRadius = 1.8; // Slightly larger since we're limiting to 1 prize
-    const maxPrizesToGrab = 1; // Japanese crane games: grab max 1 prize!
+    const grabRadius = GAME_CONFIG.claw.grabRadius;
+    const maxPrizesToGrab = GAME_CONFIG.claw.maxGrabCount;
 
     // Find all prizes within grab range and calculate distances
     const prizesInRange: { prize: Prize; distance: number }[] = [];
@@ -2186,8 +2193,8 @@ class CraneGame {
     for (let i = 0; i < Math.min(prizesInRange.length, maxPrizesToGrab); i++) {
       const { prize, distance } = prizesInRange[i];
 
-      // 75% chance to grab each prize (more forgiving)
-      if (Math.random() < 0.75) {
+      // Grab success rate based on configuration
+      if (Math.random() < GAME_CONFIG.claw.grabSuccessRate) {
         prize.grabbed = true;
         prize.settled = false;
 
