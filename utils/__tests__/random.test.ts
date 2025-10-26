@@ -56,10 +56,11 @@ describe("Random Utility", () => {
   });
 
   describe("numberBetween", () => {
-    it("should return a number between min and max", () => {
-      const min = 2.5;
-      const max = 7.5;
+    it("should return an integer between min and max", () => {
+      const min = 2;
+      const max = 7;
       const result = Random.numberBetween(min, max);
+      expect(Number.isInteger(result)).toBe(true);
       expect(result).toBeGreaterThanOrEqual(min);
       expect(result).toBeLessThanOrEqual(max);
     });

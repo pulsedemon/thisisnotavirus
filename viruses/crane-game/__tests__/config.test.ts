@@ -1,15 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
+import { MockVector3 } from "../../../test-utils/three-mocks";
 
 // Mock Three.js for config tests
 vi.mock("three", () => ({
-  Vector3: vi.fn().mockImplementation(function (x = 0, y = 0, z = 0) {
-    return {
-      x,
-      y,
-      z,
-      clone: vi.fn().mockReturnValue({ x, y, z }),
-    };
-  }),
+  Vector3: MockVector3,
 }));
 
 import { GAME_CONFIG } from "../config";
