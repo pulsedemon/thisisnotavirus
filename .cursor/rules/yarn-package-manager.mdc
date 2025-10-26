@@ -1,0 +1,51 @@
+---
+description: Enforce the use of Yarn for package management in ThisIsNotAVirus repository
+globs:
+  - "**/*.ts"
+  - "**/*.js"
+  - "**/*.json"
+alwaysApply: true
+---
+
+# Yarn Package Manager Enforcement
+
+This repository **exclusively uses Yarn** as its package manager. The presence of `yarn.lock` confirms this.
+
+## Available Scripts (use `yarn` prefix, not `npm run`):
+
+- `yarn dev` or `yarn start` - Start the development server using Vite
+- `yarn build` - Build the project for production using Vite
+- `yarn build:prod` - Alternative production build command
+- `yarn preview` - Build and preview the production build
+- `yarn lint` - Run ESLint on TypeScript files
+
+## Installation Commands:
+
+- `yarn install` - Install all dependencies (never use `npm install`)
+- `yarn add <package>` - Add new dependencies (never use `npm install <package>`)
+- `yarn add -D <package>` - Add new dev dependencies (never use `npm install -D <package>`)
+- `yarn remove <package>` - Remove dependencies (never use `npm uninstall`)
+
+## Forbidden Commands:
+
+- ❌ `npm install` (use `yarn install`)
+- ❌ `npm run dev` (use `yarn dev`)
+- ❌ `npm run build` (use `yarn build`)
+- ❌ `npm install <package>` (use `yarn add <package>`)
+- ❌ `npm uninstall <package>` (use `yarn remove <package>`)
+
+## Project Structure:
+
+- **Framework**: Vite (modern build tool)
+- **Language**: TypeScript with ESM modules (`"type": "module"`)
+- **Multi-page Application**: MPA setup with multiple virus visualization pages
+- **Styling**: SCSS with custom animations
+- **Linting**: ESLint with TypeScript rules
+
+## Key Directories:
+
+- `viruses/` - Individual virus visualization modules
+- `components/` - Reusable React components
+- `sass/` - Global stylesheets
+- `utils/` - Utility functions
+- `dist/` - Build output (generated, do not edit)

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
- 
 import "./sphere.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -114,11 +111,17 @@ class Sphere {
   }
 
   randomizeMeshColor(objMesh: THREE.Mesh) {
-    objMesh.material.color.set(
-      Math.round(Math.random()),
-      Math.round(Math.random()),
-      Math.round(Math.random()),
-    );
+    // Type guard to ensure material has color property and is a MeshBasicMaterial
+    if (
+      objMesh.material &&
+      objMesh.material instanceof THREE.MeshBasicMaterial
+    ) {
+      objMesh.material.color.set(
+        Math.round(Math.random()),
+        Math.round(Math.random()),
+        Math.round(Math.random()),
+      );
+    }
   }
 
   diamond_color() {
