@@ -26,6 +26,7 @@
     "@vitest/coverage-v8": "4.0.3",
     "@vitest/ui": "4.0.3",
     "handlebars": "4.7.8",
+    "husky": "9.1.7",
     "jsdom": "27.0.1",
     "typescript": "5.9.2",
     "vite": "7.1.2",
@@ -41,6 +42,7 @@
     "lint": "eslint . --ext ts",
     "test": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "prepare": "husky"
   }
 }
