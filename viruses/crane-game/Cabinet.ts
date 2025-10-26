@@ -62,7 +62,7 @@ export class Cabinet {
       panelMaterial,
     );
     leftPanel.position.set(
-      -(this.cabinetSize.width + 2) / 2 + 0.15,
+      -(this.cabinetSize.width + 2) / 2 - 0.15, // Moved outside the base
       -10 - baseHeight / 2 - 0.5,
       0,
     );
@@ -73,7 +73,7 @@ export class Cabinet {
       panelMaterial,
     );
     rightPanel.position.set(
-      (this.cabinetSize.width + 2) / 2 - 0.15,
+      (this.cabinetSize.width + 2) / 2 + 0.15, // Moved outside the base
       -10 - baseHeight / 2 - 0.5,
       0,
     );
@@ -280,7 +280,7 @@ export class Cabinet {
     const panelHeight = 4;
     const panelDepth = 1;
     const panelY = -10;
-    const panelZ = this.cabinetSize.depth / 2 + panelDepth / 2;
+    const panelZ = this.cabinetSize.depth / 2 + 1 + panelDepth / 2; // Moved 1 unit forward to clear the base
 
     // Main panel box
     const panelGeometry = new THREE.BoxGeometry(
@@ -311,7 +311,7 @@ export class Cabinet {
       startButtonMaterial,
     );
     startButton.rotation.x = Math.PI / 2;
-    startButton.position.set(0, panelY, panelZ + panelDepth / 2 + 0.2);
+    startButton.position.set(0, panelY, panelZ + panelDepth / 2 + 0.5); // Increased offset
     this.cabinet.add(startButton);
 
     // Joystick
@@ -325,7 +325,7 @@ export class Cabinet {
       joystickBaseGeometry,
       joystickBaseMaterial,
     );
-    joystickBase.position.set(-3, panelY, panelZ + panelDepth / 2 + 0.2);
+    joystickBase.position.set(-3, panelY, panelZ + panelDepth / 2 + 0.5); // Increased offset
     this.cabinet.add(joystickBase);
 
     // Joystick stick
@@ -347,7 +347,7 @@ export class Cabinet {
     joystickStick.position.set(
       -3,
       panelY + 0.75,
-      panelZ + panelDepth / 2 + 0.2,
+      panelZ + panelDepth / 2 + 0.5, // Increased offset
     );
     this.cabinet.add(joystickStick);
 
@@ -362,7 +362,7 @@ export class Cabinet {
       joystickBallGeometry,
       joystickBallMaterial,
     );
-    joystickBall.position.set(-3, panelY + 1.5, panelZ + panelDepth / 2 + 0.2);
+    joystickBall.position.set(-3, panelY + 1.5, panelZ + panelDepth / 2 + 0.5); // Increased offset
     this.cabinet.add(joystickBall);
 
     // Coin slot
@@ -373,7 +373,7 @@ export class Cabinet {
       roughness: 0.2,
     });
     const coinSlot = new THREE.Mesh(coinSlotGeometry, coinSlotMaterial);
-    coinSlot.position.set(3, panelY + 1, panelZ + panelDepth / 2 + 0.1);
+    coinSlot.position.set(3, panelY + 1, panelZ + panelDepth / 2 + 0.4); // Increased offset
     this.cabinet.add(coinSlot);
 
     // "COIN" label
@@ -389,12 +389,14 @@ export class Cabinet {
     const coinLabelMaterial = new THREE.MeshBasicMaterial({
       map: coinLabelTexture,
       transparent: true,
+      depthTest: true,
     });
     const coinLabel = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 0.25),
       coinLabelMaterial,
     );
-    coinLabel.position.set(3, panelY + 1.5, panelZ + panelDepth / 2 + 0.3);
+    coinLabel.renderOrder = 1; // Render after control panel to prevent z-fighting
+    coinLabel.position.set(3, panelY + 1.5, panelZ + panelDepth / 2 + 0.8); // Moved significantly further out
     this.cabinet.add(coinLabel);
   }
 
@@ -735,11 +737,17 @@ export class Cabinet {
       }
     }
     const grillTexture = new THREE.CanvasTexture(grillCanvas);
-    const grillMaterial = new THREE.MeshBasicMaterial({ map: grillTexture });
+    const grillMaterial = new THREE.MeshBasicMaterial({
+      map: grillTexture,
+      depthTest: true,
+      depthWrite: false, // Disable depth writing to prevent z-fighting
+    });
 
     [-11.5, 11.5].forEach((x) => {
       const grill = new THREE.Mesh(grillGeometry, grillMaterial);
-      grill.position.set(x, 0, 0);
+      grill.renderOrder = 999; // Render last to ensure it's on top
+      // Position significantly away from cabinet sides
+      grill.position.set(x > 0 ? x + 1.0 : x - 1.0, 0, 0);
       grill.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2;
       this.cabinet.add(grill);
     });
@@ -820,12 +828,14 @@ export class Cabinet {
       map: instructionTexture,
       transparent: true,
       opacity: 0.8,
+      depthTest: true,
     });
     const instructionDecal = new THREE.Mesh(
       new THREE.PlaneGeometry(4, 2),
       instructionMaterial,
     );
-    instructionDecal.position.set(-5, 3, 10.1);
+    instructionDecal.renderOrder = 1; // Render after glass to prevent z-fighting
+    instructionDecal.position.set(-5, 3, 10.5); // Moved significantly further out to prevent z-fighting
     this.cabinet.add(instructionDecal);
 
     // Warning sticker
@@ -853,12 +863,14 @@ export class Cabinet {
       map: warningTexture,
       transparent: true,
       opacity: 0.8,
+      depthTest: true,
     });
     const warningDecal = new THREE.Mesh(
       new THREE.PlaneGeometry(1.5, 1.5),
       warningMaterial,
     );
-    warningDecal.position.set(5, 6, 10.1);
+    warningDecal.renderOrder = 1; // Render after glass to prevent z-fighting
+    warningDecal.position.set(5, 6, 10.5); // Moved significantly further out to prevent z-fighting
     this.cabinet.add(warningDecal);
   }
 
@@ -912,14 +924,16 @@ export class Cabinet {
     const textMaterial = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
+      depthTest: true,
     });
     const textPlane = new THREE.Mesh(textGeometry, textMaterial);
+    textPlane.renderOrder = 1; // Render after other objects to prevent z-fighting
 
-    // Position on front of marquee
+    // Position on front of marquee (moved significantly further out to prevent z-fighting)
     textPlane.position.set(
       0,
       15 + marqueeHeight / 2,
-      this.cabinetSize.depth / 2 + 1.1,
+      this.cabinetSize.depth / 2 + 2.0,
     );
     this.cabinet.add(textPlane);
   }

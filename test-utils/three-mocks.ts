@@ -88,10 +88,20 @@ export class MockScene {
  * Mock implementation of Three.js PerspectiveCamera
  */
 export class MockPerspectiveCamera {
-  position = { set: vi.fn(), x: 0, y: 0, z: 0 };
+  position = new MockVector3(0, 0, 0);
   lookAt = vi.fn();
   aspect = 1;
   updateProjectionMatrix = vi.fn();
+
+  constructor() {
+    // Ensure position has a set method for compatibility
+    this.position.set = vi.fn((x: number, y: number, z: number) => {
+      this.position.x = x;
+      this.position.y = y;
+      this.position.z = z;
+      return this.position;
+    });
+  }
 }
 
 /**
@@ -193,3 +203,24 @@ export class MockTextureLoader {
  * Mock implementation of Three.js CanvasTexture
  */
 export class MockCanvasTexture {}
+
+/**
+ * Mock implementation of OrbitControls from three/examples/jsm/controls/OrbitControls
+ */
+export class MockOrbitControls {
+  enableDamping = false;
+  dampingFactor = 0.05;
+  target = new MockVector3(0, 0, 0);
+  minDistance = 0;
+  maxDistance = Infinity;
+  maxPolarAngle = Math.PI;
+  minPolarAngle = 0;
+  enablePan = true;
+  panSpeed = 1;
+  rotateSpeed = 1;
+  update = vi.fn();
+
+  constructor() {
+    // Mock constructor - no actual initialization needed
+  }
+}

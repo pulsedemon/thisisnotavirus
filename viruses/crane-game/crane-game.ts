@@ -1,5 +1,6 @@
 import "./crane-game.scss";
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Random from "../../utils/random";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { PhysicsManager } from "./PhysicsManager";
@@ -16,6 +17,7 @@ export default class CraneGame {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
+  controls: OrbitControls;
 
   // Game objects
   claw: THREE.Group;
@@ -214,6 +216,20 @@ export default class CraneGame {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.5;
     document.getElementById("container")!.appendChild(this.renderer.domElement);
+
+    // Setup camera controls
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true; // Smooth camera movement
+    this.controls.dampingFactor = 0.05;
+    this.controls.target.set(0, 5, 0); // Look at the center of the cabinet
+    this.controls.minDistance = 15; // Minimum zoom distance
+    this.controls.maxDistance = 80; // Maximum zoom distance
+    this.controls.maxPolarAngle = Math.PI / 1.5; // Prevent camera from going below the floor
+    this.controls.minPolarAngle = Math.PI / 8; // Prevent camera from going too high above
+    this.controls.enablePan = true; // Allow panning
+    this.controls.panSpeed = 0.5;
+    this.controls.rotateSpeed = 0.5;
+    this.controls.update();
   }
 
   setupLights() {
@@ -514,7 +530,8 @@ export default class CraneGame {
   }
 
   updateUI() {
-    let instruction = "WASD or Arrow Keys: Move | SPACE: Drop Claw";
+    let instruction =
+      "WASD or Arrow Keys: Move | SPACE: Drop Claw | Mouse: Rotate Camera";
 
     // Get claw state from ClawManager
     if (
@@ -711,6 +728,9 @@ export default class CraneGame {
 
     // Update atmospheric effects (dust, background, floating particles)
     this.atmosphericEffects.animate(0.01);
+
+    // Update camera controls
+    this.controls.update();
 
     this.renderer.render(this.scene, this.camera);
   };

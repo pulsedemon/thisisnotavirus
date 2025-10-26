@@ -24,6 +24,7 @@ import {
   MockMeshStandardMaterial,
   MockTextureLoader,
   MockCanvasTexture,
+  MockOrbitControls,
 } from "../../../test-utils/three-mocks";
 
 import {
@@ -62,6 +63,10 @@ vi.mock("three", () => ({
   PCFSoftShadowMap: 0,
   RepeatWrapping: 0,
   SRGBColorSpace: "",
+}));
+
+vi.mock("three/addons/controls/OrbitControls.js", () => ({
+  OrbitControls: MockOrbitControls,
 }));
 
 vi.mock("../PhysicsManager", () => ({
