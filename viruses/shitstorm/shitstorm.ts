@@ -54,7 +54,7 @@ class ShitstormVirus {
       isMobile ? 120 : 75,
       aspect,
       0.1,
-      1000
+      1000,
     );
     this.camera.position.set(0, 2, isMobile ? 80 : 5);
     this.camera.lookAt(0, 0, 0);
@@ -176,12 +176,12 @@ class ShitstormVirus {
       mesh.position.set(
         (Math.random() - 0.5) * 10,
         (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10
+        (Math.random() - 0.5) * 10,
       );
       mesh.rotation.set(
         Math.random() * Math.PI,
         Math.random() * Math.PI,
-        Math.random() * Math.PI
+        Math.random() * Math.PI,
       );
 
       const group = new THREE.Group();
@@ -232,7 +232,7 @@ class ShitstormVirus {
     // Update the attributes with new arrays
     geometry.setAttribute(
       "position",
-      new THREE.BufferAttribute(newPositions, 3)
+      new THREE.BufferAttribute(newPositions, 3),
     );
     geometry.setAttribute("normal", new THREE.BufferAttribute(newNormals, 3));
 
@@ -270,7 +270,7 @@ class ShitstormVirus {
     this.particles = new THREE.InstancedMesh(
       poopGeometry,
       poopMaterial,
-      particleCount
+      particleCount,
     );
     this.scene.add(this.particles);
 
@@ -308,7 +308,7 @@ class ShitstormVirus {
       // Set instance matrix
       const matrix = new THREE.Matrix4();
       matrix.makeRotationFromEuler(
-        new THREE.Euler(rotations[i3], rotations[i3 + 1], rotations[i3 + 2])
+        new THREE.Euler(rotations[i3], rotations[i3 + 1], rotations[i3 + 2]),
       );
       matrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
       matrix.scale(new THREE.Vector3(scales[i], scales[i], scales[i]));
@@ -369,7 +369,7 @@ class ShitstormVirus {
         (this.waterSurface.material as THREE.MeshPhongMaterial).color.setHSL(
           0.6 + hue * 0.2,
           0.8,
-          0.4
+          0.4,
         );
       }
       requestAnimationFrame(animateWater);
@@ -378,8 +378,8 @@ class ShitstormVirus {
   }
 
   private updateParticles() {
-    const { positions, velocities, rotations, scales } =
-      this.particles.userData as ParticleUserData;
+    const { positions, velocities, rotations, scales } = this.particles
+      .userData as ParticleUserData;
     const matrix = new THREE.Matrix4();
     const position = new THREE.Vector3();
     const rotation = new THREE.Euler();
@@ -424,7 +424,7 @@ class ShitstormVirus {
       matrix.compose(
         position,
         new THREE.Quaternion().setFromEuler(rotation),
-        scale
+        scale,
       );
       this.particles.setMatrixAt(i, matrix);
     }
@@ -452,7 +452,8 @@ class ShitstormVirus {
 
   private updateChaosElements() {
     this.chaosElements.forEach((element) => {
-      const { rotationSpeed, movementSpeed } = element.userData as ChaosElementUserData;
+      const { rotationSpeed, movementSpeed } =
+        element.userData as ChaosElementUserData;
 
       // Rotate
       element.rotation.x += rotationSpeed.x;
