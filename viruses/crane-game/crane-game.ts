@@ -12,7 +12,7 @@ import { ClawManager } from "./ClawManager";
 import { GAME_CONFIG } from "./config";
 import { Prize, ImagesResponse } from "./types";
 
-class CraneGame {
+export default class CraneGame {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
