@@ -4,6 +4,7 @@ import { GAME_CONFIG } from "./config";
 
 export class Cabinet {
   cabinet: THREE.Group;
+  controlPanel: THREE.Group;
   mainGear?: THREE.Mesh;
   smallGears: THREE.Mesh[] = [];
   ledStrips: THREE.Mesh[] = [];
@@ -24,6 +25,7 @@ export class Cabinet {
     this.binPosition = config.physics.binPosition.clone();
 
     this.cabinet = new THREE.Group();
+    this.controlPanel = new THREE.Group();
     this.createCabinet();
     scene.add(this.cabinet);
   }
@@ -282,20 +284,20 @@ export class Cabinet {
     const panelY = -10;
     const panelZ = this.cabinetSize.depth / 2 + 1 + panelDepth / 2; // Moved 1 unit forward to clear the base
 
-    // Main panel box
+    // Main panel box - lighter color for better contrast
     const panelGeometry = new THREE.BoxGeometry(
       panelWidth,
       panelHeight,
       panelDepth,
     );
     const panelMaterial = new THREE.MeshStandardMaterial({
-      color: 0x2a2a2a,
-      metalness: 0.5,
-      roughness: 0.6,
+      color: 0x4a4a4a, // Lighter gray for better contrast
+      metalness: 0.3,
+      roughness: 0.7,
     });
     const panel = new THREE.Mesh(panelGeometry, panelMaterial);
     panel.position.set(0, panelY, panelZ);
-    this.cabinet.add(panel);
+    this.controlPanel.add(panel);
 
     // Large red START button
     const startButtonGeometry = new THREE.CylinderGeometry(0.6, 0.6, 0.3, 16);
@@ -311,10 +313,15 @@ export class Cabinet {
       startButtonMaterial,
     );
     startButton.rotation.x = Math.PI / 2;
-    startButton.position.set(0, panelY, panelZ + panelDepth / 2 + 0.5); // Increased offset
-    this.cabinet.add(startButton);
+    startButton.position.set(0, panelY, panelZ + panelDepth / 2); // Increased offset
+    this.controlPanel.add(startButton);
 
-    // Joystick
+    // Joystick - create a group to keep it upright
+    const joystickGroup = new THREE.Group();
+
+    // Joystick base group
+    const joystickBaseGroup = new THREE.Group();
+
     const joystickBaseGeometry = new THREE.CylinderGeometry(0.5, 0.6, 0.4, 16);
     const joystickBaseMaterial = new THREE.MeshStandardMaterial({
       color: 0x1a1a1a,
@@ -325,10 +332,15 @@ export class Cabinet {
       joystickBaseGeometry,
       joystickBaseMaterial,
     );
-    joystickBase.position.set(-3, panelY, panelZ + panelDepth / 2 + 0.5); // Increased offset
-    this.cabinet.add(joystickBase);
+    joystickBase.position.set(0, 0, 0);
+    joystickBaseGroup.add(joystickBase);
 
-    // Joystick stick
+    // Add base group to joystick group
+    joystickGroup.add(joystickBaseGroup);
+
+    // Joystick stick and ball group (can be positioned/rotated together)
+    const joystickStickGroup = new THREE.Group();
+
     const joystickStickGeometry = new THREE.CylinderGeometry(
       0.15,
       0.15,
@@ -344,14 +356,9 @@ export class Cabinet {
       joystickStickGeometry,
       joystickStickMaterial,
     );
-    joystickStick.position.set(
-      -3,
-      panelY + 0.75,
-      panelZ + panelDepth / 2 + 0.5, // Increased offset
-    );
-    this.cabinet.add(joystickStick);
+    joystickStick.position.set(0, 0.75, 0);
+    joystickStickGroup.add(joystickStick);
 
-    // Joystick ball
     const joystickBallGeometry = new THREE.SphereGeometry(0.3, 16, 16);
     const joystickBallMaterial = new THREE.MeshStandardMaterial({
       color: 0xff0000,
@@ -362,42 +369,29 @@ export class Cabinet {
       joystickBallGeometry,
       joystickBallMaterial,
     );
-    joystickBall.position.set(-3, panelY + 1.5, panelZ + panelDepth / 2 + 0.5); // Increased offset
-    this.cabinet.add(joystickBall);
+    joystickBall.position.set(0, 1.5, 0);
+    joystickStickGroup.add(joystickBall);
 
-    // Coin slot
-    const coinSlotGeometry = new THREE.BoxGeometry(1.5, 0.3, 0.2);
-    const coinSlotMaterial = new THREE.MeshStandardMaterial({
-      color: 0x0a0a0a,
-      metalness: 0.9,
-      roughness: 0.2,
-    });
-    const coinSlot = new THREE.Mesh(coinSlotGeometry, coinSlotMaterial);
-    coinSlot.position.set(3, panelY + 1, panelZ + panelDepth / 2 + 0.4); // Increased offset
-    this.cabinet.add(coinSlot);
+    // Add stick group to joystick group
+    joystickGroup.add(joystickStickGroup);
 
-    // "COIN" label
-    const coinLabelCanvas = document.createElement("canvas");
-    coinLabelCanvas.width = 128;
-    coinLabelCanvas.height = 32;
-    const ctx = coinLabelCanvas.getContext("2d")!;
-    ctx.fillStyle = "#ffff00";
-    ctx.font = "bold 24px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("COIN", 64, 24);
-    const coinLabelTexture = new THREE.CanvasTexture(coinLabelCanvas);
-    const coinLabelMaterial = new THREE.MeshBasicMaterial({
-      map: coinLabelTexture,
-      transparent: true,
-      depthTest: true,
-    });
-    const coinLabel = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 0.25),
-      coinLabelMaterial,
-    );
-    coinLabel.renderOrder = 1; // Render after control panel to prevent z-fighting
-    coinLabel.position.set(3, panelY + 1.5, panelZ + panelDepth / 2 + 0.8); // Moved significantly further out
-    this.cabinet.add(coinLabel);
+    // Counter-rotate the joystick to make it upright (opposite of control panel rotation)
+    joystickGroup.rotation.x = Math.PI / 2;
+
+    // Position the joystick group on the control panel
+    joystickGroup.position.set(-3, panelY, panelZ + panelDepth / 2);
+
+    this.controlPanel.add(joystickGroup);
+
+    // Rotate the control panel 90 degrees to make it horizontal
+    this.controlPanel.rotation.x = -Math.PI / 2; // Rotate around X-axis to make it horizontal
+
+    // Position at the floor level - after rotation, we need to adjust the Y position
+    // The floor is at y = -10, and we want the panel to sit just above it
+    this.controlPanel.position.set(0, -21.5, 2);
+
+    // Add the control panel group to the cabinet
+    this.cabinet.add(this.controlPanel);
   }
 
   private addLEDLightStrips() {
