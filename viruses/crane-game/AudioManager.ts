@@ -49,14 +49,15 @@ export class AudioManager {
 
         switch (soundName) {
           case "clawDescend": {
-            // Clean mechanical whirring sound - no random noise
+            // Clean mechanical whirring sound - normalized to prevent clipping
             const motorFreq = 100 + t * 40; // Rising pitch like a motor speeding up
             const harmonicFreq = motorFreq * 1.5; // Slight detuning for mechanical character
             const envelope = Math.exp(-t * 1.5); // Natural decay
 
+            // Reduced amplitudes: 0.5 + 0.15 = 0.65 max (prevents clipping)
             data[i] =
-              Math.sin(t * motorFreq * 2 * Math.PI) * envelope * 0.7 +
-              Math.sin(t * harmonicFreq * 2 * Math.PI) * envelope * 0.2;
+              Math.sin(t * motorFreq * 2 * Math.PI) * envelope * 0.5 +
+              Math.sin(t * harmonicFreq * 2 * Math.PI) * envelope * 0.15;
             break;
           }
           case "clawBounce": {
@@ -64,23 +65,24 @@ export class AudioManager {
             const impactFreq = 150 + t * 100; // Low fundamental for solid impact feel
             const envelope = Math.exp(-t * 8); // Sharp attack, quick decay
 
-            // Multiple harmonics for rich collision sound
-            const fundamental = Math.sin(t * impactFreq * 2 * Math.PI) * 0.6;
+            // Normalized harmonics to prevent clipping
+            // Total: 0.5 + 0.2 + 0.1 + 0.25 = 1.05, then * 0.65 = 0.68 max
+            const fundamental = Math.sin(t * impactFreq * 2 * Math.PI) * 0.5;
             const harmonic1 =
-              Math.sin(t * impactFreq * 2.5 * 2 * Math.PI) * 0.3;
-            const harmonic2 = Math.sin(t * impactFreq * 4 * 2 * Math.PI) * 0.2;
+              Math.sin(t * impactFreq * 2.5 * 2 * Math.PI) * 0.2;
+            const harmonic2 = Math.sin(t * impactFreq * 4 * 2 * Math.PI) * 0.1;
 
             // Add click/attack transient for video game feel
             const click =
               t < 0.05
                 ? Math.sin(t * impactFreq * 20 * 2 * Math.PI) *
                   Math.exp(-t * 50) *
-                  0.4
+                  0.25
                 : 0;
 
-            // Combine for video game collision sound
+            // Properly normalized - prevents clipping
             data[i] =
-              (fundamental + harmonic1 + harmonic2 + click) * envelope * 0.7;
+              (fundamental + harmonic1 + harmonic2 + click) * envelope * 0.65;
             break;
           }
           case "win": {
@@ -132,7 +134,8 @@ export class AudioManager {
 
       source.buffer = buffer;
       source.playbackRate.value = pitch;
-      gainNode.gain.value = Math.min(volume, 1.0);
+      // Clamp volume to 0.85 max to provide headroom for multiple simultaneous sounds
+      gainNode.gain.value = Math.min(volume * 0.85, 0.85);
 
       source.connect(gainNode);
       gainNode.connect(this.audioContext.destination);
