@@ -39,9 +39,8 @@
     "build:prod": "vite build",
     "preview": "vite build && vite preview",
     "lint": "eslint . --ext ts",
-    "test": "vitest",
+    "test": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
     "test:run": "vitest run"
   }
 }
