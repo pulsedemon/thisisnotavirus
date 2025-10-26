@@ -23,10 +23,14 @@
     "@types/node": "24.3.0",
     "@typescript-eslint/eslint-plugin": "8.39.1",
     "@typescript-eslint/parser": "8.39.1",
+    "@vitest/coverage-v8": "4.0.3",
+    "@vitest/ui": "4.0.3",
     "handlebars": "4.7.8",
+    "jsdom": "27.0.1",
     "typescript": "5.9.2",
     "vite": "7.1.2",
-    "vite-plugin-static-copy": "3.1.1"
+    "vite-plugin-static-copy": "3.1.1",
+    "vitest": "4.0.3"
   },
   "scripts": {
     "dev": "vite",
@@ -34,6 +38,10 @@
     "build": "vite build",
     "build:prod": "vite build",
     "preview": "vite build && vite preview",
-    "lint": "eslint . --ext ts"
+    "lint": "eslint . --ext ts",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:run": "vitest run"
   }
 }
