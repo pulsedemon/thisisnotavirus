@@ -1,6 +1,25 @@
 import * as THREE from "three";
 import "./shitstorm.scss";
 
+// TypeScript interfaces for userData
+interface ParticleUserData {
+  positions: Float32Array;
+  velocities: Float32Array;
+  rotations: Float32Array;
+  scales: Float32Array;
+}
+
+interface ChaosElementUserData {
+  rotationSpeed: { x: number; y: number; z: number };
+  movementSpeed: { x: number; y: number; z: number };
+}
+
+interface SoundWaveUserData {
+  delay: number;
+  scale: number;
+  opacity: number;
+}
+
 class ShitstormVirus {
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
@@ -178,7 +197,7 @@ class ShitstormVirus {
           y: (Math.random() - 0.5) * 0.02,
           z: (Math.random() - 0.5) * 0.02,
         },
-      };
+      } as ChaosElementUserData;
 
       this.chaosElements.push(group);
       this.scene.add(group);
@@ -261,7 +280,7 @@ class ShitstormVirus {
       velocities,
       rotations,
       scales,
-    };
+    } as ParticleUserData;
 
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
@@ -321,7 +340,7 @@ class ShitstormVirus {
         delay: i * 0.7,
         scale: 0.1,
         opacity: 0.3,
-      };
+      } as SoundWaveUserData;
 
       this.soundWaves.add(wave);
     }
@@ -360,7 +379,7 @@ class ShitstormVirus {
 
   private updateParticles() {
     const { positions, velocities, rotations, scales } =
-      this.particles.userData;
+      this.particles.userData as ParticleUserData;
     const matrix = new THREE.Matrix4();
     const position = new THREE.Vector3();
     const rotation = new THREE.Euler();
@@ -416,9 +435,9 @@ class ShitstormVirus {
   private updateSoundWaves() {
     const time = Date.now() * 0.001;
 
-    this.soundWaves.children.forEach((wave, index) => {
+    this.soundWaves.children.forEach((wave) => {
       const mesh = wave as THREE.Mesh;
-      const userData = mesh.userData;
+      const userData = mesh.userData as SoundWaveUserData;
 
       const waveTime = time - userData.delay;
       if (waveTime > 0) {
@@ -433,7 +452,7 @@ class ShitstormVirus {
 
   private updateChaosElements() {
     this.chaosElements.forEach((element) => {
-      const { rotationSpeed, movementSpeed } = element.userData;
+      const { rotationSpeed, movementSpeed } = element.userData as ChaosElementUserData;
 
       // Rotate
       element.rotation.x += rotationSpeed.x;
