@@ -14,3 +14,7 @@ yarn start
 ```
 
 Should be accessible at http://localhost:3000 unless you've already occupied port 3000. See terminal output.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.

@@ -2,6 +2,7 @@
   "name": "thisisnotavirus",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.19.2",
