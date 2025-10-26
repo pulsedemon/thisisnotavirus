@@ -9,8 +9,8 @@ class Faces {
   mouthClasses = ["smile", "monster", "bear"];
 
   constructor() {
-    const eyeClass = Random.itemInArray(this.eyeClasses) as string;
-    const mouthClass = Random.itemInArray(this.mouthClasses) as string;
+    const eyeClass = Random.itemInArray(this.eyeClasses);
+    const mouthClass = Random.itemInArray(this.mouthClasses);
     this.eyes.forEach((e) => {
       e.classList.add(eyeClass);
     });

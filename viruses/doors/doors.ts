@@ -172,7 +172,7 @@ const colorPalettes: colorPaletteType[] = [
     primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
-const colorPalette = Random.itemInArray(colorPalettes) as colorPaletteType;
+const colorPalette = Random.itemInArray(colorPalettes);
 const minSpeed = 10;
 const maxSpeed = 30;
 

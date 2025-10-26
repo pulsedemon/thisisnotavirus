@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 import "./sphere.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -114,8 +114,7 @@ class Sphere {
   }
 
   randomizeMeshColor(objMesh: THREE.Mesh) {
-    // @ts-expect-error color
-    objMesh.material.color.setRGB(
+    objMesh.material.color.set(
       Math.round(Math.random()),
       Math.round(Math.random()),
       Math.round(Math.random()),

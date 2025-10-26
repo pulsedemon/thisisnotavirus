@@ -1101,7 +1101,7 @@ class Void {
         contentEffect * 0.4,
     );
 
-    coreMaterial.color.setRGB(finalRed, finalGreen, finalBlue);
+    coreMaterial.color.set(finalRed, finalGreen, finalBlue);
 
     // Emissive intensity based on rage and calm state
     const baseEmissiveIntensity =
@@ -1201,11 +1201,11 @@ class Void {
       // Shift between different shades of evil
       const evilHue = Math.sin(this.currentTime * 0.005 + index) * 0.5 + 0.5;
       if (evilHue > 0.7) {
-        material.color.setRGB(1, 0, 0.2); // Bright blood red
+        material.color.set(1, 0, 0.2); // Bright blood red
       } else if (evilHue > 0.4) {
-        material.color.setRGB(0.8, 0, 0.4); // Dark crimson
+        material.color.set(0.8, 0, 0.4); // Dark crimson
       } else {
-        material.color.setRGB(0.6, 0, 0.1); // Deep maroon
+        material.color.set(0.6, 0, 0.1); // Deep maroon
       }
     });
 
@@ -1296,11 +1296,11 @@ class Void {
 
       // More dynamic evil coloring
       if (corruption > 0.8) {
-        material.color.setRGB(1, 0.2, 0); // Bright blood red when very corrupt
+        material.color.set(1, 0.2, 0); // Bright blood red when very corrupt
       } else if (corruption > 0.5) {
-        material.color.setRGB(0.8, 0, 0.2); // Deep crimson
+        material.color.set(0.8, 0, 0.2); // Deep crimson
       } else {
-        material.color.setRGB(0.4 + corruption * 0.4, 0, corruption * 0.3); // Dark red
+        material.color.set(0.4 + corruption * 0.4, 0, corruption * 0.3); // Dark red
       }
 
       // Dynamic scaling based on corruption level
@@ -1385,11 +1385,11 @@ class Void {
 
       // Eyes glow brighter when evil is stronger
       if (intensity > 0.7) {
-        material.color.setRGB(1, 0.2, 0);
+        material.color.set(1, 0.2, 0);
       } else if (intensity > 0.4) {
-        material.color.setRGB(1, 0, 0);
+        material.color.set(1, 0, 0);
       } else {
-        material.color.setRGB(0.6, 0, 0);
+        material.color.set(0.6, 0, 0);
       }
     });
 

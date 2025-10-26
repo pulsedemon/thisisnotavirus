@@ -30,12 +30,12 @@ const emojis = [
 ];
 
 function forwards() {
-  document.body.style.backgroundColor = Random.itemInArray(bgColors) as string;
-  let emoji: string = Random.itemInArray(emojis) as string;
+  document.body.style.backgroundColor = Random.itemInArray(bgColors);
+  let emoji: string = Random.itemInArray(emojis);
   const useAllEmoji = Random.numberBetween(1, 10) % 2 === 0 ? true : false;
   const interval = setInterval(() => {
     const randomClass = Random.numberBetween(1, 100) % 2 === 0 ? "wider" : "";
-    if (useAllEmoji) emoji = Random.itemInArray(emojis) as string;
+    if (useAllEmoji) emoji = Random.itemInArray(emojis);
     container.innerHTML += `<span class="${String(randomClass)}">${String(
       emoji
     )}</span>`;

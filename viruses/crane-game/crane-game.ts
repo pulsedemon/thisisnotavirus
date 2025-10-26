@@ -8,25 +8,9 @@ import { ClawPhysics } from "./ClawPhysics";
 import { AudioManager } from "./AudioManager";
 import { AtmosphericEffects } from "./AtmosphericEffects";
 import { Cabinet } from "./Cabinet";
+import { ClawManager } from "./ClawManager";
 import { GAME_CONFIG } from "./config";
-
-interface Prize {
-  mesh: THREE.Mesh;
-  rigidBody: RAPIER.RigidBody; // Rapier physics body
-  grabbed: boolean;
-  settled: boolean; // True when prize has come to rest
-  imageUrl: string;
-  weight: number;
-  deformability: number;
-  bounciness: number;
-  materialType: "plush" | "ball" | "box" | "cylinder";
-  gripStrength: number; // How securely the claw holds this prize (0-1)
-  dropChance: number; // Base chance to drop during transport
-}
-
-interface ImagesResponse {
-  images: string[];
-}
+import { Prize, ImagesResponse } from "./types";
 
 class CraneGame {
   scene: THREE.Scene;
@@ -35,7 +19,6 @@ class CraneGame {
 
   // Game objects
   claw: THREE.Group;
-  clawArm: THREE.Mesh;
   clawProng1: THREE.Group;
   clawProng2: THREE.Group;
   clawProng3: THREE.Group;
@@ -44,25 +27,9 @@ class CraneGame {
   cabinet: THREE.Group;
 
   // Game state
-  clawRestingHeight = GAME_CONFIG.claw.restingHeight;
-  clawPosition: THREE.Vector3 = new THREE.Vector3(
-    0,
-    GAME_CONFIG.claw.restingHeight,
-    0,
-  );
-  targetPosition: THREE.Vector2 = new THREE.Vector2(0, 0);
   binPosition: THREE.Vector3 = GAME_CONFIG.physics.binPosition.clone();
-  isDescending = false;
-  isGrabbing = false;
-  isAscending = false;
-  isMovingToBin = false;
-  isReturning = false;
-  clawOpenAngle = Math.PI / 6;
-  clawClosedAngle = Math.PI / 3;
-  currentClawAngle = Math.PI / 6;
-  grabbedPrizes: Prize[] = [];
-  wonPrizes: Prize[] = [];
   credits = GAME_CONFIG.startingCredits;
+  wonPrizes: Prize[] = [];
 
   // Images
   images: string[] = [];
@@ -77,6 +44,7 @@ class CraneGame {
   atmosphericEffects: AtmosphericEffects;
   physicsManager: PhysicsManager;
   clawPhysics?: ClawPhysics;
+  clawManager: ClawManager;
 
   // Control properties
   keys: Record<string, boolean> = {};
@@ -110,7 +78,7 @@ class CraneGame {
     this.clawPhysics = new ClawPhysics(
       this.physicsManager,
       RAPIER,
-      this.clawPosition,
+      new THREE.Vector3(0, GAME_CONFIG.claw.restingHeight, 0), // Start at center above cabinet
     );
 
     // Create physics boundaries (floor and walls)
@@ -128,11 +96,63 @@ class CraneGame {
     this.floorCanvas = cabinet.floorCanvas;
     this.floorTexture = cabinet.floorTexture;
 
-    this.createClaw();
+    // Create claw manager
+    this.clawManager = new ClawManager(
+      this.scene,
+      this.physicsManager,
+      this.binPosition,
+      this.prizeSize,
+    );
+
+    // Setup controls FIRST so this.keys is initialized
+    this.setupControls();
+
+    // Initialize enhanced features (audioManager, atmosphericEffects) BEFORE setupDependencies
+    this.initializeEnhancedFeatures();
+
+    // Setup claw manager dependencies and callbacks
+    this.clawManager.setupDependencies(
+      this.clawPhysics,
+      this.keys,
+      this.prizes,
+      this.audioManager,
+      {
+        onPrizeGrabbed: (prizes) => {
+          // Prizes were grabbed - this could update UI or play sounds
+          // Could show "GRABBED!" message or play grab sound
+          console.log(`Grabbed ${prizes.length} prize(s)`);
+        },
+        onPrizeDropped: (prize) => {
+          // Prize was dropped - this could play sound or show effect
+          // Could play a drop sound or show particles
+          console.log(
+            `Prize dropped: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}`,
+          );
+        },
+        onPrizeWon: (prize) => {
+          // Prize reached the bin - add to won prizes
+          this.wonPrizes.push(prize);
+          this.showMessage("YOU WIN!");
+          this.audioManager.playSound("win", 0.6, 1.0);
+          this.updateUI();
+        },
+        onLose: () => {
+          // No prizes grabbed - show lose message and play lose sound
+          this.showMessage("TRY AGAIN!");
+          this.audioManager.playSound("lose", 0.7, 0.6);
+          this.updateUI();
+        },
+      },
+    );
+
+    // Get claw components from ClawManager
+    this.claw = this.clawManager.claw;
+    this.clawProng1 = this.clawManager.clawProng1;
+    this.clawProng2 = this.clawManager.clawProng2;
+    this.clawProng3 = this.clawManager.clawProng3;
+    this.craneRope = this.clawManager.craneRope;
     await this.loadImages();
     this.setupUI();
-    this.setupControls();
-    this.initializeEnhancedFeatures();
     this.animate();
 
     window.addEventListener("resize", () => this.onWindowResize());
@@ -245,74 +265,6 @@ class CraneGame {
     const fillLight = new THREE.PointLight(0x442244, 0.3, 30);
     fillLight.position.set(0, -5, 0);
     this.scene.add(fillLight);
-  }
-
-  createClaw() {
-    this.claw = new THREE.Group();
-
-    // Create rope physics system
-    const topPosition = new THREE.Vector3(0, 15, 0);
-    this.craneRope = new CraneRope(topPosition, this.clawPosition);
-
-    // Add rope segments to scene
-    this.craneRope.segments.forEach((segment) => {
-      this.scene.add(segment);
-    });
-
-    // Claw base (connector) - bright and glowing
-    const baseGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 8);
-    const baseMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffff00,
-      metalness: 0.6,
-      emissive: 0xffff00,
-      emissiveIntensity: 0.3,
-    });
-    const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    base.position.y = 0;
-    base.renderOrder = 999;
-    this.claw.add(base);
-
-    // Three prongs - bright yellow with glow
-    const prongMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffff00,
-      metalness: 0.7,
-      roughness: 0.3,
-      emissive: 0xffaa00,
-      emissiveIntensity: 0.4,
-    });
-
-    const createProng = () => {
-      const prong = new THREE.Group();
-
-      const prongGeometry = new THREE.CylinderGeometry(0.15, 0.1, 2, 8);
-      const prongMesh = new THREE.Mesh(prongGeometry, prongMaterial);
-      prongMesh.position.y = -1;
-      prongMesh.castShadow = true;
-      prongMesh.renderOrder = 999;
-
-      // Claw tip
-      const tipGeometry = new THREE.ConeGeometry(0.15, 0.5, 8);
-      const tip = new THREE.Mesh(tipGeometry, prongMaterial);
-      tip.position.y = -2.25;
-      tip.castShadow = true;
-      tip.renderOrder = 999;
-
-      prong.add(prongMesh);
-      prong.add(tip);
-
-      return prong;
-    };
-
-    this.clawProng1 = createProng();
-    this.clawProng2 = createProng();
-    this.clawProng3 = createProng();
-
-    this.claw.add(this.clawProng1);
-    this.claw.add(this.clawProng2);
-    this.claw.add(this.clawProng3);
-
-    this.claw.position.copy(this.clawPosition);
-    this.scene.add(this.claw);
   }
 
   async loadImages() {
@@ -564,11 +516,16 @@ class CraneGame {
   updateUI() {
     let instruction = "WASD or Arrow Keys: Move | SPACE: Drop Claw";
 
-    if (this.isDescending || this.isAscending || this.isMovingToBin) {
+    // Get claw state from ClawManager
+    if (
+      this.clawManager.isDescending ||
+      this.clawManager.isAscending ||
+      this.clawManager.isMovingToBin
+    ) {
       instruction = "Grabbing...";
-    } else if (this.isReturning) {
+    } else if (this.clawManager.isReturning) {
       instruction = "Returning...";
-    } else if (this.isGrabbing) {
+    } else if (this.clawManager.isGrabbing) {
       instruction = "Opening claw...";
     }
 
@@ -598,11 +555,11 @@ class CraneGame {
 
       if (
         (e.key === " " || e.key === " ") &&
-        !this.isDescending &&
-        !this.isAscending &&
-        !this.isMovingToBin &&
-        !this.isReturning &&
-        !this.isGrabbing
+        !this.clawManager.isDescending &&
+        !this.clawManager.isAscending &&
+        !this.clawManager.isMovingToBin &&
+        !this.clawManager.isReturning &&
+        !this.clawManager.isGrabbing
       ) {
         this.dropClaw();
       }
@@ -615,39 +572,6 @@ class CraneGame {
     });
   }
 
-  updateClawMovement() {
-    if (
-      this.isDescending ||
-      this.isAscending ||
-      this.isMovingToBin ||
-      this.isReturning ||
-      !this.clawPhysics
-    )
-      return;
-
-    // Store old position for bounce detection
-    const oldX = this.clawPhysics.position.x;
-    const oldZ = this.clawPhysics.position.z;
-
-    // Update physics-based movement
-    this.clawPhysics.updateMovement(this.keys);
-
-    // Sync clawPosition with physics
-    this.clawPosition.copy(this.clawPhysics.position);
-    this.targetPosition.copy(this.clawPhysics.targetPosition);
-
-    // Apply swing rotation to visual
-    this.claw.rotation.z = this.clawPhysics.getSwingRotation();
-
-    // Play sound on boundary bounce (only when very close to actual boundary)
-    if (
-      (Math.abs(this.clawPhysics.position.x) >= 7.9 && Math.abs(oldX) < 7.9) ||
-      (Math.abs(this.clawPhysics.position.z) >= 7.9 && Math.abs(oldZ) < 7.9)
-    ) {
-      this.audioManager.playSound("clawBounce", 0.6, 1.0); // Boundary collision sound
-    }
-  }
-
   dropClaw() {
     if (this.credits <= 0) {
       this.showMessage("OUT OF CREDITS!");
@@ -655,419 +579,17 @@ class CraneGame {
     }
 
     this.credits--;
-    this.isDescending = true;
-    this.isGrabbing = false; // Make sure claw is open when descending
 
-    // Clear any previously grabbed prizes to start fresh
-    this.grabbedPrizes = [];
+    // Use ClawManager to handle the drop
+    const success = this.clawManager.dropClaw();
 
-    console.log("Starting new claw drop, cleared grabbedPrizes array");
-
-    // Play claw descend sound
-    this.audioManager.playSound("clawDescend", 0.7, 0.9); // Increased volume for better audibility
-
-    this.updateUI();
+    if (success) {
+      this.updateUI();
+    }
   }
 
   updateClaw() {
-    this.updateClawMovement();
-
-    // Descending
-    if (this.isDescending) {
-      this.clawPosition.y -= GAME_CONFIG.claw.descendSpeed;
-      if (this.clawPosition.y <= -7) {
-        this.clawPosition.y = -7;
-        this.isDescending = false;
-        this.isGrabbing = true;
-        this.startGrabbing();
-      }
-      // Sync Y position with physics
-      if (this.clawPhysics) {
-        this.clawPhysics.setY(this.clawPosition.y);
-      }
-    }
-
-    // Ascending
-    if (this.isAscending) {
-      this.clawPosition.y += GAME_CONFIG.claw.ascendSpeed;
-
-      // Check for prize drops during ascent
-      this.checkForPrizeDrops();
-
-      if (this.clawPosition.y >= this.clawRestingHeight) {
-        this.clawPosition.y = this.clawRestingHeight;
-        this.isAscending = false;
-        this.isMovingToBin = true;
-      }
-      // Sync Y position with physics
-      if (this.clawPhysics) {
-        this.clawPhysics.setY(this.clawPosition.y);
-      }
-    }
-
-    // Moving to bin
-    if (this.isMovingToBin) {
-      this.clawPosition.x += (this.binPosition.x - this.clawPosition.x) * 0.08;
-      this.clawPosition.z += (this.binPosition.z - this.clawPosition.z) * 0.08;
-
-      // Sync physics position during bin movement
-      if (this.clawPhysics) {
-        this.clawPhysics.position.x = this.clawPosition.x;
-        this.clawPhysics.position.z = this.clawPosition.z;
-        this.clawPhysics.rigidBody.setTranslation(
-          {
-            x: this.clawPosition.x,
-            y: this.clawPosition.y,
-            z: this.clawPosition.z,
-          },
-          true,
-        );
-        this.clawPhysics.stop(); // Stop any velocity
-      }
-
-      // Check for prize drops during transport
-      this.checkForPrizeDrops();
-
-      const distanceToBin = Math.sqrt(
-        Math.pow(this.binPosition.x - this.clawPosition.x, 2) +
-          Math.pow(this.binPosition.z - this.clawPosition.z, 2),
-      );
-
-      if (distanceToBin < 0.05) {
-        this.isMovingToBin = false;
-
-        // Immediately release prizes when we reach the bin
-        console.log("Reached bin, releasing prizes now");
-        console.log(
-          `grabbedPrizes count before release: ${this.grabbedPrizes.length}`,
-        );
-        console.log(
-          `grabbedPrizes before release:`,
-          this.grabbedPrizes.map((p) => ({
-            id: p.mesh.id,
-            grabbed: p.grabbed,
-            position: p.mesh.position.toArray(),
-          })),
-        );
-        this.releasePrizesPhysics();
-
-        // Play prize drop sound only if prizes were actually grabbed
-        console.log(
-          `grabbedPrizes count after release: ${this.grabbedPrizes.length}`,
-        );
-
-        // Open the claw
-        setTimeout(() => {
-          this.isGrabbing = false;
-        }, 300);
-
-        // Wait for prizes to fall, then return
-        setTimeout(() => {
-          console.log("Starting return to center");
-          this.isReturning = true;
-        }, 1500);
-      }
-    }
-
-    // Returning to center
-    if (this.isReturning) {
-      // Calculate distance to target
-      const distanceToCenter = Math.sqrt(
-        this.clawPosition.x * this.clawPosition.x +
-          this.clawPosition.z * this.clawPosition.z +
-          Math.pow(this.clawPosition.y - this.clawRestingHeight, 2),
-      );
-
-      // Use faster interpolation when far, slower when close
-      const speed = distanceToCenter > 1 ? 0.08 : 0.15;
-
-      // Smoother movement back to center
-      this.clawPosition.x += (0 - this.clawPosition.x) * speed;
-      this.clawPosition.z += (0 - this.clawPosition.z) * speed;
-      this.clawPosition.y +=
-        (this.clawRestingHeight - this.clawPosition.y) * speed;
-
-      // Sync physics position with the return movement
-      if (this.clawPhysics) {
-        this.clawPhysics.position.copy(this.clawPosition);
-        this.clawPhysics.rigidBody.setTranslation(
-          {
-            x: this.clawPosition.x,
-            y: this.clawPosition.y,
-            z: this.clawPosition.z,
-          },
-          true,
-        );
-        this.clawPhysics.stop(); // Stop any velocity
-      }
-
-      // When very close, snap to final position to avoid endless interpolation
-      if (distanceToCenter < 0.01) {
-        this.clawPosition.x = 0;
-        this.clawPosition.z = 0;
-        this.clawPosition.y = this.clawRestingHeight;
-        this.targetPosition.set(0, 0);
-
-        // Sync final position with physics
-        if (this.clawPhysics) {
-          this.clawPhysics.position.copy(this.clawPosition);
-          this.clawPhysics.targetPosition.set(0, 0);
-          this.clawPhysics.rigidBody.setTranslation(
-            {
-              x: this.clawPosition.x,
-              y: this.clawPosition.y,
-              z: this.clawPosition.z,
-            },
-            true,
-          );
-        }
-
-        this.isReturning = false;
-      }
-    }
-
-    // Update rope physics
-    this.craneRope.updateEndPosition(this.clawPosition);
-    this.craneRope.updatePhysics(0.02, 0.01);
-
-    // Update claw prongs (opening/closing animation)
-    if (this.isGrabbing) {
-      // Close slowly
-      this.currentClawAngle +=
-        (this.clawClosedAngle - this.currentClawAngle) * 0.1;
-    } else {
-      // Open more gradually for smooth release
-      this.currentClawAngle +=
-        (this.clawOpenAngle - this.currentClawAngle) * 0.08;
-    }
-
-    this.updateClawProng(this.clawProng1, 0);
-    this.updateClawProng(this.clawProng2, (Math.PI * 2) / 3);
-    this.updateClawProng(this.clawProng3, (Math.PI * 4) / 3);
-
-    this.claw.position.copy(this.clawPosition);
-    this.updateUI();
-  }
-
-  updateClawProng(prong: THREE.Group, baseAngle: number) {
-    const radius = 0.8;
-    const x = Math.cos(baseAngle) * radius * Math.sin(this.currentClawAngle);
-    const z = Math.sin(baseAngle) * radius * Math.sin(this.currentClawAngle);
-
-    prong.position.set(x, 0, z);
-    prong.rotation.z = this.currentClawAngle - Math.PI / 2;
-    prong.rotation.y = baseAngle;
-  }
-
-  startGrabbing() {
-    // First close the claw
-    this.isGrabbing = true;
-
-    // Wait for claw to close, then check what we grabbed
-    setTimeout(() => {
-      this.checkGrabbedPrizes();
-
-      // Then start ascending
-      setTimeout(() => {
-        this.isAscending = true;
-      }, 300);
-    }, 500);
-  }
-
-  checkGrabbedPrizes() {
-    const grabRadius = GAME_CONFIG.claw.grabRadius;
-    const maxPrizesToGrab = GAME_CONFIG.claw.maxGrabCount;
-
-    // Find all prizes within grab range and calculate distances
-    const prizesInRange: { prize: Prize; distance: number }[] = [];
-
-    this.prizes.forEach((prize) => {
-      if (prize.grabbed) return;
-
-      // Check distance from claw to prize
-      const distance = prize.mesh.position.distanceTo(this.clawPosition);
-
-      // All prizes now have the same fixed radius
-      const prizeRadius = this.prizeSize * 0.6;
-      const effectiveGrabDistance = grabRadius + prizeRadius;
-
-      if (distance < effectiveGrabDistance) {
-        prizesInRange.push({ prize, distance });
-      }
-    });
-
-    // Sort by distance (closest first)
-    prizesInRange.sort((a, b) => a.distance - b.distance);
-
-    console.log(
-      `Found ${prizesInRange.length} prizes in range, will attempt to grab closest 1`,
-    );
-
-    if (prizesInRange.length > 0) {
-      console.log(
-        `Closest prize distance: ${prizesInRange[0].distance.toFixed(2)}`,
-      );
-    }
-
-    // Only try to grab the closest prize (max 1)
-    let grabbedCount = 0;
-    for (let i = 0; i < Math.min(prizesInRange.length, maxPrizesToGrab); i++) {
-      const { prize, distance } = prizesInRange[i];
-
-      // Grab success rate based on configuration
-      if (Math.random() < GAME_CONFIG.claw.grabSuccessRate) {
-        prize.grabbed = true;
-        prize.settled = false;
-
-        // Set grip strength based on prize properties and grab quality
-        const baseGrip = 0.8 + Math.random() * 0.15; // 80-95% base grip (more reliable)
-        const distancePenalty = Math.max(0, (distance - 0.3) * 0.2); // Reduced penalty for distance
-        const weightPenalty = prize.weight * 0.05; // Reduced weight penalty
-
-        prize.gripStrength = Math.max(
-          0.5,
-          baseGrip - distancePenalty - weightPenalty,
-        );
-        prize.dropChance = (1 - prize.gripStrength) * 0.008; // Much lower base drop chance
-
-        this.grabbedPrizes.push(prize);
-        grabbedCount++;
-
-        console.log(
-          `Grabbed prize ${grabbedCount}! Distance: ${distance.toFixed(2)}, Grip: ${prize.gripStrength.toFixed(2)}`,
-        );
-
-        // Unsettle nearby prizes for realistic disturbance
-        this.prizes.forEach((otherPrize) => {
-          if (otherPrize === prize || otherPrize.grabbed) return;
-          const distToOther = prize.mesh.position.distanceTo(
-            otherPrize.mesh.position,
-          );
-          if (distToOther < 2) {
-            otherPrize.settled = false;
-            // Apply impulse to nearby prizes using Rapier
-            const pushDir = new THREE.Vector3()
-              .subVectors(otherPrize.mesh.position, prize.mesh.position)
-              .normalize()
-              .multiplyScalar(0.03);
-            otherPrize.rigidBody.applyImpulse(
-              { x: pushDir.x, y: pushDir.y, z: pushDir.z },
-              true,
-            );
-          }
-        });
-      }
-    }
-
-    console.log(
-      `Total prizes grabbed: ${grabbedCount} out of ${prizesInRange.length} in range`,
-    );
-  }
-
-  releasePrizesPhysics() {
-    console.log(`Releasing prizes. Count: ${this.grabbedPrizes.length}`);
-    console.log(
-      `grabbedPrizes array:`,
-      this.grabbedPrizes.map((p) => ({
-        id: p.mesh.id,
-        grabbed: p.grabbed,
-        position: p.mesh.position.toArray(),
-      })),
-    );
-
-    if (this.grabbedPrizes.length > 0) {
-      console.log(`About to release ${this.grabbedPrizes.length} prizes`);
-
-      // Store the prizes we're releasing in a local variable
-      const prizesToRelease = [...this.grabbedPrizes];
-      console.log(`Stored ${prizesToRelease.length} prizes to release`);
-      console.log(
-        `Prizes to release:`,
-        prizesToRelease.map((p) => ({
-          id: p.mesh?.id || "NO_ID",
-          grabbed: p.grabbed,
-          position: p.mesh?.position?.toArray() || "NO_POSITION",
-          meshValid: !!p.mesh,
-          meshInScene: p.mesh ? this.scene.children.includes(p.mesh) : false,
-        })),
-      );
-
-      // Clear the grabbed prizes array immediately
-      this.grabbedPrizes = [];
-
-      // Validate and release prizes
-      const validPrizesToRelease = prizesToRelease.filter((prize) => {
-        const isValid = prize && prize.mesh && prize.grabbed;
-        if (!isValid) {
-          console.log(`Invalid prize filtered out:`, {
-            prize,
-            hasMesh: !!prize?.mesh,
-            grabbed: prize?.grabbed,
-          });
-        }
-        return isValid;
-      });
-
-      console.log(`Valid prizes to release: ${validPrizesToRelease.length}`);
-
-      // Release prizes and let them fall with Rapier physics
-      validPrizesToRelease.forEach((prize) => {
-        prize.grabbed = false;
-        prize.settled = false; // Mark as unsettled so it can fall
-
-        // Give them a strong downward velocity to start falling fast (using Rapier)
-        prize.rigidBody.setLinvel({ x: 0, y: -5.0, z: 0 }, true);
-
-        // Reset visual effects when prize is released
-        const material = prize.mesh.material as THREE.MeshStandardMaterial;
-        material.emissiveIntensity =
-          (material.userData?.originalEmissiveIntensity as number) || 0.05;
-        material.emissive =
-          (material.userData?.originalEmissiveColor as THREE.Color) ||
-          new THREE.Color("#222222");
-
-        // Don't add to wonPrizes here - let the bin detection handle it
-      });
-
-      // Remove won prizes from scene after they've fallen and settled
-      setTimeout(() => {
-        validPrizesToRelease.forEach((prize) => {
-          // Remove from Three.js scene
-          this.scene.remove(prize.mesh);
-
-          // Remove from Rapier physics world
-          this.physicsManager.removeBody(prize.rigidBody);
-
-          // Remove from prizes array
-          const index = this.prizes.indexOf(prize);
-          if (index > -1) this.prizes.splice(index, 1);
-        });
-      }, 5000); // Give them 5 seconds to fall into the bin and settle
-    } else {
-      console.log(`No prizes to release! grabbedPrizes array is empty`);
-      console.log(`Current grabbedPrizes state:`, this.grabbedPrizes);
-
-      // Debug: Check if any prizes have grabbed=true but aren't in the array
-      const orphanedPrizes = this.prizes.filter(
-        (p) => p.grabbed && !this.grabbedPrizes.includes(p),
-      );
-      console.log(
-        `Orphaned grabbed prizes:`,
-        orphanedPrizes.map((p) => ({
-          id: p.mesh.id,
-          grabbed: p.grabbed,
-          position: p.mesh.position.toArray(),
-        })),
-      );
-
-      // No prizes grabbed - show "TRY AGAIN" message and play lose sound
-      setTimeout(() => {
-        this.showMessage("TRY AGAIN!");
-        // Play depressing lose sound (lower pitch, minor key feel)
-        this.audioManager.playSound("lose", 0.4, 0.6);
-      }, 500);
-    }
-
+    this.clawManager.update();
     this.updateUI();
   }
 
@@ -1093,9 +615,9 @@ class CraneGame {
         prize.settled = false;
 
         // Follow claw whenever grabbed (holding, ascending, moving to bin, or returning)
-        const targetX = this.clawPosition.x;
-        const targetY = this.clawPosition.y - 1.5; // Hang below claw
-        const targetZ = this.clawPosition.z;
+        const targetX = this.clawManager.clawPosition.x;
+        const targetY = this.clawManager.clawPosition.y - 1.5; // Hang below claw
+        const targetZ = this.clawManager.clawPosition.z;
 
         // Use faster interpolation for more responsive following
         prize.mesh.position.x += (targetX - prize.mesh.position.x) * 0.3;
@@ -1117,14 +639,6 @@ class CraneGame {
         const material = prize.mesh.material as THREE.MeshStandardMaterial;
         material.emissiveIntensity = 1.5; // Very strong glow to make grabbed prizes obvious
         material.emissive = new THREE.Color(0x00ffff); // Bright cyan glow for grabbed prizes
-
-        // Debug: log grabbed prize position and array membership (reduced frequency)
-        if (Math.random() < 0.01) {
-          const inArray = this.grabbedPrizes.includes(prize);
-          console.log(
-            `Grabbed prize ${prize.mesh.id}: position: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}, inArray: ${inArray}`,
-          );
-        }
       } else {
         // Sync Three.js mesh with Rapier physics body
         this.physicsManager.syncMeshWithBody(prize.mesh, prize.rigidBody);
@@ -1151,12 +665,19 @@ class CraneGame {
             new THREE.Color("#222222");
         }
 
-        // Check if prize has entered the bin
-        const inBinX = Math.abs(prize.mesh.position.x - this.binPosition.x) < 2;
-        const inBinZ = Math.abs(prize.mesh.position.z - this.binPosition.z) < 2;
-        const inBinY = prize.mesh.position.y < -7; // Below bin opening
+        // Check if prize has entered the bin (more precise detection)
+        const inBinX =
+          Math.abs(prize.mesh.position.x - this.binPosition.x) < 1.5;
+        const inBinZ =
+          Math.abs(prize.mesh.position.z - this.binPosition.z) < 1.5;
+        const inBinY = prize.mesh.position.y < -8; // Deeper into the bin for more reliable detection
 
-        if (inBinX && inBinZ && inBinY && !this.wonPrizes.includes(prize)) {
+        if (
+          inBinX &&
+          inBinZ &&
+          inBinY &&
+          !this.wonPrizes.some((wonPrize) => wonPrize.mesh.id === prize.mesh.id)
+        ) {
           // Prize has entered the bin! Mark as won
           this.wonPrizes.push(prize);
           this.showMessage("YOU WIN!");
@@ -1207,102 +728,6 @@ class CraneGame {
       smallGears.forEach((gear: THREE.Mesh) => {
         gear.rotation.z -= 0.04; // Faster counter-rotation
       });
-    }
-  }
-
-  checkForPrizeDrops() {
-    console.log(
-      `Checking for prize drops. grabbedPrizes count: ${this.grabbedPrizes.length}`,
-    );
-    console.log(
-      `Current grabbedPrizes:`,
-      this.grabbedPrizes.map((p) => ({
-        id: p.mesh.id,
-        grabbed: p.grabbed,
-        position: p.mesh.position.toArray(),
-        grip: p.gripStrength.toFixed(2),
-      })),
-    );
-
-    // Check each grabbed prize to see if it should drop
-    for (let i = this.grabbedPrizes.length - 1; i >= 0; i--) {
-      const prize = this.grabbedPrizes[i];
-
-      // Calculate drop probability based on multiple factors
-      const distanceFromClaw = prize.mesh.position.distanceTo(
-        this.clawPosition,
-      );
-      const movementSpeed = this.clawPhysics?.getSpeed() || 0;
-      const heightFactor = Math.max(0, (prize.mesh.position.y + 5) / 15); // Higher = more likely to drop
-
-      // Base drop chance plus movement and height factors (reduced for better balance)
-      const totalDropChance =
-        prize.dropChance + movementSpeed * 0.05 + heightFactor * 0.002;
-
-      console.log(
-        `Prize ${prize.mesh.id}: distance=${distanceFromClaw.toFixed(2)}, speed=${movementSpeed.toFixed(2)}, height=${prize.mesh.position.y.toFixed(2)}, dropChance=${totalDropChance.toFixed(4)}, random=${Math.random().toFixed(4)}`,
-      );
-
-      if (Math.random() < totalDropChance) {
-        // Prize drops!
-        console.log(
-          `Prize dropped! Grip: ${prize.gripStrength.toFixed(2)}, Distance: ${distanceFromClaw.toFixed(2)}`,
-        );
-
-        // Remove from grabbed array
-        this.grabbedPrizes.splice(i, 1);
-
-        // Reset prize state
-        prize.grabbed = false;
-        prize.settled = false;
-
-        // Give it a slight downward and outward velocity (using Rapier)
-        prize.rigidBody.setLinvel(
-          {
-            x: (Math.random() - 0.5) * 0.1,
-            y: -Math.random() * 0.05 - 0.02,
-            z: (Math.random() - 0.5) * 0.1,
-          },
-          true,
-        );
-
-        // Show drop effect
-        this.showPrizeDropEffect(prize.mesh.position);
-      }
-    }
-
-    console.log(
-      `After drop check, grabbedPrizes count: ${this.grabbedPrizes.length}`,
-    );
-  }
-
-  showPrizeDropEffect(position: THREE.Vector3) {
-    // Create a simple particle burst effect when prize drops
-    const particleCount = 5;
-    for (let i = 0; i < particleCount; i++) {
-      setTimeout(() => {
-        // Create a temporary visual indicator
-        const indicator = document.createElement("div");
-        indicator.style.position = "absolute";
-        indicator.style.left = `${Math.random() * 20 + position.x * 10}px`;
-        indicator.style.top = `${Math.random() * 20 + (15 - position.y) * 10}px`;
-        indicator.style.width = "4px";
-        indicator.style.height = "4px";
-        indicator.style.backgroundColor = "#ffff00";
-        indicator.style.borderRadius = "50%";
-        indicator.style.opacity = "0.8";
-        indicator.style.pointerEvents = "none";
-        indicator.style.zIndex = "1000";
-
-        document.body.appendChild(indicator);
-
-        // Animate and remove
-        setTimeout(() => {
-          indicator.style.transform = "scale(0)";
-          indicator.style.opacity = "0";
-          setTimeout(() => indicator.remove(), 300);
-        }, 100);
-      }, i * 50);
     }
   }
 
