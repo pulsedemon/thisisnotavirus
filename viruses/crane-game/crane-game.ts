@@ -48,7 +48,7 @@ export default class CraneGame {
   atmosphericEffects: AtmosphericEffects;
   physicsManager: PhysicsManager;
   clawPhysics?: ClawPhysics;
-  clawManager: ClawManager;
+  clawManager!: ClawManager;
 
   // Control properties
   keys: Record<string, boolean> = {};

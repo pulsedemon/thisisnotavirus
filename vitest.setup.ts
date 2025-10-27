@@ -8,7 +8,6 @@ type FrameRequestCallback = (time: number) => void;
 vi.mock("three", async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
   const actual = (await vi.importActual("three")) as any;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const mocks = createThreeMocks();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {

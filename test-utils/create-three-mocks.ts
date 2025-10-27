@@ -32,10 +32,10 @@ export function createThreeMocks() {
       },
     })),
     Vector3: vi.fn((x = 0, y = 0, z = 0) => ({
-      x,
-      y,
-      z,
-      clone: vi.fn(() => ({ x, y, z })),
+      x: x as number,
+      y: y as number,
+      z: z as number,
+      clone: vi.fn(() => ({ x: x as number, y: y as number, z: z as number })),
       set: vi.fn(),
     })),
     Color: vi.fn(() => ({
