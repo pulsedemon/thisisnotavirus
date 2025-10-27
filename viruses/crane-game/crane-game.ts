@@ -264,7 +264,7 @@ export default class CraneGame {
       0.1,
       1000,
     );
-    this.camera.position.set(0, 5, isMobile() ? 55 : 40); // Zoom out more on mobile
+    this.camera.position.set(0, 5, isMobile() ? 50 : 40); // Zoom out more on mobile
     this.camera.lookAt(0, 5, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });

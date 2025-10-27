@@ -6,10 +6,10 @@ import { isMobile } from "../../utils/misc";
  * AtmosphericEffects - Mobile Optimized
  *
  * Mobile optimizations:
- * - Dust particles: 50 → 15 (70% reduction)
- * - Floating lights: 30 → 10 (67% reduction)
+ * - Dust particles: 50 → 8 (84% reduction)
+ * - Floating lights: 30 → 5 (83% reduction)
  * - Background canvas: 512x512 → 256x256 (75% fewer pixels)
- * - Background update frequency: 100ms → 200ms (50% less frequent)
+ * - Background update frequency: 100ms → 500ms (5x slower)
  * - Radial glow effects: Disabled on mobile (significant GPU savings)
  */
 
@@ -32,8 +32,8 @@ export class AtmosphericEffects {
   constructor(scene: THREE.Scene) {
     // Reduce particle counts on mobile for better performance
     if (isMobile()) {
-      this.particleCount = 15; // Reduced from 50 to 15
-      this.backgroundUpdateInterval = 200; // Update less frequently on mobile
+      this.particleCount = 8; // Reduced from 15 to 8 (84% reduction from desktop)
+      this.backgroundUpdateInterval = 500; // Update much less frequently on mobile (5x slower)
     }
 
     this.createDustParticles(scene);
@@ -121,7 +121,7 @@ export class AtmosphericEffects {
 
   createFloatingLights(scene: THREE.Scene) {
     // Create glowing particle spheres that float around
-    const particleCount = isMobile() ? 10 : 30; // Reduced from 30 to 10 on mobile
+    const particleCount = isMobile() ? 5 : 30; // Reduced from 10 to 5 on mobile (83% reduction)
     const colors = [0xff00ff, 0x00ffff, 0xffff00, 0xff0080, 0x00ff00];
 
     for (let i = 0; i < particleCount; i++) {
