@@ -179,7 +179,7 @@ export class Cabinet {
     });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.position.y = -10;
-    floor.receiveShadow = true;
+    floor.receiveShadow = false; // Disabled for performance
     this.cabinet.add(floor);
 
     // Glass walls (more visible with light cyan tint)

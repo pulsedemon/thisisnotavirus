@@ -240,11 +240,11 @@ export default class CraneGame {
         const gltf = await this.gltfLoader.loadAsync(modelPath);
         const model = gltf.scene;
 
-        // Setup shadows for all meshes in the model
+        // Setup shadows for all meshes in the model - disabled for performance
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
+            child.castShadow = false; // Disabled for performance
+            child.receiveShadow = false; // Disabled for performance
           }
         });
 
@@ -304,44 +304,39 @@ export default class CraneGame {
     const ambient = new THREE.AmbientLight(0xfff8e1, 0.6); // Warm ambient light
     this.scene.add(ambient);
 
-    // Main spotlight from above (arcade lighting) - more realistic
+    // Main spotlight from above (arcade lighting) - shadows disabled for performance
     const spotLight = new THREE.SpotLight(0xffffff, 2.5);
     spotLight.position.set(0, 25, 0);
-    spotLight.castShadow = true;
+    spotLight.castShadow = false; // Disabled for performance
     spotLight.angle = Math.PI / 3.5;
     spotLight.penumbra = 0.4;
-    spotLight.shadow.mapSize.width = 2048;
-    spotLight.shadow.mapSize.height = 2048;
-    spotLight.shadow.camera.near = 0.5;
-    spotLight.shadow.camera.far = 50;
-    spotLight.shadow.camera.fov = 60;
     this.scene.add(spotLight);
 
-    // Vibrant colored accent lights for arcade feel
+    // Vibrant colored accent lights for arcade feel - shadows disabled for performance
     const light1 = new THREE.PointLight(0xff00ff, 1.8, 40);
     light1.position.set(-12, 8, 12);
-    light1.castShadow = true;
+    light1.castShadow = false; // Disabled for performance
     this.scene.add(light1);
 
     const light2 = new THREE.PointLight(0x00ffff, 1.8, 40);
     light2.position.set(12, 8, 12);
-    light2.castShadow = true;
+    light2.castShadow = false; // Disabled for performance
     this.scene.add(light2);
 
     const light3 = new THREE.PointLight(0xffff00, 1.5, 40);
     light3.position.set(0, 8, -12);
-    light3.castShadow = true;
+    light3.castShadow = false; // Disabled for performance
     this.scene.add(light3);
 
     const light4 = new THREE.PointLight(0xff1493, 1.5, 35);
     light4.position.set(8, 4, 8);
-    light4.castShadow = true;
+    light4.castShadow = false; // Disabled for performance
     this.scene.add(light4);
 
-    // Additional rim lighting for dramatic effect
+    // Additional rim lighting for dramatic effect - shadows disabled for performance
     const rimLight = new THREE.DirectionalLight(0x88ccff, 0.8);
     rimLight.position.set(-20, 15, -20);
-    rimLight.castShadow = true;
+    rimLight.castShadow = false; // Disabled for performance
     this.scene.add(rimLight);
 
     // Subtle fill light from below

@@ -195,14 +195,14 @@ export class ClawManager {
       const prongGeometry = new THREE.CylinderGeometry(0.15, 0.1, 2, 8);
       const prongMesh = new THREE.Mesh(prongGeometry, prongMaterial);
       prongMesh.position.y = -1;
-      prongMesh.castShadow = true;
+      prongMesh.castShadow = false; // Disabled for performance
       prongMesh.renderOrder = 999;
 
       // Claw tip
       const tipGeometry = new THREE.ConeGeometry(0.15, 0.5, 8);
       const tip = new THREE.Mesh(tipGeometry, prongMaterial);
       tip.position.y = -2.25;
-      tip.castShadow = true;
+      tip.castShadow = false; // Disabled for performance
       tip.renderOrder = 999;
 
       prong.add(prongMesh);
