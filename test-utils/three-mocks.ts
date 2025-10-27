@@ -115,9 +115,11 @@ export class MockWebGLRenderer {
   toneMapping = 0;
   toneMappingExposure = 1;
   dispose = vi.fn();
-  get domElement() {
-    return document.createElement("canvas");
-  }
+  domElement = {
+    style: {
+      touchAction: "",
+    },
+  } as HTMLCanvasElement;
 }
 
 /**

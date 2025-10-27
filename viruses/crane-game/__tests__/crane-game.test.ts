@@ -113,13 +113,11 @@ vi.mock("@dimforge/rapier3d-compat", () => ({
 // Setup animation frame mocks
 setupAnimationFrameMocks();
 
-// Mock fetch globally before imports using vi.hoisted
-vi.hoisted(() => {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve({ images: ["test1.jpg", "test2.jpg"] }),
-  });
-});
+// Mock fetch globally
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: () => Promise.resolve({ images: ["test1.jpg", "test2.jpg"] }),
+} as Response);
 
 describe("CraneGame", () => {
   let craneGame: CraneGame;
@@ -132,6 +130,12 @@ describe("CraneGame", () => {
     const { default: RAPIER } = await import("@dimforge/rapier3d-compat");
     vi.mocked(RAPIER.init).mockResolvedValue(undefined);
 
+    // Reset fetch mock before each test
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ images: ["test1.jpg", "test2.jpg"] }),
+    } as Response);
+
     // Mock the animate method before creating the instance
     const animateSpy = vi.fn();
 
@@ -141,8 +145,8 @@ describe("CraneGame", () => {
     // Replace the animate method after construction to prevent animation loop
     craneGame.animate = animateSpy;
 
-    // Wait for the constructor and async init to complete
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Wait for the constructor and async init to complete (including loadImages)
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // Manually initialize the keys object since setupControls may not be called properly in tests
     craneGame.keys = {

@@ -42,6 +42,10 @@ export class MockCabinet {
     height: 256,
   };
   floorTexture = {};
+  controlPanel = {
+    setCamera: vi.fn(),
+  };
+  updateJoystickFromKeyboard = vi.fn();
 }
 
 /**
