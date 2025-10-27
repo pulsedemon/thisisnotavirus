@@ -24,6 +24,12 @@ export default defineConfig(() => {
         dest: `viruses/${name}/explosions`,
       });
     }
+    if (existsSync(`${base}/models`)) {
+      targets.push({
+        src: `${base}/models/**`,
+        dest: `viruses/${name}/models`,
+      });
+    }
     const extraFiles = glob.sync(
       `${base}/*.{png,webp,gif,jpg,jpeg,svg,mp3,mp4,webm,ogg}`,
     );

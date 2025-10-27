@@ -249,9 +249,8 @@ export default class CraneGame {
         });
 
         this.plushieTemplates.push(model);
-        console.log(`✅ Model loaded: ${modelPath.split("/").pop()}`);
       } catch (error) {
-        console.error(`❌ Failed to load model ${modelPath}:`, error);
+        console.error(`Failed to load model ${modelPath}:`, error);
       }
     }
   }
