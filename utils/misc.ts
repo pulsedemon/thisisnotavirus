@@ -2,8 +2,31 @@ import { UAParser } from "ua-parser-js";
 import Random from "./random";
 
 const usparser = new UAParser();
-export const isMobile =
-  usparser.getResult().device.type === "mobile" ? true : false;
+
+/**
+ * Comprehensive mobile device detection
+ * Uses multiple detection methods for better accuracy
+ */
+export function isMobile(): boolean {
+  // Check user agent
+  const uaResult = usparser.getResult();
+  const isUAMobile = uaResult.device.type === "mobile";
+
+  // Check for touch capabilities
+  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+  // Check user agent string for mobile patterns
+  const isUserAgentMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    );
+
+  // Check for small screen sizes (common mobile breakpoints)
+  const isSmallScreen = window.innerWidth <= 768;
+
+  // Consider it mobile if any of these conditions are true
+  return isUAMobile || hasTouch || isUserAgentMobile || isSmallScreen;
+}
 export const browserName = usparser.getResult().browser.name;
 
 export function preloadImage(url: string) {
@@ -32,12 +55,12 @@ export function shuffle(array: string[]): string[] {
 }
 
 export function draggable(el: HTMLElement) {
-  const downEvent = isMobile ? "touchstart" : "mousedown";
-  const upEvent = isMobile ? "touchend" : "mouseup";
-  const moveEvent = isMobile ? "touchmove" : "mousemove";
+  const downEvent = isMobile() ? "touchstart" : "mousedown";
+  const upEvent = isMobile() ? "touchend" : "mouseup";
+  const moveEvent = isMobile() ? "touchmove" : "mousemove";
 
   el.addEventListener(downEvent, function (e: MouseEvent | TouchEvent) {
-    if (!isMobile) e.preventDefault();
+    if (!isMobile()) e.preventDefault();
     if (!e.target) return;
     const target = e.target as HTMLElement;
     const clientY =
@@ -48,7 +71,7 @@ export function draggable(el: HTMLElement) {
     const offsetY = clientY - parseInt(window.getComputedStyle(target).top);
 
     function moveHandler(e: MouseEvent | TouchEvent) {
-      if (!isMobile) e.preventDefault();
+      if (!isMobile()) e.preventDefault();
       const clientY =
         e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;
       const clientX =

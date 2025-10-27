@@ -2,6 +2,7 @@ import "./crane-game.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Random from "../../utils/random";
+import { isMobile } from "../../utils/misc";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { PhysicsManager } from "./PhysicsManager";
 import { CraneRope } from "./CraneRope";
@@ -18,7 +19,6 @@ export default class CraneGame {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
-  private isMobile = false;
   private cameraControlsEnabled = true;
 
   // Game objects
@@ -74,17 +74,7 @@ export default class CraneGame {
   private lastFrameTime = 0;
 
   constructor() {
-    this.detectMobile();
     void this.init();
-  }
-
-  private detectMobile(): void {
-    this.isMobile =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent,
-      ) ||
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0;
   }
 
   async init() {
@@ -245,7 +235,7 @@ export default class CraneGame {
       0.1,
       1000,
     );
-    this.camera.position.set(0, 5, this.isMobile ? 55 : 40); // Zoom out more on mobile
+    this.camera.position.set(0, 5, isMobile() ? 55 : 40); // Zoom out more on mobile
     this.camera.lookAt(0, 5, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -270,7 +260,7 @@ export default class CraneGame {
     this.controls.rotateSpeed = 0.5;
 
     // Disable camera controls on mobile
-    if (this.isMobile) {
+    if (isMobile()) {
       this.controls.enabled = false;
       this.renderer.domElement.style.touchAction = "none";
     } else {
@@ -619,7 +609,7 @@ export default class CraneGame {
       if (key in this.keys) this.keys[key] = true;
 
       // Camera toggle (desktop only)
-      if (key === "c" && !this.isMobile) {
+      if (key === "c" && !isMobile()) {
         this.toggleCameraControls();
         return;
       }
@@ -789,7 +779,7 @@ export default class CraneGame {
 
     // Update joystick visual based on keyboard input (desktop only)
     // On mobile, the virtual joystick handles its own visual updates
-    if (!this.isMobile) {
+    if (!isMobile()) {
       this.cabinet.updateJoystickFromKeyboard({
         w: this.keys.w || false,
         s: this.keys.s || false,

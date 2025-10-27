@@ -1,5 +1,17 @@
 import * as THREE from "three";
 import Random from "../../utils/random";
+import { isMobile } from "../../utils/misc";
+
+/**
+ * AtmosphericEffects - Mobile Optimized
+ *
+ * Mobile optimizations:
+ * - Dust particles: 50 → 15 (70% reduction)
+ * - Floating lights: 30 → 10 (67% reduction)
+ * - Background canvas: 512x512 → 256x256 (75% fewer pixels)
+ * - Background update frequency: 100ms → 200ms (50% less frequent)
+ * - Radial glow effects: Disabled on mobile (significant GPU savings)
+ */
 
 export class AtmosphericEffects {
   dustParticles: THREE.Points[] = [];
@@ -18,6 +30,12 @@ export class AtmosphericEffects {
   private backgroundUpdateInterval = 100; // Update every 100ms instead of every frame
 
   constructor(scene: THREE.Scene) {
+    // Reduce particle counts on mobile for better performance
+    if (isMobile()) {
+      this.particleCount = 15; // Reduced from 50 to 15
+      this.backgroundUpdateInterval = 200; // Update less frequently on mobile
+    }
+
     this.createDustParticles(scene);
     this.createAnimatedBackground(scene);
     this.createFloatingLights(scene);
@@ -80,8 +98,10 @@ export class AtmosphericEffects {
     // Animated gradient background using a large sphere
     const geometry = new THREE.SphereGeometry(200, 32, 32);
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
+    // Reduce canvas resolution on mobile for better performance
+    const canvasSize = isMobile() ? 256 : 512;
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
     const context = canvas.getContext("2d")!;
 
     // Store canvas for animation
@@ -101,7 +121,7 @@ export class AtmosphericEffects {
 
   createFloatingLights(scene: THREE.Scene) {
     // Create glowing particle spheres that float around
-    const particleCount = 30;
+    const particleCount = isMobile() ? 10 : 30; // Reduced from 30 to 10 on mobile
     const colors = [0xff00ff, 0x00ffff, 0xffff00, 0xff0080, 0x00ff00];
 
     for (let i = 0; i < particleCount; i++) {
@@ -153,23 +173,25 @@ export class AtmosphericEffects {
     bgContext.fillStyle = gradient;
     bgContext.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
 
-    // Add some radial glow spots
-    for (let i = 0; i < 3; i++) {
-      const radialGradient = bgContext.createRadialGradient(
-        Math.sin(time * 0.5 + i * 2) * 200 + 256,
-        Math.cos(time * 0.3 + i * 2) * 200 + 256,
-        0,
-        Math.sin(time * 0.5 + i * 2) * 200 + 256,
-        Math.cos(time * 0.3 + i * 2) * 200 + 256,
-        150,
-      );
-      radialGradient.addColorStop(
-        0,
-        `hsla(${(time * 30 + i * 120) % 360}, 100%, 50%, 0.15)`,
-      );
-      radialGradient.addColorStop(1, "rgba(0,0,0,0)");
-      bgContext.fillStyle = radialGradient;
-      bgContext.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+    // Add some radial glow spots (skip on mobile for performance)
+    if (!isMobile()) {
+      for (let i = 0; i < 3; i++) {
+        const radialGradient = bgContext.createRadialGradient(
+          Math.sin(time * 0.5 + i * 2) * 200 + 256,
+          Math.cos(time * 0.3 + i * 2) * 200 + 256,
+          0,
+          Math.sin(time * 0.5 + i * 2) * 200 + 256,
+          Math.cos(time * 0.3 + i * 2) * 200 + 256,
+          150,
+        );
+        radialGradient.addColorStop(
+          0,
+          `hsla(${(time * 30 + i * 120) % 360}, 100%, 50%, 0.15)`,
+        );
+        radialGradient.addColorStop(1, "rgba(0,0,0,0)");
+        bgContext.fillStyle = radialGradient;
+        bgContext.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+      }
     }
 
     // Update texture for background sphere

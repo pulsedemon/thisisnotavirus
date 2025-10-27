@@ -1,4 +1,4 @@
-import { formatVirusName } from "../utils/misc";
+import { formatVirusName, isMobile } from "../utils/misc";
 import Playlist from "./Playlist";
 
 declare let gtag: (
@@ -32,9 +32,6 @@ export function showVirusThumbnailOverlay({
   // Remove any existing overlay
   const existing = document.getElementById("virus-thumbnail-overlay");
   if (existing) existing.remove();
-
-  // Detect mobile
-  const isMobile = window.innerWidth <= 600;
 
   // Get virus list
   const playlist = new Playlist();

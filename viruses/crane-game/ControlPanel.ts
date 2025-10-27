@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { isMobile } from "../../utils/misc";
 
 // Type declarations for nipplejs
 declare module "nipplejs" {
@@ -196,20 +197,9 @@ export class ControlPanel {
     this.controlPanel.position.set(x, y, z);
   }
 
-  // Mobile detection
-  private detectMobile(): boolean {
-    return (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent,
-      ) ||
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0
-    );
-  }
-
   // Setup interactivity based on device
   private setupInteractivity(): void {
-    if (this.detectMobile()) {
+    if (isMobile()) {
       this.setupMobileControls();
     } else {
       this.setupDesktopControls();
@@ -344,6 +334,18 @@ export class ControlPanel {
     });
 
     this.virtualStartButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      this.animateVirtualStartButton(false);
+      this.onStartButtonPress?.();
+    });
+
+    // Mouse events for start button (for desktop testing of mobile mode)
+    this.virtualStartButton.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      this.animateVirtualStartButton(true);
+    });
+
+    this.virtualStartButton.addEventListener("mouseup", (e) => {
       e.preventDefault();
       this.animateVirtualStartButton(false);
       this.onStartButtonPress?.();

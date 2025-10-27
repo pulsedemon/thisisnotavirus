@@ -8,6 +8,7 @@ import VirusLab from "./components/VirusLab";
 import { showVirusThumbnailOverlay } from "./components/VirusThumbnailOverlay";
 import "./sass/main.scss";
 import { createStyledIframe } from "./utils/iframe";
+import { isMobile } from "./utils/misc";
 import Random from "./utils/random";
 
 declare let gtag: (
@@ -564,13 +565,7 @@ document.getElementById("reload")!.onclick = () => {
 
 // Device detection
 const DEVICE = {
-  isMobile: (): boolean => {
-    return (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent,
-      ) || window.innerWidth <= 768
-    );
-  },
+  isMobile: (): boolean => isMobile(),
 } as const;
 
 // Fullscreen functionality
