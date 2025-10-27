@@ -13,6 +13,10 @@ export class AtmosphericEffects {
   // Floating neon particles
   particles: THREE.Mesh[] = [];
 
+  // Throttle expensive background animation
+  private lastBackgroundUpdate = 0;
+  private backgroundUpdateInterval = 100; // Update every 100ms instead of every frame
+
   constructor(scene: THREE.Scene) {
     this.createDustParticles(scene);
     this.createAnimatedBackground(scene);
@@ -208,7 +212,14 @@ export class AtmosphericEffects {
 
   animate(windStrength = 0.01) {
     this.animateDust(windStrength);
-    this.animateBackground();
+
+    // Throttle expensive background animation to every 100ms
+    const now = Date.now();
+    if (now - this.lastBackgroundUpdate > this.backgroundUpdateInterval) {
+      this.animateBackground();
+      this.lastBackgroundUpdate = now;
+    }
+
     this.animateFloatingParticles();
   }
 }

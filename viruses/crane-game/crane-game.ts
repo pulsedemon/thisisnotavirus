@@ -68,6 +68,11 @@ export default class CraneGame {
 
   prizeSize = GAME_CONFIG.cabinet.prizeSize;
 
+  // Frame rate limiting
+  private targetFPS = 30;
+  private frameInterval = 1000 / 30; // 33.33ms per frame
+  private lastFrameTime = 0;
+
   constructor() {
     this.detectMobile();
     void this.init();
@@ -768,8 +773,15 @@ export default class CraneGame {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  animate = () => {
+  animate = (currentTime = 0) => {
     requestAnimationFrame(this.animate);
+
+    // Throttle to 30fps for better performance
+    const deltaTime = currentTime - this.lastFrameTime;
+    if (deltaTime < this.frameInterval) {
+      return; // Skip this frame
+    }
+    this.lastFrameTime = currentTime - (deltaTime % this.frameInterval);
 
     this.updateClaw();
     this.updatePhysics();

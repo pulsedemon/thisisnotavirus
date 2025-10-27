@@ -293,21 +293,12 @@ export class ControlPanel {
       dynamicPosition: false,
     });
 
-    console.log("Nipplejs created:", this.nippleJoystick);
-
     // Handle joystick movement
     this.nippleJoystick.on("move", (evt, data) => {
       const direction = {
         x: data.vector.x,
         y: data.vector.y, // Use Y as-is to match keyboard mapping
       };
-
-      console.log("Virtual joystick move:", {
-        data: data.vector,
-        direction,
-        joystickStickGroup: this.joystickStickGroup,
-        hasJoystickStickGroup: !!this.joystickStickGroup,
-      });
 
       // Update 3D joystick visual and send direction to game (same as keyboard)
       this.handleJoystickInput(direction);
@@ -448,15 +439,6 @@ export class ControlPanel {
     // Try rotating the entire stick group instead of individual meshes
     this.joystickStickGroup.rotation.x = newRotationX;
     this.joystickStickGroup.rotation.z = newRotationZ;
-
-    console.log("updateJoystickVisual called:", {
-      direction,
-      maxTilt,
-      newRotationX,
-      newRotationZ,
-      stickGroupRotationX: this.joystickStickGroup.rotation.x,
-      stickGroupRotationZ: this.joystickStickGroup.rotation.z,
-    });
   }
 
   // Animate virtual start button
@@ -519,8 +501,6 @@ export class ControlPanel {
     if (keys.d || keys.ArrowRight) direction.x = 0.5; // Right
     if (keys.w || keys.ArrowUp) direction.y = 0.5; // Up (positive Y) - W moves toward back
     if (keys.s || keys.ArrowDown) direction.y = -0.5; // Down (negative Y) - S moves toward front
-
-    console.log("Keyboard joystick update:", { keys, direction });
 
     // Use the same code path as virtual joystick (only updates visual, not game state)
     this.updateJoystickVisual(direction);
