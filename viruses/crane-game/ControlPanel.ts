@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { isMobile } from "../../utils/misc";
+import { GAME_CONFIG } from "./config";
 
 // Type declarations for nipplejs
 declare module "nipplejs" {
@@ -217,12 +218,13 @@ export class ControlPanel {
   private createMobileControlsContainer(): void {
     const controlsContainer = document.createElement("div");
     controlsContainer.id = "mobile-controls";
+    const controlsHeight = GAME_CONFIG.ui.mobileControlsHeight;
     controlsContainer.style.cssText = `
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 200px;
+      height: ${controlsHeight}px;
       background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.3));
       pointer-events: none;
       z-index: 1000;
@@ -233,12 +235,14 @@ export class ControlPanel {
       box-sizing: border-box;
     `;
 
+    const joystickSize = GAME_CONFIG.ui.joystickSize;
+
     // Joystick zone - match nipplejs size
     const joystickZone = document.createElement("div");
     joystickZone.id = "joystick-zone";
     joystickZone.style.cssText = `
-      width: 120px;
-      height: 120px;
+      width: ${joystickSize}px;
+      height: ${joystickSize}px;
       pointer-events: auto;
       position: relative;
     `;
@@ -247,8 +251,8 @@ export class ControlPanel {
     const startButtonZone = document.createElement("div");
     startButtonZone.id = "start-button-zone";
     startButtonZone.style.cssText = `
-      width: 120px;
-      height: 120px;
+      width: ${joystickSize}px;
+      height: ${joystickSize}px;
       pointer-events: auto;
     `;
 
@@ -267,7 +271,7 @@ export class ControlPanel {
       mode: "static",
       position: { left: "50%", top: "50%" },
       color: "#ff6b6b",
-      size: 120,
+      size: GAME_CONFIG.ui.joystickSize,
       threshold: 0.1,
       fadeTime: 200,
       multitouch: false,
@@ -300,6 +304,23 @@ export class ControlPanel {
     });
   }
 
+  /**
+   * Add unified event listeners for both touch and mouse events
+   */
+  private addUnifiedEventListeners(
+    element: HTMLElement,
+    onStart: (e: Event) => void,
+    onEnd: (e: Event) => void,
+  ): void {
+    // Touch events
+    element.addEventListener("touchstart", onStart);
+    element.addEventListener("touchend", onEnd);
+
+    // Mouse events (for desktop testing of mobile mode)
+    element.addEventListener("mousedown", onStart);
+    element.addEventListener("mouseup", onEnd);
+  }
+
   // Setup virtual start button
   private setupVirtualStartButton(): void {
     const startButtonZone = document.getElementById("start-button-zone");
@@ -327,29 +348,19 @@ export class ControlPanel {
 
     startButtonZone.appendChild(this.virtualStartButton);
 
-    // Touch events for start button
-    this.virtualStartButton.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      this.animateVirtualStartButton(true);
-    });
-
-    this.virtualStartButton.addEventListener("touchend", (e) => {
-      e.preventDefault();
-      this.animateVirtualStartButton(false);
-      this.onStartButtonPress?.();
-    });
-
-    // Mouse events for start button (for desktop testing of mobile mode)
-    this.virtualStartButton.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      this.animateVirtualStartButton(true);
-    });
-
-    this.virtualStartButton.addEventListener("mouseup", (e) => {
-      e.preventDefault();
-      this.animateVirtualStartButton(false);
-      this.onStartButtonPress?.();
-    });
+    // Add unified event listeners
+    this.addUnifiedEventListeners(
+      this.virtualStartButton,
+      (e) => {
+        e.preventDefault();
+        this.animateVirtualStartButton(true);
+      },
+      (e) => {
+        e.preventDefault();
+        this.animateVirtualStartButton(false);
+        this.onStartButtonPress?.();
+      },
+    );
   }
 
   // Setup desktop controls with raycaster

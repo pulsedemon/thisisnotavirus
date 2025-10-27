@@ -136,6 +136,25 @@ export class ClawManager {
   }
 
   // Private methods (moved from CraneGame)
+
+  /**
+   * Sync claw physics position with visual position and stop velocity
+   */
+  private syncClawPhysics(): void {
+    if (!this.clawPhysics) return;
+
+    this.clawPhysics.position.copy(this.clawPosition);
+    this.clawPhysics.rigidBody.setTranslation(
+      {
+        x: this.clawPosition.x,
+        y: this.clawPosition.y,
+        z: this.clawPosition.z,
+      },
+      true,
+    );
+    this.clawPhysics.stop();
+  }
+
   private createClaw() {
     this.claw = new THREE.Group();
 
@@ -300,19 +319,7 @@ export class ClawManager {
       this.clawPosition.z += (this.binPosition.z - this.clawPosition.z) * 0.08;
 
       // Sync physics position during bin movement
-      if (this.clawPhysics) {
-        this.clawPhysics.position.x = this.clawPosition.x;
-        this.clawPhysics.position.z = this.clawPosition.z;
-        this.clawPhysics.rigidBody.setTranslation(
-          {
-            x: this.clawPosition.x,
-            y: this.clawPosition.y,
-            z: this.clawPosition.z,
-          },
-          true,
-        );
-        this.clawPhysics.stop(); // Stop any velocity
-      }
+      this.syncClawPhysics();
 
       // Check for prize drops during transport
       this.checkForPrizeDrops();
@@ -359,18 +366,7 @@ export class ClawManager {
         (this.clawRestingHeight - this.clawPosition.y) * speed;
 
       // Sync physics position with the return movement
-      if (this.clawPhysics) {
-        this.clawPhysics.position.copy(this.clawPosition);
-        this.clawPhysics.rigidBody.setTranslation(
-          {
-            x: this.clawPosition.x,
-            y: this.clawPosition.y,
-            z: this.clawPosition.z,
-          },
-          true,
-        );
-        this.clawPhysics.stop(); // Stop any velocity
-      }
+      this.syncClawPhysics();
 
       // When very close, snap to final position to avoid endless interpolation
       if (distanceToCenter < 0.01) {
@@ -380,17 +376,9 @@ export class ClawManager {
         this.targetPosition.set(0, 0);
 
         // Sync final position with physics
+        this.syncClawPhysics();
         if (this.clawPhysics) {
-          this.clawPhysics.position.copy(this.clawPosition);
           this.clawPhysics.targetPosition.set(0, 0);
-          this.clawPhysics.rigidBody.setTranslation(
-            {
-              x: this.clawPosition.x,
-              y: this.clawPosition.y,
-              z: this.clawPosition.z,
-            },
-            true,
-          );
         }
 
         this.isReturning = false;

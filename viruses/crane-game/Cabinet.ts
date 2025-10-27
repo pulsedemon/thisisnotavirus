@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { PhysicsManager } from "./PhysicsManager";
-import { GAME_CONFIG } from "./config";
+import { GAME_CONFIG, ARCADE_COLORS } from "./config";
 import { ControlPanel } from "./ControlPanel";
 
 export class Cabinet {
@@ -46,16 +46,68 @@ export class Cabinet {
     scene.add(this.cabinet);
   }
 
+  /**
+   * Create a single LED sphere with emissive material
+   */
+  private createLED(
+    color: number,
+    position: THREE.Vector3,
+    size: number = GAME_CONFIG.leds.size,
+  ): THREE.Mesh {
+    const ledGeometry = new THREE.SphereGeometry(size, 8, 8);
+    const ledMaterial = new THREE.MeshStandardMaterial({
+      color: color,
+      emissive: color,
+      emissiveIntensity: 2,
+    });
+    const led = new THREE.Mesh(ledGeometry, ledMaterial);
+    led.position.copy(position);
+    return led;
+  }
+
+  /**
+   * Create a glass wall with specified dimensions and position
+   */
+  private createGlassWall(
+    width: number,
+    height: number,
+    depth: number,
+    position: THREE.Vector3,
+    material: THREE.Material,
+  ): THREE.Mesh {
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+    const wall = new THREE.Mesh(geometry, material);
+    wall.position.copy(position);
+    return wall;
+  }
+
+  /**
+   * Create a frame post at specified position
+   */
+  private createFramePost(
+    position: THREE.Vector3,
+    material: THREE.Material,
+  ): THREE.Mesh {
+    const geometry = new THREE.BoxGeometry(
+      GAME_CONFIG.cabinet.framePostSize,
+      this.cabinetSize.height,
+      GAME_CONFIG.cabinet.framePostSize,
+    );
+    const post = new THREE.Mesh(geometry, material);
+    post.position.copy(position);
+    return post;
+  }
+
   private createCabinet() {
     // Add base cabinet/pedestal
-    const baseHeight = 12;
+    const baseHeight = GAME_CONFIG.cabinet.baseHeight;
     const baseGeometry = new THREE.BoxGeometry(
       this.cabinetSize.width + 2,
       baseHeight,
       this.cabinetSize.depth + 2,
     );
     const baseMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xf8f8f8,
+      color: ARCADE_COLORS.LIGHT_GRAY,
       metalness: 0.2,
       roughness: 0.6,
       clearcoat: 0.3,
@@ -68,10 +120,10 @@ export class Cabinet {
 
     // Add colorful side panels to base
     const panelMaterial = new THREE.MeshStandardMaterial({
-      color: 0xff1493,
+      color: ARCADE_COLORS.PINK,
       metalness: 0.4,
       roughness: 0.6,
-      emissive: 0xff1493,
+      emissive: ARCADE_COLORS.PINK,
       emissiveIntensity: 0.3,
     });
 
@@ -145,79 +197,82 @@ export class Cabinet {
       clearcoatRoughness: 0.05,
     });
 
+    const glassThickness = GAME_CONFIG.cabinet.glassThickness;
+
     // Front wall - full transparent glass
-    const frontWallGeometry = new THREE.BoxGeometry(
+    const frontWall = this.createGlassWall(
       this.cabinetSize.width,
       this.cabinetSize.height,
-      0.15,
+      glassThickness,
+      new THREE.Vector3(0, 2.5, this.cabinetSize.depth / 2),
+      glassMaterial,
     );
-    const frontWall = new THREE.Mesh(frontWallGeometry, glassMaterial);
-    frontWall.position.set(0, 2.5, this.cabinetSize.depth / 2);
     this.cabinet.add(frontWall);
 
     // Back wall
-    const backWall = new THREE.Mesh(frontWallGeometry, glassMaterial);
-    backWall.position.set(0, 2.5, -this.cabinetSize.depth / 2);
+    const backWall = this.createGlassWall(
+      this.cabinetSize.width,
+      this.cabinetSize.height,
+      glassThickness,
+      new THREE.Vector3(0, 2.5, -this.cabinetSize.depth / 2),
+      glassMaterial,
+    );
     this.cabinet.add(backWall);
 
     // Side walls
-    const sideWallGeometry = new THREE.BoxGeometry(
-      0.15,
+    const leftWall = this.createGlassWall(
+      glassThickness,
       this.cabinetSize.height,
       this.cabinetSize.depth,
+      new THREE.Vector3(-this.cabinetSize.width / 2, 2.5, 0),
+      glassMaterial,
     );
-    const leftWall = new THREE.Mesh(sideWallGeometry, glassMaterial);
-    leftWall.position.set(-this.cabinetSize.width / 2, 2.5, 0);
     this.cabinet.add(leftWall);
 
-    const rightWall = new THREE.Mesh(sideWallGeometry, glassMaterial);
-    rightWall.position.set(this.cabinetSize.width / 2, 2.5, 0);
+    const rightWall = this.createGlassWall(
+      glassThickness,
+      this.cabinetSize.height,
+      this.cabinetSize.depth,
+      new THREE.Vector3(this.cabinetSize.width / 2, 2.5, 0),
+      glassMaterial,
+    );
     this.cabinet.add(rightWall);
 
     // Add thin white frame edges (just outlines, not blocking view)
     const frameMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
+      color: ARCADE_COLORS.WHITE,
       metalness: 0.6,
       roughness: 0.4,
     });
 
-    // Vertical frame posts
-    const postGeometry = new THREE.BoxGeometry(
-      0.4,
-      this.cabinetSize.height,
-      0.4,
-    );
-    const frontLeftPost = new THREE.Mesh(postGeometry, frameMaterial);
-    frontLeftPost.position.set(
-      -this.cabinetSize.width / 2,
-      2.5,
-      this.cabinetSize.depth / 2,
-    );
-    this.cabinet.add(frontLeftPost);
+    // Vertical frame posts at corners
+    const postPositions = [
+      new THREE.Vector3(
+        -this.cabinetSize.width / 2,
+        2.5,
+        this.cabinetSize.depth / 2,
+      ), // Front left
+      new THREE.Vector3(
+        this.cabinetSize.width / 2,
+        2.5,
+        this.cabinetSize.depth / 2,
+      ), // Front right
+      new THREE.Vector3(
+        -this.cabinetSize.width / 2,
+        2.5,
+        -this.cabinetSize.depth / 2,
+      ), // Back left
+      new THREE.Vector3(
+        this.cabinetSize.width / 2,
+        2.5,
+        -this.cabinetSize.depth / 2,
+      ), // Back right
+    ];
 
-    const frontRightPost = new THREE.Mesh(postGeometry, frameMaterial);
-    frontRightPost.position.set(
-      this.cabinetSize.width / 2,
-      2.5,
-      this.cabinetSize.depth / 2,
-    );
-    this.cabinet.add(frontRightPost);
-
-    const backLeftPost = new THREE.Mesh(postGeometry, frameMaterial);
-    backLeftPost.position.set(
-      -this.cabinetSize.width / 2,
-      2.5,
-      -this.cabinetSize.depth / 2,
-    );
-    this.cabinet.add(backLeftPost);
-
-    const backRightPost = new THREE.Mesh(postGeometry, frameMaterial);
-    backRightPost.position.set(
-      this.cabinetSize.width / 2,
-      2.5,
-      -this.cabinetSize.depth / 2,
-    );
-    this.cabinet.add(backRightPost);
+    postPositions.forEach((position) => {
+      const post = this.createFramePost(position, frameMaterial);
+      this.cabinet.add(post);
+    });
 
     // Top marquee/header (more substantial like real crane games)
     const marqueeHeight = 3;
@@ -316,27 +371,19 @@ export class Cabinet {
     this.cabinet.add(stripHousing);
 
     // LEDs mounted on the strip
-    const ledCount = 20;
-    const ledSize = 0.25;
+    const ledCount = GAME_CONFIG.leds.topCount;
 
     for (let i = 0; i < ledCount; i++) {
-      const ledGeometry = new THREE.SphereGeometry(ledSize, 8, 8);
-      const ledMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff00ff,
-        emissive: 0xff00ff,
-        emissiveIntensity: 2,
-      });
-      const led = new THREE.Mesh(ledGeometry, ledMaterial);
-
       // Position around the top perimeter, embedded in housing
       const angle = (i / ledCount) * Math.PI * 2;
-      const radius = 11;
-      led.position.set(
+      const radius = GAME_CONFIG.leds.topRadius;
+      const position = new THREE.Vector3(
         Math.cos(angle) * radius,
         topY,
         Math.sin(angle) * radius,
       );
 
+      const led = this.createLED(ARCADE_COLORS.MAGENTA, position);
       this.cabinet.add(led);
       ledStrips.push(led);
     }
@@ -347,7 +394,7 @@ export class Cabinet {
     // Side LED strip housings (vertical) - full height along glass edges
     const glassHeight = this.cabinetSize.height;
     const glassBottom = 2.5 - glassHeight / 2; // -10
-    const sideStripCount = 10; // More LEDs for full height
+    const sideStripCount = GAME_CONFIG.leds.sideCount;
 
     // Left and right edges of front glass
     const edgePositions = [
@@ -363,10 +410,10 @@ export class Cabinet {
         0.4,
       );
       const verticalHousingMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff1493,
+        color: ARCADE_COLORS.PINK,
         metalness: 0.6,
         roughness: 0.4,
-        emissive: 0xff1493,
+        emissive: ARCADE_COLORS.PINK,
         emissiveIntensity: 0.4,
       });
       const verticalHousing = new THREE.Mesh(
@@ -379,15 +426,13 @@ export class Cabinet {
       // LEDs mounted on vertical strips - evenly spaced
       const ledSpacing = glassHeight / (sideStripCount + 1);
       for (let i = 1; i <= sideStripCount; i++) {
-        const ledGeometry = new THREE.SphereGeometry(ledSize, 8, 8);
-        const ledMaterial = new THREE.MeshStandardMaterial({
-          color: 0x00ffff,
-          emissive: 0x00ffff,
-          emissiveIntensity: 2,
-        });
-        const led = new THREE.Mesh(ledGeometry, ledMaterial);
         const yPos = glassBottom + i * ledSpacing;
-        led.position.set(x, yPos, this.cabinetSize.depth / 2 + 0.4);
+        const position = new THREE.Vector3(
+          x,
+          yPos,
+          this.cabinetSize.depth / 2 + 0.4,
+        );
+        const led = this.createLED(ARCADE_COLORS.CYAN, position);
         this.cabinet.add(led);
         ledStrips.push(led);
       }

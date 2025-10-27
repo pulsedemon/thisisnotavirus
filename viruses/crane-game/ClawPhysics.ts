@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 import type { PhysicsManager } from "./PhysicsManager";
+import { GAME_CONFIG } from "./config";
 
 export class ClawPhysics {
   rigidBody: RAPIER.RigidBody; // Public so game can sync position during special movements
@@ -12,16 +13,16 @@ export class ClawPhysics {
   targetPosition: THREE.Vector2 = new THREE.Vector2(0, 0);
 
   // Movement parameters
-  moveSpeed = 0.3;
+  moveSpeed = GAME_CONFIG.claw.moveSpeed;
   momentum = 0.1; // How much velocity accumulates
   damping = 0.92; // How quickly velocity decays
   boundaryBounce = 0.3; // Bounce factor when hitting walls
 
   // Boundaries
-  minX = -8;
-  maxX = 8;
-  minZ = -8;
-  maxZ = 8;
+  minX = GAME_CONFIG.claw.boundaries.minX;
+  maxX = GAME_CONFIG.claw.boundaries.maxX;
+  minZ = GAME_CONFIG.claw.boundaries.minZ;
+  maxZ = GAME_CONFIG.claw.boundaries.maxZ;
 
   // Swing effect
   swingIntensity = 0.05;
@@ -123,35 +124,45 @@ export class ClawPhysics {
   }
 
   /**
+   * Check and apply boundary constraint for a single axis
+   */
+  private applyAxisBoundary(
+    axis: "x" | "z",
+    min: number,
+    max: number,
+    velocity: THREE.Vector3,
+  ): boolean {
+    if (this.position[axis] < min) {
+      this.position[axis] = min;
+      velocity[axis] = Math.abs(velocity[axis]) * this.boundaryBounce;
+      return true;
+    } else if (this.position[axis] > max) {
+      this.position[axis] = max;
+      velocity[axis] = -Math.abs(velocity[axis]) * this.boundaryBounce;
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Apply boundary constraints and bounce effect
    */
   private applyBoundaries(velocity: THREE.Vector3): void {
-    let bounced = false;
-
-    // Check X boundaries
-    if (this.position.x < this.minX) {
-      this.position.x = this.minX;
-      velocity.x = Math.abs(velocity.x) * this.boundaryBounce;
-      bounced = true;
-    } else if (this.position.x > this.maxX) {
-      this.position.x = this.maxX;
-      velocity.x = -Math.abs(velocity.x) * this.boundaryBounce;
-      bounced = true;
-    }
-
-    // Check Z boundaries
-    if (this.position.z < this.minZ) {
-      this.position.z = this.minZ;
-      velocity.z = Math.abs(velocity.z) * this.boundaryBounce;
-      bounced = true;
-    } else if (this.position.z > this.maxZ) {
-      this.position.z = this.maxZ;
-      velocity.z = -Math.abs(velocity.z) * this.boundaryBounce;
-      bounced = true;
-    }
+    const xBounced = this.applyAxisBoundary(
+      "x",
+      this.minX,
+      this.maxX,
+      velocity,
+    );
+    const zBounced = this.applyAxisBoundary(
+      "z",
+      this.minZ,
+      this.maxZ,
+      velocity,
+    );
 
     // Update physics body if we bounced
-    if (bounced) {
+    if (xBounced || zBounced) {
       this.rigidBody.setTranslation(
         { x: this.position.x, y: this.position.y, z: this.position.z },
         true,

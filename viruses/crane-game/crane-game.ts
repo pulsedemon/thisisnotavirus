@@ -69,8 +69,8 @@ export default class CraneGame {
   prizeSize = GAME_CONFIG.cabinet.prizeSize;
 
   // Frame rate limiting
-  private targetFPS = 30;
-  private frameInterval = 1000 / 30; // 33.33ms per frame
+  private targetFPS = GAME_CONFIG.performance.targetFPS;
+  private frameInterval = GAME_CONFIG.performance.frameInterval;
   private lastFrameTime = 0;
 
   constructor() {
@@ -350,6 +350,103 @@ export default class CraneGame {
     return texture;
   }
 
+  /**
+   * Create a single prize with physics body
+   * @param x X position
+   * @param y Y position (drop height)
+   * @param z Z position
+   * @param imageUrl Image URL for texture
+   * @returns Created Prize object
+   */
+  private createSinglePrize(
+    x: number,
+    y: number,
+    z: number,
+    imageUrl: string,
+  ): Prize {
+    // Create uniform sphere geometry
+    const geometry = new THREE.SphereGeometry(
+      this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier,
+      GAME_CONFIG.prizes.sphereSegments.width,
+      GAME_CONFIG.prizes.sphereSegments.height,
+    );
+
+    // Load texture from cache
+    const texture = this.getOrLoadTexture(imageUrl);
+
+    // Randomly vary material properties for variety
+    const brightness = Random.floatBetween(
+      GAME_CONFIG.prizes.brightnessRange[0],
+      GAME_CONFIG.prizes.brightnessRange[1],
+    );
+    const roughness = Random.floatBetween(
+      GAME_CONFIG.prizes.roughnessRange[0],
+      GAME_CONFIG.prizes.roughnessRange[1],
+    );
+
+    // Single material that wraps around the geometry
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      emissive: 0x111111,
+      emissiveIntensity: brightness,
+      roughness: roughness,
+      metalness: 0.1,
+      transparent: false,
+      opacity: 1.0,
+    });
+
+    // Store original emissive properties for later reset
+    material.userData = material.userData || {};
+    material.userData.originalEmissiveIntensity = brightness;
+    material.userData.originalEmissiveColor = new THREE.Color("#222222");
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.frustumCulled = false;
+
+    // Position and rotate
+    mesh.position.set(x, y, z);
+    mesh.rotation.y = Random.floatBetween(0, Math.PI * 2);
+
+    this.scene.add(mesh);
+
+    // Create Rapier physics body for the prize
+    const prizeRadius = this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier;
+    const weight = Random.floatBetween(
+      GAME_CONFIG.prizes.weightRange[0],
+      GAME_CONFIG.prizes.weightRange[1],
+    );
+    const bounciness = Random.floatBetween(
+      GAME_CONFIG.prizes.bouncinessRange[0],
+      GAME_CONFIG.prizes.bouncinessRange[1],
+    );
+
+    const rigidBody = this.physicsManager.createDynamicSphere(
+      mesh.position,
+      prizeRadius,
+      weight,
+      bounciness,
+      GAME_CONFIG.prizes.friction,
+    );
+
+    const prize: Prize = {
+      mesh,
+      rigidBody,
+      grabbed: false,
+      settled: false,
+      imageUrl,
+      weight,
+      deformability: Random.floatBetween(0.1, 0.8),
+      bounciness,
+      materialType: Random.itemInArray(["plush", "ball", "box", "cylinder"]),
+      gripStrength: 0,
+      dropChance: 0,
+    };
+
+    return prize;
+  }
+
   createPrizes() {
     const floorY = GAME_CONFIG.physics.floorY + 0.5;
 
@@ -371,39 +468,7 @@ export default class CraneGame {
     // Create prizes in a grid with some randomness
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const imageUrl =
-          this.images[Math.floor(Math.random() * this.images.length)];
-
-        // Create uniform sphere geometry
-        const geometry = new THREE.SphereGeometry(this.prizeSize * 0.6, 16, 12);
-
-        // Load texture from cache
-        const texture = this.getOrLoadTexture(imageUrl);
-
-        // Randomly vary material properties for variety
-        const brightness = Random.floatBetween(0.05, 0.15);
-        const roughness = Random.floatBetween(0.6, 0.9);
-
-        // Single material that wraps around the geometry
-        const material = new THREE.MeshStandardMaterial({
-          map: texture,
-          emissive: 0x111111,
-          emissiveIntensity: brightness,
-          roughness: roughness,
-          metalness: 0.1,
-          transparent: false, // Ensure prizes are not transparent
-          opacity: 1.0, // Ensure full opacity
-        });
-
-        // Store original emissive properties for later reset
-        material.userData = material.userData || {};
-        material.userData.originalEmissiveIntensity = brightness;
-        material.userData.originalEmissiveColor = new THREE.Color("#222222");
-
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.frustumCulled = false; // Ensure prizes are always rendered
+        const imageUrl = Random.itemInArray(this.images);
 
         // Position in grid with slight randomness
         const x = offsetX + col * spacingX + Random.floatBetween(-0.15, 0.15);
@@ -414,7 +479,7 @@ export default class CraneGame {
           Math.pow(x - this.binPosition.x, 2) +
             Math.pow(z - this.binPosition.z, 2),
         );
-        if (distanceToBin < 4) {
+        if (distanceToBin < GAME_CONFIG.physics.binDistanceThreshold) {
           // Too close to bin, skip this prize
           continue;
         }
@@ -424,48 +489,10 @@ export default class CraneGame {
           GAME_CONFIG.prizes.dropHeightRange[0],
           GAME_CONFIG.prizes.dropHeightRange[1],
         );
-
         const y = floorY + dropHeight;
 
-        mesh.position.set(x, y, z);
-        mesh.rotation.y = Random.floatBetween(0, Math.PI * 2);
-
-        // No longer need to store radius in userData
-
-        this.scene.add(mesh);
-
-        // Create Rapier physics body for the prize
-        const prizeRadius = this.prizeSize * 0.6;
-        const weight = Random.floatBetween(0.8, 1.2);
-        const bounciness = Random.floatBetween(0.1, 0.3);
-
-        const rigidBody = this.physicsManager.createDynamicSphere(
-          mesh.position,
-          prizeRadius,
-          weight,
-          bounciness,
-          0.8, // friction
-        );
-
-        const prize: Prize = {
-          mesh,
-          rigidBody,
-          grabbed: false,
-          settled: false, // Starts unsettled so it can fall
-          imageUrl,
-          weight,
-          deformability: Random.floatBetween(0.1, 0.8),
-          bounciness,
-          materialType: Random.itemInArray([
-            "plush",
-            "ball",
-            "box",
-            "cylinder",
-          ]),
-          gripStrength: 0, // Will be set when grabbed
-          dropChance: 0, // Will be set when grabbed
-        };
-
+        // Create prize using helper method
+        const prize = this.createSinglePrize(x, y, z, imageUrl);
         this.prizes.push(prize);
       }
     }
@@ -480,82 +507,35 @@ export default class CraneGame {
       let x, z, distanceToBin;
       let attempts = 0;
       do {
-        x = Random.floatBetween(-8, 8);
-        z = Random.floatBetween(-8, 8);
+        x = Random.floatBetween(
+          GAME_CONFIG.claw.boundaries.minX,
+          GAME_CONFIG.claw.boundaries.maxX,
+        );
+        z = Random.floatBetween(
+          GAME_CONFIG.claw.boundaries.minZ,
+          GAME_CONFIG.claw.boundaries.maxZ,
+        );
         distanceToBin = Math.sqrt(
           Math.pow(x - this.binPosition.x, 2) +
             Math.pow(z - this.binPosition.z, 2),
         );
         attempts++;
-      } while (distanceToBin < 4 && attempts < 20); // Avoid bin area
+      } while (
+        distanceToBin < GAME_CONFIG.physics.binDistanceThreshold &&
+        attempts < 20
+      );
 
       if (attempts >= 20) continue; // Skip if can't find good spot
 
-      // Create uniform sphere geometry
-      const geometry = new THREE.SphereGeometry(this.prizeSize * 0.6, 16, 12);
-
-      // Load texture from cache
-      const texture = this.getOrLoadTexture(imageUrl);
-
-      const brightness = Random.floatBetween(0.05, 0.15);
-      const roughness = Random.floatBetween(0.6, 0.9);
-
-      const material = new THREE.MeshStandardMaterial({
-        map: texture,
-        emissive: 0x111111,
-        emissiveIntensity: brightness,
-        roughness: roughness,
-        metalness: 0.1,
-      });
-
-      // Store original emissive properties for later reset
-      material.userData = material.userData || {};
-      material.userData.originalEmissiveIntensity = brightness;
-      material.userData.originalEmissiveColor = new THREE.Color("#222222");
-
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.frustumCulled = false; // Ensure prizes are always rendered
-
       // Drop from random height to let physics handle stacking
-      const dropHeight = Random.floatBetween(2, 15);
+      const dropHeight = Random.floatBetween(
+        GAME_CONFIG.prizes.dropHeightRange[0],
+        GAME_CONFIG.prizes.dropHeightRange[1],
+      );
       const y = floorY + dropHeight;
 
-      mesh.position.set(x, y, z);
-      mesh.rotation.y = Random.floatBetween(0, Math.PI * 2);
-
-      // No longer need to store radius in userData
-
-      this.scene.add(mesh);
-
-      // Create Rapier physics body for the filler prize
-      const prizeRadius = this.prizeSize * 0.6;
-      const weight = Random.floatBetween(0.8, 1.2);
-      const bounciness = Random.floatBetween(0.1, 0.3);
-
-      const rigidBody = this.physicsManager.createDynamicSphere(
-        mesh.position,
-        prizeRadius,
-        weight,
-        bounciness,
-        0.8, // friction
-      );
-
-      const prize: Prize = {
-        mesh,
-        rigidBody,
-        grabbed: false,
-        settled: false, // Starts unsettled so it can fall
-        imageUrl,
-        weight,
-        deformability: Random.floatBetween(0.1, 0.8),
-        bounciness,
-        materialType: Random.itemInArray(["plush", "ball", "box", "cylinder"]),
-        gripStrength: 0, // Will be set when grabbed
-        dropChance: 0, // Will be set when grabbed
-      };
-
+      // Create prize using helper method
+      const prize = this.createSinglePrize(x, y, z, imageUrl);
       this.prizes.push(prize);
     }
   }
