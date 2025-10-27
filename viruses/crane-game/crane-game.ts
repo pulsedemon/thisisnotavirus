@@ -18,6 +18,8 @@ export default class CraneGame {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
+  private isMobile = false;
+  private cameraControlsEnabled = true;
 
   // Game objects
   claw: THREE.Group;
@@ -26,7 +28,7 @@ export default class CraneGame {
   clawProng3: THREE.Group;
   craneRope: CraneRope;
   prizes: Prize[] = [];
-  cabinet: THREE.Group;
+  cabinet: Cabinet;
 
   // Game state
   binPosition: THREE.Vector3 = GAME_CONFIG.physics.binPosition.clone();
@@ -50,6 +52,7 @@ export default class CraneGame {
 
   // Control properties
   keys: Record<string, boolean> = {};
+  joystickInput: { x: number; y: number } = { x: 0, y: 0 };
   moveSpeed = 0.3;
 
   // Crane mechanism components
@@ -66,7 +69,17 @@ export default class CraneGame {
   prizeSize = GAME_CONFIG.cabinet.prizeSize;
 
   constructor() {
+    this.detectMobile();
     void this.init();
+  }
+
+  private detectMobile(): void {
+    this.isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+      ) ||
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0;
   }
 
   async init() {
@@ -90,13 +103,33 @@ export default class CraneGame {
     this.setupLights();
 
     // Create cabinet and store animated components
-    const cabinet = new Cabinet(this.scene, this.physicsManager, GAME_CONFIG);
-    this.cabinet = cabinet.cabinet;
+    const cabinet = new Cabinet(
+      this.scene,
+      this.physicsManager,
+      GAME_CONFIG,
+      // Joystick callback
+      (direction) => {
+        this.joystickInput = direction;
+        this.clawManager.updateJoystickInput(direction);
+      },
+      // Start button callback
+      () => {
+        this.dropClaw();
+      },
+      // Camera controls callback
+      (enabled) => {
+        this.controls.enabled = enabled;
+      },
+    );
+    this.cabinet = cabinet;
     this.mainGear = cabinet.mainGear;
     this.smallGears = cabinet.smallGears;
     this.ledStrips = cabinet.ledStrips;
     this.floorCanvas = cabinet.floorCanvas;
     this.floorTexture = cabinet.floorTexture;
+
+    // Pass camera to control panel for raycasting
+    cabinet.controlPanel.setCamera(this.camera);
 
     // Create claw manager
     this.clawManager = new ClawManager(
@@ -116,6 +149,7 @@ export default class CraneGame {
     this.clawManager.setupDependencies(
       this.clawPhysics,
       this.keys,
+      this.joystickInput,
       this.prizes,
       this.audioManager,
       {
@@ -206,7 +240,7 @@ export default class CraneGame {
       0.1,
       1000,
     );
-    this.camera.position.set(0, 5, 40);
+    this.camera.position.set(0, 5, this.isMobile ? 55 : 40); // Zoom out more on mobile
     this.camera.lookAt(0, 5, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -229,6 +263,15 @@ export default class CraneGame {
     this.controls.enablePan = true; // Allow panning
     this.controls.panSpeed = 0.5;
     this.controls.rotateSpeed = 0.5;
+
+    // Disable camera controls on mobile
+    if (this.isMobile) {
+      this.controls.enabled = false;
+      this.renderer.domElement.style.touchAction = "none";
+    } else {
+      this.controls.enabled = true;
+    }
+
     this.controls.update();
   }
 
@@ -570,6 +613,12 @@ export default class CraneGame {
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       if (key in this.keys) this.keys[key] = true;
 
+      // Camera toggle (desktop only)
+      if (key === "c" && !this.isMobile) {
+        this.toggleCameraControls();
+        return;
+      }
+
       if (
         (e.key === " " || e.key === " ") &&
         !this.clawManager.isDescending &&
@@ -726,6 +775,21 @@ export default class CraneGame {
     this.updatePhysics();
     this.updateArcadeEffects();
 
+    // Update joystick visual based on keyboard input (desktop only)
+    // On mobile, the virtual joystick handles its own visual updates
+    if (!this.isMobile) {
+      this.cabinet.updateJoystickFromKeyboard({
+        w: this.keys.w || false,
+        s: this.keys.s || false,
+        a: this.keys.a || false,
+        d: this.keys.d || false,
+        ArrowUp: this.keys.ArrowUp || false,
+        ArrowDown: this.keys.ArrowDown || false,
+        ArrowLeft: this.keys.ArrowLeft || false,
+        ArrowRight: this.keys.ArrowRight || false,
+      });
+    }
+
     // Update atmospheric effects (dust, background, floating particles)
     this.atmosphericEffects.animate(0.01);
 
@@ -809,6 +873,26 @@ export default class CraneGame {
       }
 
       floorTexture.needsUpdate = true;
+    }
+  }
+
+  private toggleCameraControls(): void {
+    this.cameraControlsEnabled = !this.cameraControlsEnabled;
+    this.controls.enabled = this.cameraControlsEnabled;
+    this.renderer.domElement.style.cursor = this.cameraControlsEnabled
+      ? "grab"
+      : "crosshair";
+    this.updateControlModeUI();
+  }
+
+  private updateControlModeUI(): void {
+    const modeText = this.cameraControlsEnabled
+      ? "Camera Mode (WASD/Arrows: Move | Space: Drop | C: Control Panel)"
+      : "Control Panel Mode (WASD/Arrows: Move | Space: Drop | C: Camera)";
+
+    const instructionEl = document.querySelector(".instruction");
+    if (instructionEl) {
+      instructionEl.textContent = modeText;
     }
   }
 }

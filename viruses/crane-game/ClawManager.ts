@@ -36,6 +36,7 @@ export class ClawManager {
   // Dependencies (will be set by CraneGame)
   private clawPhysics?: ClawPhysics;
   private keys: Record<string, boolean> = {};
+  private joystickInput: { x: number; y: number } = { x: 0, y: 0 };
   private prizes: Prize[] = [];
   private prizeSize: number = GAME_CONFIG.cabinet.prizeSize;
   private binPosition: THREE.Vector3 = GAME_CONFIG.physics.binPosition.clone();
@@ -67,6 +68,7 @@ export class ClawManager {
   setupDependencies(
     clawPhysics: ClawPhysics,
     keys: Record<string, boolean>,
+    joystickInput: { x: number; y: number },
     prizes: Prize[],
     audioManager: AudioManager,
     callbacks: {
@@ -78,6 +80,7 @@ export class ClawManager {
   ) {
     this.clawPhysics = clawPhysics;
     this.keys = keys;
+    this.joystickInput = joystickInput;
     this.prizes = prizes;
     this.audioManager = audioManager;
     this.onPrizeGrabbed = callbacks.onPrizeGrabbed;
@@ -97,6 +100,11 @@ export class ClawManager {
         true,
       );
     }
+  }
+
+  // Update joystick input (called from CraneGame)
+  updateJoystickInput(joystickInput: { x: number; y: number }): void {
+    this.joystickInput = joystickInput;
   }
 
   // Public methods for CraneGame to call
@@ -210,8 +218,29 @@ export class ClawManager {
     const oldX = this.clawPhysics.position.x;
     const oldZ = this.clawPhysics.position.z;
 
+    // Combine keyboard and joystick input
+    const combinedInput = { ...this.keys };
+
+    // Add joystick input to combined input
+    if (
+      Math.abs(this.joystickInput.x) > 0.1 ||
+      Math.abs(this.joystickInput.y) > 0.1
+    ) {
+      // Joystick input takes precedence over keyboard
+      combinedInput.a = this.joystickInput.x < -0.1;
+      combinedInput.d = this.joystickInput.x > 0.1;
+      combinedInput.w = this.joystickInput.y > 0.1; // Up joystick (positive Y) = W key
+      combinedInput.s = this.joystickInput.y < -0.1; // Down joystick (negative Y) = S key
+
+      // Also set arrow keys for compatibility
+      combinedInput.ArrowLeft = this.joystickInput.x < -0.1;
+      combinedInput.ArrowRight = this.joystickInput.x > 0.1;
+      combinedInput.ArrowUp = this.joystickInput.y > 0.1; // Up joystick (positive Y) = ArrowUp
+      combinedInput.ArrowDown = this.joystickInput.y < -0.1; // Down joystick (negative Y) = ArrowDown
+    }
+
     // Update physics-based movement
-    this.clawPhysics.updateMovement(this.keys);
+    this.clawPhysics.updateMovement(combinedInput);
 
     // Sync clawPosition with physics
     this.clawPosition.copy(this.clawPhysics.position);

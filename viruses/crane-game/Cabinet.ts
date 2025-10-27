@@ -20,6 +20,9 @@ export class Cabinet {
     scene: THREE.Scene,
     physicsManager: PhysicsManager,
     config: typeof GAME_CONFIG,
+    onJoystickMove?: (direction: { x: number; y: number }) => void,
+    onStartButtonPress?: () => void,
+    onCameraControlsChange?: (enabled: boolean) => void,
   ) {
     this.physicsManager = physicsManager;
     this.cabinetSize = config.cabinet;
@@ -27,6 +30,18 @@ export class Cabinet {
 
     this.cabinet = new THREE.Group();
     this.controlPanel = new ControlPanel(this.cabinetSize);
+
+    // Setup callbacks
+    if (onJoystickMove) {
+      this.controlPanel.setJoystickCallback(onJoystickMove);
+    }
+    if (onStartButtonPress) {
+      this.controlPanel.setStartButtonCallback(onStartButtonPress);
+    }
+    if (onCameraControlsChange) {
+      this.controlPanel.setCameraControlsCallback(onCameraControlsChange);
+    }
+
     this.createCabinet();
     scene.add(this.cabinet);
   }
@@ -934,5 +949,19 @@ export class Cabinet {
       this.binPosition.z - binDepth / 2,
     );
     this.cabinet.add(sign);
+  }
+
+  // Update joystick visual based on keyboard input (for debugging)
+  updateJoystickFromKeyboard(keys: {
+    w?: boolean;
+    s?: boolean;
+    a?: boolean;
+    d?: boolean;
+    ArrowUp?: boolean;
+    ArrowDown?: boolean;
+    ArrowLeft?: boolean;
+    ArrowRight?: boolean;
+  }): void {
+    this.controlPanel.updateJoystickFromKeyboard(keys);
   }
 }
