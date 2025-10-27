@@ -23,10 +23,6 @@ export default class CraneGame {
   private cameraControlsEnabled = true;
 
   // Game objects
-  claw: THREE.Group;
-  clawProng1: THREE.Group;
-  clawProng2: THREE.Group;
-  clawProng3: THREE.Group;
   craneRope: CraneRope;
   prizes: Prize[] = [];
   cabinet: Cabinet;
@@ -53,7 +49,6 @@ export default class CraneGame {
   // Control properties
   keys: Record<string, boolean> = {};
   joystickInput: { x: number; y: number } = { x: 0, y: 0 };
-  moveSpeed = 0.3;
 
   // Floor animation elements
   floorCanvas?: HTMLCanvasElement;
@@ -174,10 +169,6 @@ export default class CraneGame {
     );
 
     // Get claw components from ClawManager
-    this.claw = this.clawManager.claw;
-    this.clawProng1 = this.clawManager.clawProng1;
-    this.clawProng2 = this.clawManager.clawProng2;
-    this.clawProng3 = this.clawManager.clawProng3;
     this.craneRope = this.clawManager.craneRope;
     this.createPrizes();
     this.setupUI();
@@ -359,7 +350,7 @@ export default class CraneGame {
     const scale = (targetSize / modelHeight) * 2; // Double the size
     prizeGroup.scale.setScalar(scale);
 
-    // Store original emissive properties for grabbed effect
+    // Store original emissive properties for grabbed effect and apply deformability-based material properties
     prizeGroup.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const material = child.material as THREE.MeshStandardMaterial;
@@ -395,6 +386,19 @@ export default class CraneGame {
       GAME_CONFIG.prizes.bouncinessRange[0],
       GAME_CONFIG.prizes.bouncinessRange[1],
     );
+    const deformability = Random.floatBetween(0.6, 0.9); // Plushies are soft
+
+    // Apply deformability-based visual effects
+    prizeGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const material = child.material as THREE.MeshStandardMaterial;
+        // More deformable = softer appearance (higher roughness, lower metalness)
+        material.roughness = 0.6 + deformability * 0.3; // 0.6 to 0.9
+        material.metalness = Math.max(0, 0.3 - deformability * 0.2); // 0.1 to 0.3
+        // Store deformability for later use
+        material.userData.deformability = deformability;
+      }
+    });
 
     const rigidBody = this.physicsManager.createDynamicSphere(
       prizeGroup.position,
@@ -402,6 +406,7 @@ export default class CraneGame {
       weight,
       bounciness,
       GAME_CONFIG.prizes.friction,
+      deformability,
     );
 
     const prize: Prize = {
@@ -410,7 +415,7 @@ export default class CraneGame {
       grabbed: false,
       settled: false,
       weight,
-      deformability: Random.floatBetween(0.6, 0.9), // Plushies are soft
+      deformability,
       bounciness,
       materialType: "plush",
       gripStrength: 0,

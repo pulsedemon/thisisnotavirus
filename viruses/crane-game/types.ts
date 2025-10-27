@@ -9,11 +9,7 @@ export interface Prize {
   weight: number;
   deformability: number;
   bounciness: number;
-  materialType: "plush" | "ball" | "box" | "cylinder";
+  materialType: "plush";
   gripStrength: number;
   dropChance: number;
-}
-
-export interface ImagesResponse {
-  images: string[];
 }

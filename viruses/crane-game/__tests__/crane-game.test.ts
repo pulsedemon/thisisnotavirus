@@ -303,7 +303,7 @@ describe("CraneGame", () => {
         weight: 1,
         deformability: 0.5,
         bounciness: 0.2,
-        materialType: "ball" as const,
+        materialType: "plush" as const,
         gripStrength: 0,
         dropChance: 0,
       } as unknown as (typeof craneGame.wonPrizes)[0];

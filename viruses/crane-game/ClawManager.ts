@@ -470,10 +470,11 @@ export class ClawManager {
         const baseGrip = 0.8 + Math.random() * 0.15; // 80-95% base grip (more reliable)
         const distancePenalty = Math.max(0, (distance - 0.3) * 0.2); // Reduced penalty for distance
         const weightPenalty = prize.weight * 0.05; // Reduced weight penalty
+        const deformabilityBonus = prize.deformability * 0.1; // More deformable = easier to grip
 
         prize.gripStrength = Math.max(
           0.5,
-          baseGrip - distancePenalty - weightPenalty,
+          baseGrip - distancePenalty - weightPenalty + deformabilityBonus,
         );
         prize.dropChance = (1 - prize.gripStrength) * 0.008; // Much lower base drop chance
 
@@ -602,11 +603,13 @@ export class ClawManager {
         prize.settled = false;
 
         // Give it a slight downward and outward velocity (using Rapier)
+        // More deformable prizes fall more gently
+        const deformabilityFactor = 1 - prize.deformability * 0.5;
         prize.rigidBody.setLinvel(
           {
-            x: (Math.random() - 0.5) * 0.1,
+            x: (Math.random() - 0.5) * 0.1 * deformabilityFactor,
             y: -Math.random() * 0.05 - 0.02,
-            z: (Math.random() - 0.5) * 0.1,
+            z: (Math.random() - 0.5) * 0.1 * deformabilityFactor,
           },
           true,
         );

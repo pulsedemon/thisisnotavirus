@@ -23,18 +23,19 @@ export class PhysicsManager {
     mass = 1.0,
     restitution = 0.2,
     friction = 0.8,
+    deformability = 0.5,
   ): RAPIER.RigidBody {
     const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(position.x, position.y, position.z)
-      .setLinearDamping(0.0) // No air resistance for maximum falling speed
-      .setAngularDamping(0.05); // Almost no rotational damping
+      .setLinearDamping(deformability * 0.1) // More deformable = more air resistance
+      .setAngularDamping(0.05 + deformability * 0.1); // More deformable = more rotational damping
 
     const rigidBody = this.world.createRigidBody(rigidBodyDesc);
 
     const colliderDesc = RAPIER.ColliderDesc.ball(radius)
-      .setMass(mass)
-      .setRestitution(restitution) // Bounciness
-      .setFriction(friction); // Surface friction
+      .setMass(mass * (1 + deformability * 0.2)) // More deformable = slightly heavier feel
+      .setRestitution(restitution * (1 - deformability * 0.3)) // More deformable = less bouncy
+      .setFriction(friction * (1 + deformability * 0.5)); // More deformable = more friction
 
     this.world.createCollider(colliderDesc, rigidBody);
 
