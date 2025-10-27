@@ -129,7 +129,6 @@ export function createMockGameConfig() {
     },
     prizes: {
       gridPadding: 1,
-      numFillerPrizes: 5,
       dropHeightRange: [2, 8],
       sphereSegments: { width: 16, height: 12 },
       radiusMultiplier: 0.6,

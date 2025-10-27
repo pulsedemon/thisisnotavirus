@@ -69,6 +69,14 @@ vi.mock("three/addons/controls/OrbitControls.js", () => ({
   OrbitControls: MockOrbitControls,
 }));
 
+vi.mock("three/addons/loaders/GLTFLoader.js", () => ({
+  GLTFLoader: class MockGLTFLoader {
+    loadAsync = vi.fn().mockResolvedValue({
+      scene: new MockGroup(),
+    });
+  },
+}));
+
 vi.mock("../PhysicsManager", () => ({
   PhysicsManager: MockPhysicsManager,
 }));
@@ -192,7 +200,6 @@ describe("CraneGame", () => {
       expect(craneGame.credits).toBe(10); // startingCredits from config
       expect(craneGame.wonPrizes).toEqual([]);
       expect(Array.isArray(craneGame.prizes)).toBe(true); // prizes should be an array (may contain prizes)
-      expect(craneGame.images).toEqual(["test1.jpg", "test2.jpg"]);
     });
   });
 

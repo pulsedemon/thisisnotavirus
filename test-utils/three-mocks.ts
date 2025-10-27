@@ -176,6 +176,19 @@ export class MockGroup {
   add = vi.fn();
   position = { set: vi.fn(), x: 0, y: 0, z: 0 };
   rotation = { set: vi.fn(), x: 0, y: 0, z: 0 };
+  scale = { setScalar: vi.fn(), x: 1, y: 1, z: 1 };
+  frustumCulled = true;
+  traverse = vi.fn((callback: (child: unknown) => void) => {
+    // Call callback on self
+    callback(this);
+  });
+  clone = vi.fn(() => {
+    const cloned = new MockGroup();
+    cloned.position.x = this.position.x;
+    cloned.position.y = this.position.y;
+    cloned.position.z = this.position.z;
+    return cloned;
+  });
 }
 
 /**

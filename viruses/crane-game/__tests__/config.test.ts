@@ -45,11 +45,6 @@ describe("GAME_CONFIG", () => {
         GAME_CONFIG.prizes.dropHeightRange[1],
       );
     });
-
-    it("should have valid number of filler prizes", () => {
-      expect(GAME_CONFIG.prizes.numFillerPrizes).toBeGreaterThanOrEqual(0);
-      expect(Number.isInteger(GAME_CONFIG.prizes.numFillerPrizes)).toBe(true);
-    });
   });
 
   describe("claw configuration", () => {

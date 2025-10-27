@@ -1,0 +1,11 @@
+Model Information:
+* title:	Rei Ayanami Plushie
+* source:	https://sketchfab.com/3d-models/rei-ayanami-plushie-0bda564e1d804c2f84950cec57db15d3
+* author:	timeforrick (https://sketchfab.com/timeforrick)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Rei Ayanami Plushie" (https://sketchfab.com/3d-models/rei-ayanami-plushie-0bda564e1d804c2f84950cec57db15d3) by timeforrick (https://sketchfab.com/timeforrick) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

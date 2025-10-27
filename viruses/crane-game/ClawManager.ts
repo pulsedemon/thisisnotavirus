@@ -529,12 +529,26 @@ export class ClawManager {
         prize.rigidBody.setLinvel({ x: 0, y: -5.0, z: 0 }, true);
 
         // Reset visual effects when prize is released
-        const material = prize.mesh.material as THREE.MeshStandardMaterial;
-        material.emissiveIntensity =
-          (material.userData?.originalEmissiveIntensity as number) || 0.05;
-        material.emissive =
-          (material.userData?.originalEmissiveColor as THREE.Color) ||
-          new THREE.Color("#222222");
+        // Handle both single mesh and group (plushie model)
+        if (prize.mesh instanceof THREE.Group) {
+          prize.mesh.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const material = child.material as THREE.MeshStandardMaterial;
+              material.emissiveIntensity =
+                (material.userData?.originalEmissiveIntensity as number) || 0.0;
+              material.emissive =
+                (material.userData?.originalEmissiveColor as THREE.Color) ||
+                new THREE.Color(0x000000);
+            }
+          });
+        } else {
+          const material = prize.mesh.material as THREE.MeshStandardMaterial;
+          material.emissiveIntensity =
+            (material.userData?.originalEmissiveIntensity as number) || 0.05;
+          material.emissive =
+            (material.userData?.originalEmissiveColor as THREE.Color) ||
+            new THREE.Color("#222222");
+        }
 
         // Don't add to wonPrizes here - let the bin detection handle it
       });

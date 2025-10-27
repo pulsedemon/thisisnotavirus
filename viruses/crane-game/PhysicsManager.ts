@@ -64,7 +64,10 @@ export class PhysicsManager {
     return rigidBody;
   }
 
-  syncMeshWithBody(mesh: THREE.Mesh, rigidBody: RAPIER.RigidBody) {
+  syncMeshWithBody(
+    mesh: THREE.Mesh | THREE.Group,
+    rigidBody: RAPIER.RigidBody,
+  ) {
     const position = rigidBody.translation();
     mesh.position.set(position.x, position.y, position.z);
 

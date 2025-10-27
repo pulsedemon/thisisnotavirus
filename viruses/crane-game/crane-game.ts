@@ -1,6 +1,7 @@
 import "./crane-game.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Random from "../../utils/random";
 import { isMobile } from "../../utils/misc";
 import RAPIER from "@dimforge/rapier3d-compat";
@@ -12,7 +13,7 @@ import { AtmosphericEffects } from "./AtmosphericEffects";
 import { Cabinet } from "./Cabinet";
 import { ClawManager } from "./ClawManager";
 import { GAME_CONFIG } from "./config";
-import { Prize, ImagesResponse } from "./types";
+import { Prize } from "./types";
 
 export default class CraneGame {
   scene: THREE.Scene;
@@ -35,10 +36,9 @@ export default class CraneGame {
   credits = GAME_CONFIG.startingCredits;
   wonPrizes: Prize[] = [];
 
-  // Images
-  images: string[] = [];
-  textureLoader = new THREE.TextureLoader();
-  textureCache = new Map<string, THREE.Texture>();
+  // 3D Models
+  private gltfLoader = new GLTFLoader();
+  private plushieTemplate?: THREE.Group;
 
   // UI
   uiElement: HTMLDivElement;
@@ -80,6 +80,9 @@ export default class CraneGame {
   async init() {
     // Initialize Rapier WASM module first
     await RAPIER.init();
+
+    // Load the plushie model
+    await this.loadPlushieModel();
 
     // Now create physics manager after WASM is loaded
     this.physicsManager = new PhysicsManager();
@@ -182,7 +185,7 @@ export default class CraneGame {
     this.clawProng2 = this.clawManager.clawProng2;
     this.clawProng3 = this.clawManager.clawProng3;
     this.craneRope = this.clawManager.craneRope;
-    await this.loadImages();
+    this.createPrizes();
     this.setupUI();
     this.animate();
 
@@ -224,6 +227,29 @@ export default class CraneGame {
       new THREE.Vector3(0, wallY, 10),
       new THREE.Vector3(10, wallHeight, 0.1),
     );
+  }
+
+  async loadPlushieModel() {
+    try {
+      const gltf = await this.gltfLoader.loadAsync(
+        "/viruses/crane-game/models/rei-ayanami-plushie/scene.gltf",
+      );
+
+      this.plushieTemplate = gltf.scene;
+
+      // Setup shadows for all meshes in the model
+      this.plushieTemplate.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+
+      console.log("✅ Plushie model loaded successfully");
+    } catch (error) {
+      console.error("❌ Failed to load plushie model:", error);
+      // Will fallback to spheres if model fails to load
+    }
   }
 
   setupScene() {
@@ -321,95 +347,43 @@ export default class CraneGame {
     this.scene.add(fillLight);
   }
 
-  async loadImages() {
-    try {
-      const response = await fetch("/viruses/buttons/images.json");
-      if (response.ok) {
-        const data = (await response.json()) as ImagesResponse;
-        this.images = data.images;
-        this.createPrizes();
-      }
-    } catch (error) {
-      console.error("Failed to load images:", error);
-    }
-  }
-
-  getOrLoadTexture(imageUrl: string): THREE.Texture {
-    // Check if texture is already in cache
-    if (this.textureCache.has(imageUrl)) {
-      return this.textureCache.get(imageUrl)!;
-    }
-
-    // Load texture and add to cache
-    const texture = this.textureLoader.load(imageUrl);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-
-    this.textureCache.set(imageUrl, texture);
-    return texture;
-  }
-
   /**
    * Create a single prize with physics body
    * @param x X position
    * @param y Y position (drop height)
    * @param z Z position
-   * @param imageUrl Image URL for texture
    * @returns Created Prize object
    */
-  private createSinglePrize(
-    x: number,
-    y: number,
-    z: number,
-    imageUrl: string,
-  ): Prize {
-    // Create uniform sphere geometry
-    const geometry = new THREE.SphereGeometry(
-      this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier,
-      GAME_CONFIG.prizes.sphereSegments.width,
-      GAME_CONFIG.prizes.sphereSegments.height,
-    );
+  private createSinglePrize(x: number, y: number, z: number): Prize {
+    // Clone the plushie model
+    const prizeGroup = this.plushieTemplate!.clone();
 
-    // Load texture from cache
-    const texture = this.getOrLoadTexture(imageUrl);
+    // Scale the model to match prize size
+    // Model is approximately 2.4 units tall, scale to match our prize size
+    const targetSize = this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier;
+    const modelHeight = 2.4;
+    const scale = (targetSize / modelHeight) * 2; // Double the size
+    prizeGroup.scale.setScalar(scale);
 
-    // Randomly vary material properties for variety
-    const brightness = Random.floatBetween(
-      GAME_CONFIG.prizes.brightnessRange[0],
-      GAME_CONFIG.prizes.brightnessRange[1],
-    );
-    const roughness = Random.floatBetween(
-      GAME_CONFIG.prizes.roughnessRange[0],
-      GAME_CONFIG.prizes.roughnessRange[1],
-    );
-
-    // Single material that wraps around the geometry
-    const material = new THREE.MeshStandardMaterial({
-      map: texture,
-      emissive: 0x111111,
-      emissiveIntensity: brightness,
-      roughness: roughness,
-      metalness: 0.1,
-      transparent: false,
-      opacity: 1.0,
+    // Store original emissive properties for grabbed effect
+    prizeGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const material = child.material as THREE.MeshStandardMaterial;
+        if (material.userData) {
+          material.userData.originalEmissiveIntensity =
+            material.emissiveIntensity || 0.0;
+          material.userData.originalEmissiveColor =
+            material.emissive?.clone() || new THREE.Color(0x000000);
+        }
+      }
     });
 
-    // Store original emissive properties for later reset
-    material.userData = material.userData || {};
-    material.userData.originalEmissiveIntensity = brightness;
-    material.userData.originalEmissiveColor = new THREE.Color("#222222");
-
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.frustumCulled = false;
-
     // Position and rotate
-    mesh.position.set(x, y, z);
-    mesh.rotation.y = Random.floatBetween(0, Math.PI * 2);
+    prizeGroup.position.set(x, y, z);
+    prizeGroup.rotation.y = Random.floatBetween(0, Math.PI * 2);
+    prizeGroup.frustumCulled = false;
 
-    this.scene.add(mesh);
+    this.scene.add(prizeGroup);
 
     // Create Rapier physics body for the prize
     const prizeRadius = this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier;
@@ -423,7 +397,7 @@ export default class CraneGame {
     );
 
     const rigidBody = this.physicsManager.createDynamicSphere(
-      mesh.position,
+      prizeGroup.position,
       prizeRadius,
       weight,
       bounciness,
@@ -431,15 +405,14 @@ export default class CraneGame {
     );
 
     const prize: Prize = {
-      mesh,
+      mesh: prizeGroup,
       rigidBody,
       grabbed: false,
       settled: false,
-      imageUrl,
       weight,
-      deformability: Random.floatBetween(0.1, 0.8),
+      deformability: Random.floatBetween(0.6, 0.9), // Plushies are soft
       bounciness,
-      materialType: Random.itemInArray(["plush", "ball", "box", "cylinder"]),
+      materialType: "plush",
       gripStrength: 0,
       dropChance: 0,
     };
@@ -468,8 +441,6 @@ export default class CraneGame {
     // Create prizes in a grid with some randomness
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const imageUrl = Random.itemInArray(this.images);
-
         // Position in grid with slight randomness
         const x = offsetX + col * spacingX + Random.floatBetween(-0.15, 0.15);
         const z = offsetZ + row * spacingZ + Random.floatBetween(-0.15, 0.15);
@@ -492,51 +463,9 @@ export default class CraneGame {
         const y = floorY + dropHeight;
 
         // Create prize using helper method
-        const prize = this.createSinglePrize(x, y, z, imageUrl);
+        const prize = this.createSinglePrize(x, y, z);
         this.prizes.push(prize);
       }
-    }
-
-    // Add extra "filler" prizes in random positions to make it look full
-    const numFillerPrizes = GAME_CONFIG.prizes.numFillerPrizes;
-
-    for (let i = 0; i < numFillerPrizes; i++) {
-      const imageUrl = Random.itemInArray(this.images);
-
-      // Random position within cabinet bounds, avoiding bin
-      let x, z, distanceToBin;
-      let attempts = 0;
-      do {
-        x = Random.floatBetween(
-          GAME_CONFIG.claw.boundaries.minX,
-          GAME_CONFIG.claw.boundaries.maxX,
-        );
-        z = Random.floatBetween(
-          GAME_CONFIG.claw.boundaries.minZ,
-          GAME_CONFIG.claw.boundaries.maxZ,
-        );
-        distanceToBin = Math.sqrt(
-          Math.pow(x - this.binPosition.x, 2) +
-            Math.pow(z - this.binPosition.z, 2),
-        );
-        attempts++;
-      } while (
-        distanceToBin < GAME_CONFIG.physics.binDistanceThreshold &&
-        attempts < 20
-      );
-
-      if (attempts >= 20) continue; // Skip if can't find good spot
-
-      // Drop from random height to let physics handle stacking
-      const dropHeight = Random.floatBetween(
-        GAME_CONFIG.prizes.dropHeightRange[0],
-        GAME_CONFIG.prizes.dropHeightRange[1],
-      );
-      const y = floorY + dropHeight;
-
-      // Create prize using helper method
-      const prize = this.createSinglePrize(x, y, z, imageUrl);
-      this.prizes.push(prize);
     }
   }
 
@@ -677,9 +606,20 @@ export default class CraneGame {
         prize.rigidBody.setLinvel({ x: 0, y: 0, z: 0 }, true);
 
         // Make grabbed prizes extremely visible with intense glow and color tint
-        const material = prize.mesh.material as THREE.MeshStandardMaterial;
-        material.emissiveIntensity = 1.5; // Very strong glow to make grabbed prizes obvious
-        material.emissive = new THREE.Color(0x00ffff); // Bright cyan glow for grabbed prizes
+        // Handle both single mesh and group (plushie model)
+        if (prize.mesh instanceof THREE.Group) {
+          prize.mesh.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const material = child.material as THREE.MeshStandardMaterial;
+              material.emissiveIntensity = 1.5;
+              material.emissive = new THREE.Color(0x00ffff);
+            }
+          });
+        } else {
+          const material = prize.mesh.material as THREE.MeshStandardMaterial;
+          material.emissiveIntensity = 1.5;
+          material.emissive = new THREE.Color(0x00ffff);
+        }
       } else {
         // Sync Three.js mesh with Rapier physics body
         this.physicsManager.syncMeshWithBody(prize.mesh, prize.rigidBody);
@@ -697,13 +637,30 @@ export default class CraneGame {
         }
 
         // Reset visual effects for non-grabbed prizes
-        const material = prize.mesh.material as THREE.MeshStandardMaterial;
-        if (material.emissiveIntensity > 0.2) {
-          material.emissiveIntensity =
-            (material.userData?.originalEmissiveIntensity as number) || 0.05;
-          material.emissive =
-            (material.userData?.originalEmissiveColor as THREE.Color) ||
-            new THREE.Color("#222222");
+        // Handle both single mesh and group (plushie model)
+        if (prize.mesh instanceof THREE.Group) {
+          prize.mesh.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const material = child.material as THREE.MeshStandardMaterial;
+              if (material.emissiveIntensity > 0.2) {
+                material.emissiveIntensity =
+                  (material.userData?.originalEmissiveIntensity as number) ||
+                  0.0;
+                material.emissive =
+                  (material.userData?.originalEmissiveColor as THREE.Color) ||
+                  new THREE.Color(0x000000);
+              }
+            }
+          });
+        } else {
+          const material = prize.mesh.material as THREE.MeshStandardMaterial;
+          if (material.emissiveIntensity > 0.2) {
+            material.emissiveIntensity =
+              (material.userData?.originalEmissiveIntensity as number) || 0.05;
+            material.emissive =
+              (material.userData?.originalEmissiveColor as THREE.Color) ||
+              new THREE.Color("#222222");
+          }
         }
 
         // Check if prize has entered the bin (more precise detection)
