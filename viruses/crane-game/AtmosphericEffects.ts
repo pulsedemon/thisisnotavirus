@@ -39,6 +39,11 @@ export class AtmosphericEffects {
     this.createDustParticles(scene);
     this.createAnimatedBackground(scene);
     this.createFloatingLights(scene);
+
+    // Create initial background for mobile (static)
+    if (isMobile()) {
+      this.animateBackground(true);
+    }
   }
 
   createDustParticles(scene: THREE.Scene) {
@@ -151,45 +156,39 @@ export class AtmosphericEffects {
     }
   }
 
-  animateBackground() {
+  private createGradientColors(time: number, staticMode: boolean) {
+    const baseHues = staticMode
+      ? [280, 200, 320]
+      : [(time * 20) % 360, (time * 20 + 120) % 360, (time * 20 + 240) % 360];
+    const saturations = [70, 80, 70];
+    const lightnesses = [15, 10, 12];
+
+    return baseHues.map(
+      (hue, i) => `hsl(${hue}, ${saturations[i]}%, ${lightnesses[i]}%)`,
+    );
+  }
+
+  animateBackground(staticMode = false) {
     const bgCanvas = this.bgCanvas;
     const bgContext = this.bgContext;
     if (!bgCanvas || !bgContext) return;
 
-    const time = Date.now() * 0.001;
+    const time = staticMode ? 0 : Date.now() * 0.001;
+    const colors = this.createGradientColors(time, staticMode);
 
-    // Create animated gradient
+    // Create gradient
     const gradient = bgContext.createLinearGradient(0, 0, 0, bgCanvas.height);
-
-    // Animated colors cycling through arcade neon palette
-    const hue1 = (time * 20) % 360;
-    const hue2 = (time * 20 + 120) % 360;
-    const hue3 = (time * 20 + 240) % 360;
-
-    gradient.addColorStop(0, `hsl(${hue1}, 70%, 15%)`);
-    gradient.addColorStop(0.5, `hsl(${hue2}, 80%, 10%)`);
-    gradient.addColorStop(1, `hsl(${hue3}, 70%, 12%)`);
+    gradient.addColorStop(0, colors[0]);
+    gradient.addColorStop(0.5, colors[1]);
+    gradient.addColorStop(1, colors[2]);
 
     bgContext.fillStyle = gradient;
     bgContext.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
 
-    // Add some radial glow spots (skip on mobile for performance)
-    if (!isMobile()) {
+    // Add some radial glow spots (skip in static mode and on mobile for performance)
+    if (!staticMode && !isMobile()) {
       for (let i = 0; i < 3; i++) {
-        const radialGradient = bgContext.createRadialGradient(
-          Math.sin(time * 0.5 + i * 2) * 200 + 256,
-          Math.cos(time * 0.3 + i * 2) * 200 + 256,
-          0,
-          Math.sin(time * 0.5 + i * 2) * 200 + 256,
-          Math.cos(time * 0.3 + i * 2) * 200 + 256,
-          150,
-        );
-        radialGradient.addColorStop(
-          0,
-          `hsla(${(time * 30 + i * 120) % 360}, 100%, 50%, 0.15)`,
-        );
-        radialGradient.addColorStop(1, "rgba(0,0,0,0)");
-        bgContext.fillStyle = radialGradient;
+        bgContext.fillStyle = this.createRadialGlow(bgContext, time, i);
         bgContext.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
       }
     }
@@ -202,6 +201,22 @@ export class AtmosphericEffects {
         material.map.needsUpdate = true;
       }
     }
+  }
+
+  private createRadialGlow(
+    bgContext: CanvasRenderingContext2D,
+    time: number,
+    i: number,
+  ) {
+    const x = Math.sin(time * 0.5 + i * 2) * 200 + 256;
+    const y = Math.cos(time * 0.3 + i * 2) * 200 + 256;
+    const hue = (time * 30 + i * 120) % 360;
+
+    const radialGradient = bgContext.createRadialGradient(x, y, 0, x, y, 150);
+    radialGradient.addColorStop(0, `hsla(${hue}, 100%, 50%, 0.15)`);
+    radialGradient.addColorStop(1, "rgba(0,0,0,0)");
+
+    return radialGradient;
   }
 
   animateFloatingParticles() {
@@ -233,6 +248,11 @@ export class AtmosphericEffects {
   }
 
   animate(windStrength = 0.01) {
+    // Skip all animations on mobile for better performance
+    if (isMobile()) {
+      return;
+    }
+
     this.animateDust(windStrength);
 
     // Throttle expensive background animation to every 100ms
