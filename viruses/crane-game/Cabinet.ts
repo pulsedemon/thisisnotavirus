@@ -6,8 +6,6 @@ import { ControlPanel } from "./ControlPanel";
 export class Cabinet {
   cabinet: THREE.Group;
   controlPanel: ControlPanel;
-  mainGear?: THREE.Mesh;
-  smallGears: THREE.Mesh[] = [];
   ledStrips: THREE.Mesh[] = [];
   floorCanvas?: HTMLCanvasElement;
   floorTexture?: THREE.CanvasTexture;
@@ -523,37 +521,6 @@ export class Cabinet {
     const redLed = new THREE.Mesh(ledGeometry, redLedMaterial);
     redLed.position.set(0.3, 11, -3.7); // Move to back
     this.cabinet.add(redLed);
-
-    // Rotating gear mechanism
-    const gearGeometry = new THREE.CylinderGeometry(0.8, 0.8, 0.2, 16);
-    const gearMaterial = new THREE.MeshStandardMaterial({
-      color: 0x444444,
-      metalness: 0.8,
-      roughness: 0.2,
-    });
-    const mainGear = new THREE.Mesh(gearGeometry, gearMaterial);
-    mainGear.position.set(0, 11, -7); // Move to back
-    mainGear.rotation.x = Math.PI / 2;
-    this.cabinet.add(mainGear);
-
-    // Store gear for animation
-    this.mainGear = mainGear;
-
-    // Secondary gears
-    const smallGearGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.15, 12);
-    const smallGearMaterial = new THREE.MeshStandardMaterial({
-      color: 0x555555,
-      metalness: 0.7,
-      roughness: 0.3,
-    });
-
-    [-1.2, 1.2].forEach((x) => {
-      const smallGear = new THREE.Mesh(smallGearGeometry, smallGearMaterial);
-      smallGear.position.set(x, 11, -7); // Move to back
-      smallGear.rotation.x = Math.PI / 2;
-      this.cabinet.add(smallGear);
-      this.smallGears.push(smallGear);
-    });
 
     // Drive shaft
     const shaftGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2.5, 8);

@@ -55,10 +55,6 @@ export default class CraneGame {
   joystickInput: { x: number; y: number } = { x: 0, y: 0 };
   moveSpeed = 0.3;
 
-  // Crane mechanism components
-  mainGear?: THREE.Mesh;
-  smallGears: THREE.Mesh[] = [];
-
   // Floor animation elements
   floorCanvas?: HTMLCanvasElement;
   floorTexture?: THREE.CanvasTexture;
@@ -120,8 +116,6 @@ export default class CraneGame {
       },
     );
     this.cabinet = cabinet;
-    this.mainGear = cabinet.mainGear;
-    this.smallGears = cabinet.smallGears;
     this.ledStrips = cabinet.ledStrips;
     this.floorCanvas = cabinet.floorCanvas;
     this.floorTexture = cabinet.floorTexture;
@@ -744,26 +738,7 @@ export default class CraneGame {
     this.renderer.render(this.scene, this.camera);
   };
 
-  animateCraneMechanism() {
-    // Animate main gear
-    const mainGear = this.mainGear;
-    if (mainGear) {
-      mainGear.rotation.z += 0.02; // Slow rotation
-    }
-
-    // Animate small gears (counter-rotating)
-    const smallGears = this.smallGears;
-    if (smallGears) {
-      smallGears.forEach((gear: THREE.Mesh) => {
-        gear.rotation.z -= 0.04; // Faster counter-rotation
-      });
-    }
-  }
-
   updateArcadeEffects() {
-    // Animate crane mechanism gears
-    this.animateCraneMechanism();
-
     // Animate LED light strips (chase effect)
     if (this.ledStrips) {
       const time = Date.now() * 0.001;
