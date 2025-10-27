@@ -27,6 +27,26 @@ export class MockVector3 {
 }
 
 /**
+ * Mock implementation of Three.js Box3
+ */
+export class MockBox3 {
+  min: MockVector3;
+  max: MockVector3;
+
+  constructor() {
+    this.min = new MockVector3();
+    this.max = new MockVector3();
+  }
+
+  setFromObject(object: any) {
+    // Mock implementation - return a box with reasonable dimensions
+    this.min.set(-1, -1, -1);
+    this.max.set(1, 1, 1);
+    return this;
+  }
+}
+
+/**
  * Mock implementation of Three.js Color with basic HSL to RGB conversion
  */
 export class MockColor {

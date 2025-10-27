@@ -31,7 +31,7 @@ export const GAME_CONFIG = {
     width: 20,
     height: 25,
     depth: 20,
-    prizeSize: 1.9,
+    prizeSize: 1.5,
     baseHeight: 12,
     marqueeHeight: 3,
     panelWidth: 8,

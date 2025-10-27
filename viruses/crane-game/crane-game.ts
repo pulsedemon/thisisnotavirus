@@ -38,7 +38,7 @@ export default class CraneGame {
 
   // 3D Models
   private gltfLoader = new GLTFLoader();
-  private plushieTemplate?: THREE.Group;
+  private plushieTemplates: THREE.Group[] = [];
 
   // UI
   uiElement: HTMLDivElement;
@@ -230,25 +230,29 @@ export default class CraneGame {
   }
 
   async loadPlushieModel() {
-    try {
-      const gltf = await this.gltfLoader.loadAsync(
-        "/viruses/crane-game/models/rei-ayanami-plushie/scene.gltf",
-      );
+    const models = [
+      "/viruses/crane-game/models/rei-ayanami-plushie/scene.gltf",
+      "/viruses/crane-game/models/makima-bean-plushie/scene.gltf",
+    ];
 
-      this.plushieTemplate = gltf.scene;
+    for (const modelPath of models) {
+      try {
+        const gltf = await this.gltfLoader.loadAsync(modelPath);
+        const model = gltf.scene;
 
-      // Setup shadows for all meshes in the model
-      this.plushieTemplate.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
+        // Setup shadows for all meshes in the model
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
 
-      console.log("✅ Plushie model loaded successfully");
-    } catch (error) {
-      console.error("❌ Failed to load plushie model:", error);
-      // Will fallback to spheres if model fails to load
+        this.plushieTemplates.push(model);
+        console.log(`✅ Model loaded: ${modelPath.split("/").pop()}`);
+      } catch (error) {
+        console.error(`❌ Failed to load model ${modelPath}:`, error);
+      }
     }
   }
 
@@ -355,8 +359,10 @@ export default class CraneGame {
    * @returns Created Prize object
    */
   private createSinglePrize(x: number, y: number, z: number): Prize {
-    // Clone the plushie model
-    const prizeGroup = this.plushieTemplate!.clone();
+    // Evenly distribute models: use prize index to determine which model
+    const modelIndex = this.prizes.length % this.plushieTemplates.length;
+    const template = this.plushieTemplates[modelIndex];
+    const prizeGroup = template.clone();
 
     // Scale the model to match prize size
     // Model is approximately 2.4 units tall, scale to match our prize size
@@ -386,7 +392,13 @@ export default class CraneGame {
     this.scene.add(prizeGroup);
 
     // Create Rapier physics body for the prize
-    const prizeRadius = this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier;
+    // Calculate radius from the actual scaled model to match visual size
+    const scaledBox = new THREE.Box3().setFromObject(prizeGroup);
+    const prizeRadius =
+      Math.max(
+        scaledBox.max.x - scaledBox.min.x,
+        scaledBox.max.z - scaledBox.min.z,
+      ) / 2;
     const weight = Random.floatBetween(
       GAME_CONFIG.prizes.weightRange[0],
       GAME_CONFIG.prizes.weightRange[1],

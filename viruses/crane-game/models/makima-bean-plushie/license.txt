@@ -1,0 +1,11 @@
+Model Information:
+* title:	Makima Bean Plushie
+* source:	https://sketchfab.com/3d-models/makima-bean-plushie-ba52df496e594546b4c5eab8722f11d9
+* author:	Toastily (https://sketchfab.com/Toastily)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Makima Bean Plushie" (https://sketchfab.com/3d-models/makima-bean-plushie-ba52df496e594546b4c5eab8722f11d9) by Toastily (https://sketchfab.com/Toastily) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

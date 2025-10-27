@@ -1,0 +1,11 @@
+Model Information:
+* title:	Amiguru Miku Plush
+* source:	https://sketchfab.com/3d-models/amiguru-miku-plush-e2b1acb804f34288baf2ae24bce21cd2
+* author:	depressed_goober (https://sketchfab.com/3beal)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Amiguru Miku Plush" (https://sketchfab.com/3d-models/amiguru-miku-plush-e2b1acb804f34288baf2ae24bce21cd2) by depressed_goober (https://sketchfab.com/3beal) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
