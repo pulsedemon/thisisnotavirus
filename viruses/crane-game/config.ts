@@ -80,6 +80,18 @@ export const GAME_CONFIG = {
     ropeSegmentCount: 20,
     ropeDamping: 0.98,
     ropeStiffness: 0.95,
+    ropeGeometry: {
+      radius: 0.02,
+      color: 0x333333,
+      metalness: 0.8,
+      roughness: 0.2,
+    },
+    ropePhysics: {
+      epsilon: 1e-6,
+      constraintThreshold: 0.001,
+      maxIterations: 3,
+      windValueCount: 1000,
+    },
   },
   ui: {
     joystickSize: 120,
