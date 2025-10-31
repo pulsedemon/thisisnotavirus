@@ -74,26 +74,22 @@ export default class CraneGame {
 
     await RAPIER.init();
 
-    // Load the plushie model
     await this.loadPlushieModel();
 
     // Now create physics manager after WASM is loaded
     this.physicsManager = new PhysicsManager();
 
-    // Initialize claw physics
     this.clawPhysics = new ClawPhysics(
       this.physicsManager,
       RAPIER,
-      new THREE.Vector3(0, GAME_CONFIG.claw.restingHeight, 0), // Start at center above cabinet
+      new THREE.Vector3(0, GAME_CONFIG.claw.restingHeight, 0),
     );
 
-    // Create physics boundaries (floor and walls)
     this.createPhysicsBoundaries();
 
     this.setupScene();
     this.setupLights();
 
-    // Create cabinet and store animated components
     const cabinet = new Cabinet(
       this.scene,
       this.physicsManager,
@@ -120,7 +116,6 @@ export default class CraneGame {
     // Pass camera to control panel for raycasting
     cabinet.controlPanel.setCamera(this.camera);
 
-    // Create claw manager
     this.clawManager = new ClawManager(
       this.scene,
       this.physicsManager,
@@ -134,7 +129,6 @@ export default class CraneGame {
     // Initialize enhanced features (audioManager, atmosphericEffects) BEFORE setupDependencies
     this.initializeEnhancedFeatures();
 
-    // Setup claw manager dependencies and callbacks
     this.clawManager.setupDependencies(
       this.clawPhysics,
       this.keys,
@@ -170,7 +164,6 @@ export default class CraneGame {
       },
     );
 
-    // Get claw components from ClawManager
     this.craneRope = this.clawManager.craneRope;
     this.createPrizes();
     this.setupUI();
@@ -180,14 +173,12 @@ export default class CraneGame {
   }
 
   createPhysicsBoundaries() {
-    // Create static floor collider
     const floorY = GAME_CONFIG.physics.floorY;
     this.physicsManager.createStaticBox(
       new THREE.Vector3(0, floorY, 0),
-      new THREE.Vector3(10, 0.25, 10), // Half extents
+      new THREE.Vector3(10, 0.25, 10),
     );
 
-    // Create static wall colliders
     const wallHeight = 12.5;
     const wallY = GAME_CONFIG.physics.floorY + wallHeight;
 
@@ -227,19 +218,22 @@ export default class CraneGame {
         const gltf = await this.gltfLoader.loadAsync(modelPath);
         const model = gltf.scene;
 
-        // Setup shadows for all meshes in the model - disabled for performance
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            child.castShadow = false; // Disabled for performance
-            child.receiveShadow = false; // Disabled for performance
-          }
-        });
+        this.disableShadowsForPerformance(model);
 
         this.plushieTemplates.push(model);
       } catch (error) {
         console.error(`Failed to load model ${modelPath}:`, error);
       }
     }
+  }
+
+  private disableShadowsForPerformance(model: THREE.Group) {
+    model.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = false;
+        child.receiveShadow = false;
+      }
+    });
   }
 
   setupScene() {
@@ -251,7 +245,7 @@ export default class CraneGame {
       0.1,
       1000,
     );
-    this.camera.position.set(0, 5, isMobile() ? 50 : 40); // Zoom out more on mobile
+    this.camera.position.set(0, 5, isMobile() ? 50 : 40);
     this.camera.lookAt(0, 5, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -262,20 +256,18 @@ export default class CraneGame {
     this.renderer.toneMappingExposure = 1.5;
     document.getElementById("container")!.appendChild(this.renderer.domElement);
 
-    // Setup camera controls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableDamping = true; // Smooth camera movement
+    this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.target.set(0, 5, 0); // Look at the center of the cabinet
-    this.controls.minDistance = 15; // Minimum zoom distance
-    this.controls.maxDistance = 80; // Maximum zoom distance
-    this.controls.maxPolarAngle = Math.PI / 1.5; // Prevent camera from going below the floor
-    this.controls.minPolarAngle = Math.PI / 8; // Prevent camera from going too high above
-    this.controls.enablePan = true; // Allow panning
+    this.controls.target.set(0, 5, 0);
+    this.controls.minDistance = 15;
+    this.controls.maxDistance = 80;
+    this.controls.maxPolarAngle = Math.PI / 1.5;
+    this.controls.minPolarAngle = Math.PI / 8;
+    this.controls.enablePan = true;
     this.controls.panSpeed = 0.5;
     this.controls.rotateSpeed = 0.5;
 
-    // Disable camera controls on mobile
     if (isMobile()) {
       this.controls.enabled = false;
       this.renderer.domElement.style.touchAction = "none";
@@ -287,46 +279,41 @@ export default class CraneGame {
   }
 
   setupLights() {
-    // Enhanced ambient lighting with subtle color temperature
-    const ambient = new THREE.AmbientLight(0xfff8e1, 0.6); // Warm ambient light
+    const ambient = new THREE.AmbientLight(0xfff8e1, 0.6);
     this.scene.add(ambient);
 
-    // Main spotlight from above (arcade lighting) - shadows disabled for performance
     const spotLight = new THREE.SpotLight(0xffffff, 2.5);
     spotLight.position.set(0, 25, 0);
-    spotLight.castShadow = false; // Disabled for performance
+    spotLight.castShadow = false;
     spotLight.angle = Math.PI / 3.5;
     spotLight.penumbra = 0.4;
     this.scene.add(spotLight);
 
-    // Vibrant colored accent lights for arcade feel - shadows disabled for performance
     const light1 = new THREE.PointLight(0xff00ff, 1.8, 40);
     light1.position.set(-12, 8, 12);
-    light1.castShadow = false; // Disabled for performance
+    light1.castShadow = false;
     this.scene.add(light1);
 
     const light2 = new THREE.PointLight(0x00ffff, 1.8, 40);
     light2.position.set(12, 8, 12);
-    light2.castShadow = false; // Disabled for performance
+    light2.castShadow = false;
     this.scene.add(light2);
 
     const light3 = new THREE.PointLight(0xffff00, 1.5, 40);
     light3.position.set(0, 8, -12);
-    light3.castShadow = false; // Disabled for performance
+    light3.castShadow = false;
     this.scene.add(light3);
 
     const light4 = new THREE.PointLight(0xff1493, 1.5, 35);
     light4.position.set(8, 4, 8);
-    light4.castShadow = false; // Disabled for performance
+    light4.castShadow = false;
     this.scene.add(light4);
 
-    // Additional rim lighting for dramatic effect - shadows disabled for performance
     const rimLight = new THREE.DirectionalLight(0x88ccff, 0.8);
     rimLight.position.set(-20, 15, -20);
-    rimLight.castShadow = false; // Disabled for performance
+    rimLight.castShadow = false;
     this.scene.add(rimLight);
 
-    // Subtle fill light from below
     const fillLight = new THREE.PointLight(0x442244, 0.3, 30);
     fillLight.position.set(0, -5, 0);
     this.scene.add(fillLight);
@@ -340,46 +327,20 @@ export default class CraneGame {
    * @returns Created Prize object
    */
   private createSinglePrize(x: number, y: number, z: number): Prize {
-    // Evenly distribute models: use prize index to determine which model
     const modelIndex = this.prizes.length % this.plushieTemplates.length;
     const template = this.plushieTemplates[modelIndex];
     const prizeGroup = template.clone();
 
-    // Scale the model to match prize size
-    // Model is approximately 2.4 units tall, scale to match our prize size
-    const targetSize = this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier;
-    const modelHeight = 2.4;
-    const scale = (targetSize / modelHeight) * 2; // Double the size
-    prizeGroup.scale.setScalar(scale);
+    this.scalePrizeModel(prizeGroup);
+    this.storeOriginalEmissiveProperties(prizeGroup);
 
-    // Store original emissive properties for grabbed effect and apply deformability-based material properties
-    prizeGroup.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const material = child.material as THREE.MeshStandardMaterial;
-        if (material.userData) {
-          material.userData.originalEmissiveIntensity =
-            material.emissiveIntensity || 0.0;
-          material.userData.originalEmissiveColor =
-            material.emissive?.clone() || new THREE.Color(0x000000);
-        }
-      }
-    });
-
-    // Position and rotate
     prizeGroup.position.set(x, y, z);
     prizeGroup.rotation.y = Random.floatBetween(0, Math.PI * 2);
     prizeGroup.frustumCulled = false;
 
     this.scene.add(prizeGroup);
 
-    // Create Rapier physics body for the prize
-    // Calculate radius from the actual scaled model to match visual size
-    const scaledBox = new THREE.Box3().setFromObject(prizeGroup);
-    const prizeRadius =
-      Math.max(
-        scaledBox.max.x - scaledBox.min.x,
-        scaledBox.max.z - scaledBox.min.z,
-      ) / 2;
+    const prizeRadius = this.calculatePrizeRadius(prizeGroup);
     const weight = Random.floatBetween(
       GAME_CONFIG.prizes.weightRange[0],
       GAME_CONFIG.prizes.weightRange[1],
@@ -388,19 +349,9 @@ export default class CraneGame {
       GAME_CONFIG.prizes.bouncinessRange[0],
       GAME_CONFIG.prizes.bouncinessRange[1],
     );
-    const deformability = Random.floatBetween(0.6, 0.9); // Plushies are soft
+    const deformability = Random.floatBetween(0.6, 0.9);
 
-    // Apply deformability-based visual effects
-    prizeGroup.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const material = child.material as THREE.MeshStandardMaterial;
-        // More deformable = softer appearance (higher roughness, lower metalness)
-        material.roughness = 0.6 + deformability * 0.3; // 0.6 to 0.9
-        material.metalness = Math.max(0, 0.3 - deformability * 0.2); // 0.1 to 0.3
-        // Store deformability for later use
-        material.userData.deformability = deformability;
-      }
-    });
+    this.applyDeformabilityVisuals(prizeGroup, deformability);
 
     const rigidBody = this.physicsManager.createDynamicSphere(
       prizeGroup.position,
@@ -427,10 +378,79 @@ export default class CraneGame {
     return prize;
   }
 
+  private scalePrizeModel(prizeGroup: THREE.Group) {
+    const targetSize = this.prizeSize * GAME_CONFIG.prizes.radiusMultiplier;
+    const modelHeight = 2.4;
+    const scale = (targetSize / modelHeight) * 2;
+    prizeGroup.scale.setScalar(scale);
+  }
+
+  private storeOriginalEmissiveProperties(prizeGroup: THREE.Group) {
+    prizeGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const material = child.material as THREE.MeshStandardMaterial;
+        if (material.userData) {
+          material.userData.originalEmissiveIntensity =
+            material.emissiveIntensity || 0.0;
+          material.userData.originalEmissiveColor =
+            material.emissive?.clone() || new THREE.Color(0x000000);
+        }
+      }
+    });
+  }
+
+  private calculatePrizeRadius(prizeGroup: THREE.Group): number {
+    const scaledBox = new THREE.Box3().setFromObject(prizeGroup);
+    return (
+      Math.max(
+        scaledBox.max.x - scaledBox.min.x,
+        scaledBox.max.z - scaledBox.min.z,
+      ) / 2
+    );
+  }
+
+  private applyDeformabilityVisuals(
+    prizeGroup: THREE.Group,
+    deformability: number,
+  ) {
+    prizeGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const material = child.material as THREE.MeshStandardMaterial;
+        material.roughness = 0.6 + deformability * 0.3;
+        material.metalness = Math.max(0, 0.3 - deformability * 0.2);
+        material.userData.deformability = deformability;
+      }
+    });
+  }
+
   createPrizes() {
     const floorY = GAME_CONFIG.physics.floorY + 0.5;
 
-    // Calculate grid dimensions based on cabinet and prize size
+    const { cols, rows, offsetX, offsetZ, spacingX, spacingZ } =
+      this.calculatePrizeGrid();
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const x = offsetX + col * spacingX + Random.floatBetween(-0.15, 0.15);
+        const z = offsetZ + row * spacingZ + Random.floatBetween(-0.15, 0.15);
+
+        if (this.isTooCloseToBin(x, z)) {
+          continue;
+        }
+
+        const dropHeight = Random.floatBetween(
+          GAME_CONFIG.prizes.dropHeightRange[0],
+          GAME_CONFIG.prizes.dropHeightRange[1],
+        );
+        const y = floorY + dropHeight;
+
+        const prize = this.createSinglePrize(x, y, z);
+        this.prizes.push(prize);
+      }
+    }
+  }
+
+  private calculatePrizeGrid() {
     const usableWidth =
       GAME_CONFIG.cabinet.width - GAME_CONFIG.prizes.gridPadding;
     const usableDepth =
@@ -439,41 +459,19 @@ export default class CraneGame {
     const cols = Math.floor(usableWidth / this.prizeSize);
     const rows = Math.floor(usableDepth / this.prizeSize);
 
-    // Calculate spacing to center the grid
     const spacingX = usableWidth / cols;
     const spacingZ = usableDepth / rows;
     const offsetX = -(usableWidth / 2) + spacingX / 2;
     const offsetZ = -(usableDepth / 2) + spacingZ / 2;
 
-    // Create prizes in a grid with some randomness
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        // Position in grid with slight randomness
-        const x = offsetX + col * spacingX + Random.floatBetween(-0.15, 0.15);
-        const z = offsetZ + row * spacingZ + Random.floatBetween(-0.15, 0.15);
+    return { cols, rows, offsetX, offsetZ, spacingX, spacingZ };
+  }
 
-        // Skip prizes that would spawn in the bin area (front-right corner)
-        const distanceToBin = Math.sqrt(
-          Math.pow(x - this.binPosition.x, 2) +
-            Math.pow(z - this.binPosition.z, 2),
-        );
-        if (distanceToBin < GAME_CONFIG.physics.binDistanceThreshold) {
-          // Too close to bin, skip this prize
-          continue;
-        }
-
-        // Drop prizes from random heights to let physics stack them naturally
-        const dropHeight = Random.floatBetween(
-          GAME_CONFIG.prizes.dropHeightRange[0],
-          GAME_CONFIG.prizes.dropHeightRange[1],
-        );
-        const y = floorY + dropHeight;
-
-        // Create prize using helper method
-        const prize = this.createSinglePrize(x, y, z);
-        this.prizes.push(prize);
-      }
-    }
+  private isTooCloseToBin(x: number, z: number): boolean {
+    const distanceToBin = Math.sqrt(
+      Math.pow(x - this.binPosition.x, 2) + Math.pow(z - this.binPosition.z, 2),
+    );
+    return distanceToBin < GAME_CONFIG.physics.binDistanceThreshold;
   }
 
   setupUI() {
@@ -557,7 +555,6 @@ export default class CraneGame {
 
     this.credits--;
 
-    // Use ClawManager to handle the drop
     const success = this.clawManager.dropClaw();
 
     if (success) {
@@ -582,115 +579,117 @@ export default class CraneGame {
   }
 
   updatePhysics() {
-    // Step the Rapier physics world
     this.physicsManager.step();
 
-    // Update prizes
     this.prizes.forEach((prize) => {
       if (prize.grabbed) {
-        // Mark as unsettled when grabbed
-        prize.settled = false;
+        this.updateGrabbedPrize(prize);
+      } else {
+        this.updateFreePrize(prize);
+      }
+    });
+  }
 
-        // Follow claw whenever grabbed (holding, ascending, moving to bin, or returning)
-        const targetX = this.clawManager.clawPosition.x;
-        const targetY = this.clawManager.clawPosition.y - 1.5; // Hang below claw
-        const targetZ = this.clawManager.clawPosition.z;
+  private updateGrabbedPrize(prize: Prize) {
+    prize.settled = false;
 
-        // Use faster interpolation for more responsive following
-        prize.mesh.position.x += (targetX - prize.mesh.position.x) * 0.3;
-        prize.mesh.position.y += (targetY - prize.mesh.position.y) * 0.3;
-        prize.mesh.position.z += (targetZ - prize.mesh.position.z) * 0.3;
+    const targetX = this.clawManager.clawPosition.x;
+    const targetY = this.clawManager.clawPosition.y - 1.5;
+    const targetZ = this.clawManager.clawPosition.z;
 
-        // Update Rapier body to match the grabbed position (kinematic control)
-        prize.rigidBody.setTranslation(
-          {
-            x: prize.mesh.position.x,
-            y: prize.mesh.position.y,
-            z: prize.mesh.position.z,
-          },
-          true,
-        );
-        prize.rigidBody.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    // Use faster interpolation for more responsive following
+    prize.mesh.position.x += (targetX - prize.mesh.position.x) * 0.3;
+    prize.mesh.position.y += (targetY - prize.mesh.position.y) * 0.3;
+    prize.mesh.position.z += (targetZ - prize.mesh.position.z) * 0.3;
 
-        // Make grabbed prizes extremely visible with intense glow and color tint
-        // Handle both single mesh and group (plushie model)
-        if (prize.mesh instanceof THREE.Group) {
-          prize.mesh.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              const material = child.material as THREE.MeshStandardMaterial;
-              material.emissiveIntensity = 1.5;
-              material.emissive = new THREE.Color(0x00ffff);
-            }
-          });
-        } else {
-          const material = prize.mesh.material as THREE.MeshStandardMaterial;
+    prize.rigidBody.setTranslation(
+      {
+        x: prize.mesh.position.x,
+        y: prize.mesh.position.y,
+        z: prize.mesh.position.z,
+      },
+      true,
+    );
+    prize.rigidBody.setLinvel({ x: 0, y: 0, z: 0 }, true);
+
+    this.applyGrabbedPrizeVisuals(prize);
+  }
+
+  private applyGrabbedPrizeVisuals(prize: Prize) {
+    if (prize.mesh instanceof THREE.Group) {
+      prize.mesh.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const material = child.material as THREE.MeshStandardMaterial;
           material.emissiveIntensity = 1.5;
           material.emissive = new THREE.Color(0x00ffff);
         }
-      } else {
-        // Sync Three.js mesh with Rapier physics body
-        this.physicsManager.syncMeshWithBody(prize.mesh, prize.rigidBody);
+      });
+    } else {
+      const material = prize.mesh.material as THREE.MeshStandardMaterial;
+      material.emissiveIntensity = 1.5;
+      material.emissive = new THREE.Color(0x00ffff);
+    }
+  }
 
-        // Check if prize has settled (very low velocity)
-        const linvel = prize.rigidBody.linvel();
-        const speed = Math.sqrt(
-          linvel.x * linvel.x + linvel.y * linvel.y + linvel.z * linvel.z,
-        );
+  private updateFreePrize(prize: Prize) {
+    this.physicsManager.syncMeshWithBody(prize.mesh, prize.rigidBody);
 
-        if (speed < 0.05 && prize.mesh.position.y < -8) {
-          prize.settled = true;
-        } else {
-          prize.settled = false;
-        }
+    this.updatePrizeSettledState(prize);
+    this.resetPrizeVisuals(prize);
+    this.checkIfPrizeInBin(prize);
+  }
 
-        // Reset visual effects for non-grabbed prizes
-        // Handle both single mesh and group (plushie model)
-        if (prize.mesh instanceof THREE.Group) {
-          prize.mesh.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              const material = child.material as THREE.MeshStandardMaterial;
-              if (material.emissiveIntensity > 0.2) {
-                material.emissiveIntensity =
-                  (material.userData?.originalEmissiveIntensity as number) ||
-                  0.0;
-                material.emissive =
-                  (material.userData?.originalEmissiveColor as THREE.Color) ||
-                  new THREE.Color(0x000000);
-              }
-            }
-          });
-        } else {
-          const material = prize.mesh.material as THREE.MeshStandardMaterial;
+  private updatePrizeSettledState(prize: Prize) {
+    const linvel = prize.rigidBody.linvel();
+    const speed = Math.sqrt(
+      linvel.x * linvel.x + linvel.y * linvel.y + linvel.z * linvel.z,
+    );
+
+    prize.settled = speed < 0.05 && prize.mesh.position.y < -8;
+  }
+
+  private resetPrizeVisuals(prize: Prize) {
+    if (prize.mesh instanceof THREE.Group) {
+      prize.mesh.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const material = child.material as THREE.MeshStandardMaterial;
           if (material.emissiveIntensity > 0.2) {
             material.emissiveIntensity =
-              (material.userData?.originalEmissiveIntensity as number) || 0.05;
+              (material.userData?.originalEmissiveIntensity as number) || 0.0;
             material.emissive =
               (material.userData?.originalEmissiveColor as THREE.Color) ||
-              new THREE.Color("#222222");
+              new THREE.Color(0x000000);
           }
         }
-
-        // Check if prize has entered the bin (more precise detection)
-        const inBinX =
-          Math.abs(prize.mesh.position.x - this.binPosition.x) < 1.5;
-        const inBinZ =
-          Math.abs(prize.mesh.position.z - this.binPosition.z) < 1.5;
-        const inBinY = prize.mesh.position.y < -8; // Deeper into the bin for more reliable detection
-
-        if (
-          inBinX &&
-          inBinZ &&
-          inBinY &&
-          !this.wonPrizes.some((wonPrize) => wonPrize.mesh.id === prize.mesh.id)
-        ) {
-          // Prize has entered the bin! Mark as won
-          this.wonPrizes.push(prize);
-          this.showMessage("YOU WIN!");
-          this.audioManager.playSound("win", 0.6, 1.0);
-          this.updateUI();
-        }
+      });
+    } else {
+      const material = prize.mesh.material as THREE.MeshStandardMaterial;
+      if (material.emissiveIntensity > 0.2) {
+        material.emissiveIntensity =
+          (material.userData?.originalEmissiveIntensity as number) || 0.05;
+        material.emissive =
+          (material.userData?.originalEmissiveColor as THREE.Color) ||
+          new THREE.Color("#222222");
       }
-    });
+    }
+  }
+
+  private checkIfPrizeInBin(prize: Prize) {
+    const inBinX = Math.abs(prize.mesh.position.x - this.binPosition.x) < 1.5;
+    const inBinZ = Math.abs(prize.mesh.position.z - this.binPosition.z) < 1.5;
+    const inBinY = prize.mesh.position.y < -8;
+
+    if (
+      inBinX &&
+      inBinZ &&
+      inBinY &&
+      !this.wonPrizes.some((wonPrize) => wonPrize.mesh.id === prize.mesh.id)
+    ) {
+      this.wonPrizes.push(prize);
+      this.showMessage("YOU WIN!");
+      this.audioManager.playSound("win", 0.6, 1.0);
+      this.updateUI();
+    }
   }
 
   initializeEnhancedFeatures() {
@@ -713,7 +712,7 @@ export default class CraneGame {
     // Throttle to 30fps for better performance
     const deltaTime = currentTime - this.lastFrameTime;
     if (deltaTime < this.frameInterval) {
-      return; // Skip this frame
+      return;
     }
     this.lastFrameTime = currentTime - (deltaTime % this.frameInterval);
 
@@ -736,70 +735,74 @@ export default class CraneGame {
       });
     }
 
-    // Update atmospheric effects (dust, background, floating particles)
     this.atmosphericEffects.animate(0.01);
-
-    // Update camera controls
     this.controls.update();
 
     this.renderer.render(this.scene, this.camera);
   };
 
   updateArcadeEffects() {
-    // Animate LED light strips (chase effect)
-    if (this.ledStrips) {
-      const time = Date.now() * 0.001;
-      this.ledStrips.forEach((led: THREE.Mesh, i: number) => {
-        const mat = led.material as THREE.MeshStandardMaterial;
-        // Chase effect
-        const phase = (time * 2 + i * 0.3) % (Math.PI * 2);
-        const intensity = Math.sin(phase) * 1 + 2;
-        mat.emissiveIntensity = Math.max(0.5, intensity);
+    this.animateLEDStrips();
+    this.animateFloorPattern();
+  }
 
-        // Color cycling
-        const hue = (time * 30 + i * 10) % 360;
-        const color = new THREE.Color().setHSL(hue / 360, 1, 0.5);
-        mat.emissive = color;
-        mat.color = color;
-      });
-    }
+  private animateLEDStrips() {
+    if (!this.ledStrips) return;
 
-    // Animate floor grid pattern
+    const time = Date.now() * 0.001;
+    this.ledStrips.forEach((led: THREE.Mesh, i: number) => {
+      const mat = led.material as THREE.MeshStandardMaterial;
+      const phase = (time * 2 + i * 0.3) % (Math.PI * 2);
+      const intensity = Math.sin(phase) * 1 + 2;
+      mat.emissiveIntensity = Math.max(0.5, intensity);
+
+      const hue = (time * 30 + i * 10) % 360;
+      const color = new THREE.Color().setHSL(hue / 360, 1, 0.5);
+      mat.emissive = color;
+      mat.color = color;
+    });
+  }
+
+  private animateFloorPattern() {
     const floorCanvas = this.floorCanvas;
     const floorTexture = this.floorTexture;
-    if (floorCanvas && floorTexture) {
-      const ctx = floorCanvas.getContext("2d")!;
-      const time = Date.now() * 0.001;
+    if (!floorCanvas || !floorTexture) return;
 
-      // Clear with base color
-      ctx.fillStyle = "#f0f0f0";
-      ctx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
+    const ctx = floorCanvas.getContext("2d")!;
+    const time = Date.now() * 0.001;
 
-      // Draw pulsing grid lines
-      const gridSize = 32;
-      const pulseIntensity = Math.sin(time * 2) * 0.3 + 0.7;
-      const hue = (time * 30) % 360;
+    ctx.fillStyle = "#f0f0f0";
+    ctx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
 
-      ctx.strokeStyle = `hsla(${hue}, 100%, 50%, ${pulseIntensity * 0.4})`;
-      ctx.lineWidth = 2;
+    this.drawPulsingGrid(ctx, floorCanvas, time);
 
-      // Vertical lines
-      for (let x = 0; x <= floorCanvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, floorCanvas.height);
-        ctx.stroke();
-      }
+    floorTexture.needsUpdate = true;
+  }
 
-      // Horizontal lines
-      for (let y = 0; y <= floorCanvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(floorCanvas.width, y);
-        ctx.stroke();
-      }
+  private drawPulsingGrid(
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    time: number,
+  ) {
+    const gridSize = 32;
+    const pulseIntensity = Math.sin(time * 2) * 0.3 + 0.7;
+    const hue = (time * 30) % 360;
 
-      floorTexture.needsUpdate = true;
+    ctx.strokeStyle = `hsla(${hue}, 100%, 50%, ${pulseIntensity * 0.4})`;
+    ctx.lineWidth = 2;
+
+    for (let x = 0; x <= canvas.width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+
+    for (let y = 0; y <= canvas.height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
     }
   }
 
