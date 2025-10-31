@@ -2,7 +2,7 @@ import { isMobile } from "../../utils/misc";
 import Random from "../../utils/random";
 import "./emoji.scss";
 
-const size = isMobile ? 40 : 50;
+const size = isMobile() ? 40 : 50;
 const container = document.getElementById("container")!;
 container.style.lineHeight = `${size}px`;
 container.style.fontSize = `${size}px`;
@@ -37,7 +37,7 @@ function forwards() {
     const randomClass = Random.numberBetween(1, 100) % 2 === 0 ? "wider" : "";
     if (useAllEmoji) emoji = Random.itemInArray(emojis);
     container.innerHTML += `<span class="${String(randomClass)}">${String(
-      emoji
+      emoji,
     )}</span>`;
     if (container.clientHeight > document.body.clientHeight + 70) {
       clearInterval(interval);
