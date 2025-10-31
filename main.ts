@@ -45,6 +45,32 @@ console.log(
 
 const playlist = new Playlist();
 
+let virusHasKeyboardControl = false;
+
+interface KeyboardControlMessage {
+  type: string;
+  enabled: boolean;
+}
+
+function isKeyboardControlMessage(
+  data: unknown,
+): data is KeyboardControlMessage {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "type" in data &&
+    "enabled" in data &&
+    data.type === "requestKeyboardControl" &&
+    typeof data.enabled === "boolean"
+  );
+}
+
+window.addEventListener("message", (event) => {
+  if (isKeyboardControlMessage(event.data)) {
+    virusHasKeyboardControl = event.data.enabled;
+  }
+});
+
 class VirusLoader {
   iframe: HTMLIFrameElement;
   loadRandomInterval: ReturnType<typeof setInterval>;
@@ -173,6 +199,8 @@ class VirusLoader {
   }
 
   loadVirus(name: string) {
+    virusHasKeyboardControl = false;
+
     // Randomly choose the loading animation for each load
     if (Math.random() < 0.5) {
       const tvStatic = new TVStaticLoading();
@@ -688,10 +716,53 @@ function hideInfo() {
   document.getElementById("info-btn")!.innerText = "info";
 }
 
+function forwardKeyboardEventToIframe(event: KeyboardEvent, eventType: string) {
+  if (!virusHasKeyboardControl) return;
+
+  const mainIframe = document.getElementById("container") as HTMLIFrameElement;
+  const mixedContainer = document.querySelector(".mixed-virus-container");
+  const activeIframe = mixedContainer
+    ? (mixedContainer.querySelector("iframe") as HTMLIFrameElement)
+    : mainIframe;
+
+  if (activeIframe?.contentWindow) {
+    activeIframe.contentWindow.postMessage(
+      {
+        type: "keyboardEvent",
+        eventType,
+        key: event.key,
+        code: event.code,
+        shiftKey: event.shiftKey,
+        ctrlKey: event.ctrlKey,
+        altKey: event.altKey,
+        metaKey: event.metaKey,
+      },
+      "*",
+    );
+  }
+}
+
+document.onkeydown = (e) => {
+  if (virusHasKeyboardControl) {
+    forwardKeyboardEventToIframe(e, "keydown");
+  }
+};
+
 document.onkeyup = (e) => {
   if (e.key === "Escape") {
     hideInfo();
-  } else if (e.key === "ArrowRight") {
+    return;
+  } else if (e.key === "?") {
+    toggleInfo();
+    return;
+  }
+
+  if (virusHasKeyboardControl) {
+    forwardKeyboardEventToIframe(e, "keyup");
+    return;
+  }
+
+  if (e.key === "ArrowRight") {
     gtag("event", "skip_next_keyboard");
     vl.skipNext();
     resumePlayback();
@@ -700,8 +771,6 @@ document.onkeyup = (e) => {
     vl.skipPrev();
   } else if (e.key === " " || e.key === "Spacebar") {
     togglePlayPause();
-  } else if (e.key === "?") {
-    toggleInfo();
   } else if (e.key === "r" || e.key === "R") {
     gtag("event", "reload_keyboard", {
       animation_name: playlist.current(),

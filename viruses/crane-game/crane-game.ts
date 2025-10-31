@@ -4,6 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Random from "../../utils/random";
 import { isMobile } from "../../utils/misc";
+import { setupKeyboardControl } from "../../utils/keyboard-control";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { PhysicsManager } from "./PhysicsManager";
 import { CraneRope } from "./CraneRope";
@@ -69,7 +70,8 @@ export default class CraneGame {
   }
 
   async init() {
-    // Initialize Rapier WASM module first
+    setupKeyboardControl();
+
     await RAPIER.init();
 
     // Load the plushie model
