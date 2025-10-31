@@ -2,9 +2,7 @@ import "./void.scss";
 import * as THREE from "three";
 import Random from "../../utils/random";
 
-// Constants
 const CONSTANTS = {
-  // Core configuration
   CORE_RADIUS: 35,
   CORE_DETAIL_LEVEL: 3,
   INNER_CORE_RADIUS: 25,
@@ -12,39 +10,32 @@ const CONSTANTS = {
   ENERGY_SHELL_RADIUS: 45,
   ENERGY_SHELL_DETAIL: 2,
 
-  // Particle system
   CHAOTIC_PARTICLE_COUNT: 1200,
   SPAWN_RADIUS_MIN: 50,
   SPAWN_RADIUS_MAX: 400,
   PARTICLE_SIZE: 2,
 
-  // Colors
   DEEP_RED_EVIL_ENERGY: 0xff0033,
   DARK_CRIMSON: 0x330000,
   BRIGHT_EVIL_RED: 0xff3366,
 
-  // Rings and fields
   CORRUPTION_RING_COUNT: 5,
   CORRUPTION_FIELD_COUNT: 7,
 
-  // Animation and timing
   MOUSE_TRAIL_MAX_LENGTH: 20,
   MAX_TRAIL_PARTICLES: 3,
   MAX_BLOOD_VEINS: 30,
   MAX_GRAVITY_WELLS: 3,
 
-  // Behavioral thresholds
   RAGE_THRESHOLD_FOR_AUTONOMOUS_BEHAVIOR: 0.1,
   INTERACTION_TIMEOUT: 300,
   RAGE_BUILDUP_DURATION: 1200,
 
-  // Performance settings
   TENTACLE_MORPH_THROTTLE: 8,
   BLOOD_VEIN_BURST_COUNT: 4,
   BURST_PARTICLE_COUNT: 50,
 };
 
-// Type definitions for userData
 interface TentacleUserData {
   baseAngle: number;
   writheSpeed: number;
@@ -91,18 +82,18 @@ class Void {
   mousePressed = false;
   lastClickTime = 0;
   trailParticles: THREE.Points[] = [];
-  trailParticlePool: THREE.Points[] = []; // Object pool for performance
+  trailParticlePool: THREE.Points[] = [];
   mouseTrail: THREE.Vector3[] = [];
   gravityWells: THREE.Vector3[] = [];
   timeWarp = 1.0;
   energyLevel = 0;
   lastMousePos = new THREE.Vector2();
   mouseVelocity = new THREE.Vector2();
-  mouseResponsiveness = 0.15; // Increased base responsiveness
+  mouseResponsiveness = 0.15;
   corruptionTentacles: THREE.Mesh[] = [];
   evilEyes: THREE.Mesh[] = [];
   bloodVeins: THREE.Line[] = [];
-  bloodVeinPool: THREE.Line[] = []; // Object pool for blood veins
+  bloodVeinPool: THREE.Line[] = [];
   screechLevel = 0;
   lastScreechTime = 0;
   idleTime = 0;
@@ -113,7 +104,7 @@ class Void {
   lastCalmingTime = 0;
   autonomousEvents: number[] = [];
   isHavingTantrum = false;
-  tentacleMorphFrame = 0; // Throttle tentacle morphing
+  tentacleMorphFrame = 0;
   frameCount = 0;
 
   constructor() {
@@ -145,7 +136,6 @@ class Void {
   }
 
   dispose() {
-    // Cleanup WebGL resources
     this.scene.traverse((object) => {
       if (object instanceof THREE.Mesh) {
         if (object.geometry && "dispose" in object.geometry) {
@@ -167,7 +157,6 @@ class Void {
       }
     });
 
-    // Cleanup renderer
     this.renderer.dispose();
   }
 
@@ -188,7 +177,7 @@ class Void {
           throw new Error("WebGL context not available");
         }
 
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setClearColor(0x000000, 1);
       } catch (error) {
         console.error("Failed to initialize WebGL renderer:", error);
@@ -335,7 +324,7 @@ class Void {
         6 + i * 2,
       );
       const ringMaterial = new THREE.MeshBasicMaterial({
-        color: i % 2 === 0 ? 0xff0000 : 0x880022, // Alternating evil reds
+        color: i % 2 === 0 ? 0xff0000 : 0x880022,
         transparent: true,
         opacity: 0.4 - i * 0.05,
         side: THREE.DoubleSide,
@@ -356,7 +345,6 @@ class Void {
 
     this.scene.add(this.beautyRings);
 
-    // Add corruption fields to the same group
     for (let i = 0; i < CONSTANTS.CORRUPTION_FIELD_COUNT; i++) {
       const fieldGeometry = new THREE.SphereGeometry(180 + i * 40, 6, 6);
       const fieldMaterial = new THREE.MeshBasicMaterial({
@@ -389,7 +377,6 @@ class Void {
         const angle = (i / 12) * Math.PI * 2;
         const radius = 30 + t * 150;
 
-        // Multiple sine waves for chaotic motion
         const wobble1 = Math.sin(t * Math.PI * 6) * 15;
         const wobble2 = Math.cos(t * Math.PI * 8 + i) * 12;
         const wobble3 = Math.sin(t * Math.PI * 10 + i * 2) * 8;
@@ -449,7 +436,6 @@ class Void {
 
       const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
 
-      // Position eyes in a circle around the core
       const angle = (i / 6) * Math.PI * 2;
       const radius = 180;
       eye.position.x = Math.cos(angle) * radius;
@@ -470,7 +456,6 @@ class Void {
 
   setupResponsiveUserInteraction() {
     document.addEventListener("mousemove", (event) => {
-      // Calculate mouse velocity for energy system
       const currentMousePos = new THREE.Vector2(event.clientX, event.clientY);
       this.mouseVelocity.subVectors(currentMousePos, this.lastMousePos);
       this.lastMousePos.copy(currentMousePos);
@@ -478,21 +463,16 @@ class Void {
       this.mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       this.mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
-      // Adaptive mouse responsiveness based on velocity
       const velocity = this.mouseVelocity.length();
       this.mouseResponsiveness = Math.min(0.15 + velocity * 0.0005, 0.4);
 
-      // Build energy from movement
       this.energyLevel = Math.min(this.energyLevel + velocity * 0.001, 1.0);
 
-      // Add to mouse trail
       this.addToMouseTrail(event.clientX, event.clientY);
 
-      // Reset idle timer on any interaction
       this.lastInteractionTime = this.currentTime;
       this.idleTime = 0;
 
-      // Create ripple effect on mouse movement
       this.createRipple(event.clientX, event.clientY);
     });
 
@@ -515,7 +495,6 @@ class Void {
       this.provideCalmingAttention();
     });
 
-    // Double-click for special effect
     document.addEventListener("dblclick", (event) => {
       const positions = this.particles.geometry.attributes.position
         .array as Float32Array;
@@ -531,7 +510,6 @@ class Void {
       this.createClickBurst(event.clientX, event.clientY);
     });
 
-    // Touch support for mobile
     document.addEventListener("touchstart", (event) => {
       event.preventDefault();
       const touch = event.touches[0];
@@ -553,7 +531,6 @@ class Void {
       this.mousePressed = false;
     });
 
-    // Mouse wheel for time warp effects
     document.addEventListener("wheel", (event) => {
       event.preventDefault();
       this.timeWarp += event.deltaY * 0.001;
@@ -571,12 +548,10 @@ class Void {
 
     this.mouseTrail.push(worldPos.clone());
 
-    // Keep trail to manageable length
     if (this.mouseTrail.length > CONSTANTS.MOUSE_TRAIL_MAX_LENGTH) {
       this.mouseTrail.shift();
     }
 
-    // Create beautiful trail particles
     if (this.mouseTrail.length > 1) {
       let trailPoints = this.trailParticlePool.pop();
       if (!trailPoints) {
@@ -635,7 +610,6 @@ class Void {
 
     this.gravityWells.push(worldPos);
 
-    // Create visual indicator for corruption vortex
     const wellGeometry = new THREE.RingGeometry(15, 30, 8);
     const wellMaterial = new THREE.MeshBasicMaterial({
       color: 0xff0000,
@@ -654,14 +628,12 @@ class Void {
 
     this.scene.add(well);
 
-    // Keep only recent gravity wells
     if (this.gravityWells.length > CONSTANTS.MAX_GRAVITY_WELLS) {
       this.gravityWells.shift();
     }
   }
 
   createRipple(x: number, y: number) {
-    // Create ripple effect that affects particles based on mouse position
     const positions = this.particles.geometry.attributes.position
       .array as Float32Array;
     const mouseWorld = new THREE.Vector3(
@@ -721,42 +693,34 @@ class Void {
   }
 
   provideCalmingAttention() {
-    // Immediate calming effect from interaction
     this.lastCalmingTime = this.currentTime;
 
-    // Drastically reduce rage and build up calmness
-    this.rageBuildupLevel *= 0.3; // Immediate rage reduction
-    this.calmLevel = Math.min(this.calmLevel + 0.4, 1.0); // Build calmness
+    this.rageBuildupLevel *= 0.3;
+    this.calmLevel = Math.min(this.calmLevel + 0.4, 1.0);
 
-    // Stop any ongoing tantrum
     if (this.isHavingTantrum) {
       this.isHavingTantrum = false;
-      // Clear autonomous rage events
       this.autonomousEvents.forEach((eventId) => clearTimeout(eventId));
       this.autonomousEvents = [];
     }
 
-    // Increase contentment level
     this.contentmentLevel = Math.min(this.contentmentLevel + 0.3, 1.0);
 
-    // Make eyes peaceful and stop their frantic searching
     this.evilEyes.forEach((eye) => {
       const userData = eye.userData as EyeUserData;
-      userData.watchIntensity *= 0.2; // Drastically reduce intensity
-      userData.lastBlink = this.currentTime; // Trigger peaceful blink
+      userData.watchIntensity *= 0.2;
+      userData.lastBlink = this.currentTime;
     });
 
-    // Calm down tentacles
     this.corruptionTentacles.forEach((tentacle) => {
       const userData = tentacle.userData as TentacleUserData;
-      userData.writheSpeed *= 0.5; // Slower, more peaceful movement
-      userData.thrashIntensity *= 0.4; // Much less violent
-      userData.corruptionLevel *= 0.6; // Reduce corruption
+      userData.writheSpeed *= 0.5;
+      userData.thrashIntensity *= 0.4;
+      userData.corruptionLevel *= 0.6;
     });
   }
 
   createClickBurst(x: number, y: number) {
-    // Add new temporary particles at click location
     const burstCount = CONSTANTS.BURST_PARTICLE_COUNT;
     const burstGeometry = new THREE.BufferGeometry();
     const burstPositions = new Float32Array(burstCount * 3);
@@ -802,7 +766,6 @@ class Void {
     const burstPoints = new THREE.Points(burstGeometry, burstMaterial);
     this.scene.add(burstPoints);
 
-    // Animate and remove the burst
     let burstTime = 0;
     const animateBurst = () => {
       burstTime += 0.1;
@@ -821,7 +784,6 @@ class Void {
   handleKeyPress(key: string) {
     switch (key.toLowerCase()) {
       case " ": {
-        // Spacebar - reset everything
         const positions = this.particles.geometry.attributes.position
           .array as Float32Array;
         for (let i = 0; i < positions.length / 3; i++) {
@@ -836,7 +798,6 @@ class Void {
         break;
       }
       case "r": {
-        // R - randomize colors
         const colors = this.particles.geometry.attributes.color
           .array as Float32Array;
         for (let i = 0; i < colors.length; i += 3) {
@@ -848,12 +809,11 @@ class Void {
         break;
       }
       case "w": {
-        // W - toggle wireframe
         const material = this.flowingSphere.material as THREE.MeshBasicMaterial;
         material.wireframe = !material.wireframe;
         break;
       }
-      case "f": // F - speed up time
+      case "f":
         this.currentTime += 100;
         break;
     }
@@ -868,11 +828,9 @@ class Void {
       const y = positions[i + 1];
       const z = positions[i + 2];
 
-      // Gentle orbital motion influenced by time warp
       const radius = Math.sqrt(x * x + y * y + z * z);
       let angle = Math.atan2(y, x) + 0.003 * this.timeWarp;
 
-      // Mouse attraction/repulsion
       const mouseDistance = Math.sqrt(
         Math.pow(x - this.targetX * 100, 2) +
           Math.pow(y - this.targetY * 100, 2),
@@ -881,15 +839,12 @@ class Void {
       if (mouseDistance < 150) {
         const force = (150 - mouseDistance) / 150;
         if (this.mousePressed) {
-          // Repel when mouse is pressed
           angle += force * 0.1;
         } else {
-          // Attract when mouse is just hovering
           angle -= force * 0.05;
         }
       }
 
-      // Gravity wells influence
       this.gravityWells.forEach((well) => {
         const wellDistance = Math.sqrt(
           Math.pow(x - well.x, 2) +
@@ -907,7 +862,6 @@ class Void {
         }
       });
 
-      // Apply final positions with temporal waves
       positions[i] = Math.cos(angle) * radius;
       positions[i + 1] = Math.sin(angle) * radius;
       positions[i + 2] =
@@ -918,16 +872,12 @@ class Void {
   }
 
   updateBehavioralStates(timeMultiplier: number) {
-    // Gradually decay energy over time (frame-rate independent)
     this.energyLevel *= Math.pow(0.99, timeMultiplier);
 
-    // Decay screech effect (frame-rate independent)
     this.screechLevel *= Math.pow(0.95, timeMultiplier);
 
-    // Track idle time and build up rage when ignored
     this.idleTime = this.currentTime - this.lastInteractionTime;
 
-    // Rage builds up exponentially the longer you ignore it
     if (this.idleTime > CONSTANTS.INTERACTION_TIMEOUT) {
       this.rageBuildupLevel = Math.min(
         (this.idleTime - CONSTANTS.INTERACTION_TIMEOUT) /
@@ -938,7 +888,6 @@ class Void {
       this.rageBuildupLevel *= Math.pow(0.98, timeMultiplier);
     }
 
-    // Decay calmness and contentment over time, but slower than rage
     this.calmLevel *= Math.pow(0.996, timeMultiplier);
     this.contentmentLevel *= Math.pow(0.994, timeMultiplier);
 
@@ -991,7 +940,6 @@ class Void {
   }
 
   updateFlowingSphere() {
-    // Basic morphing effect on the malevolent core
     const geometry = this.flowingSphere.geometry as THREE.SphereGeometry;
     const positionAttribute = geometry.attributes.position;
 
@@ -1001,9 +949,8 @@ class Void {
       const z = positionAttribute.getZ(i);
 
       const radius = Math.sqrt(x * x + y * y + z * z);
-      const normalizedRadius = radius / 35; // Normalize based on core radius
+      const normalizedRadius = radius / 35;
 
-      // Basic wave effect
       const baseWave = Math.sin(this.currentTime * 0.01 + radius * 0.1) * 3;
       const timeWave =
         Math.sin(this.currentTime * 0.005 + normalizedRadius * Math.PI) * 5;
@@ -1021,7 +968,6 @@ class Void {
   render() {
     const currentTime = performance.now();
 
-    // Initialize lastFrameTime on first frame
     if (this.lastFrameTime === 0) {
       this.lastFrameTime = currentTime;
     }
@@ -1030,21 +976,17 @@ class Void {
     this.lastFrameTime = currentTime;
     this.frameCount++;
 
-    // Adaptive time multiplier for consistent animation speed
-    const timeMultiplier = Math.min(this.deltaTime / 16.67, 2.0); // Cap at 2x for extreme frame drops
+    const timeMultiplier = Math.min(this.deltaTime / 16.67, 2.0);
     this.currentTime += this.timeWarp * timeMultiplier;
 
     this.updateBehavioralStates(timeMultiplier);
 
-    // Combine energy sources including RAGE!
     const totalEnergy = this.energyLevel + this.rageBuildupLevel * 0.8;
 
-    // Smooth mouse interaction with adaptive responsiveness
     const responsiveness = this.mouseResponsiveness * timeMultiplier;
     this.targetX += (this.mouseX - this.targetX) * responsiveness;
     this.targetY += (this.mouseY - this.targetY) * responsiveness;
 
-    // Animate the core with energy, but slow down when calm
     const calmingFactor =
       1 - this.calmLevel * 0.7 - this.contentmentLevel * 0.3;
     let sphereSpeedX = (0.01 + totalEnergy * 0.05) * calmingFactor;
@@ -1059,7 +1001,6 @@ class Void {
     this.flowingSphere.rotation.y += sphereSpeedY * this.timeWarp;
     this.flowingSphere.rotation.z += 0.008 * this.timeWarp;
 
-    // Evil pulsating core effect - gets MORE violent when rageful
     const ragePulse = this.isHavingTantrum
       ? Math.sin(this.currentTime * 0.2) * 0.5
       : 0;
@@ -1071,59 +1012,42 @@ class Void {
       ragePulse;
     this.flowingSphere.scale.setScalar(evilPulse);
 
-    // Color corruption based on energy and calm state
     const coreMaterial = this.flowingSphere
       .material as THREE.MeshStandardMaterial;
     const corruption = Math.min(totalEnergy * 2, 1);
 
-    // Dynamic color mixing based on calm state
     const calmEffect = this.calmLevel * 0.6;
     const contentEffect = this.contentmentLevel * 0.4;
 
-    // Red spectrum coloring with different red tones
-    const baseRed = 0.8 + corruption * 0.2; // Base evil red
-    const finalRed = Math.min(
-      1,
-      baseRed - calmEffect * 0.4, // Slightly less red when calm
-    );
+    const baseRed = 0.8 + corruption * 0.2;
+    const finalRed = Math.min(1, baseRed - calmEffect * 0.4);
 
     const finalGreen = Math.max(
       0,
-      0.05 + // Very minimal base green
-        calmEffect * 0.6 + // More green when calm (soothing)
-        contentEffect * 0.2,
+      0.05 + calmEffect * 0.6 + contentEffect * 0.2,
     );
 
     const finalBlue = Math.max(
       0,
-      0.05 + // Minimal base blue
-        calmEffect * 0.8 + // More blue when calm (soothing)
-        contentEffect * 0.4,
+      0.05 + calmEffect * 0.8 + contentEffect * 0.4,
     );
 
     coreMaterial.color.set(finalRed, finalGreen, finalBlue);
 
-    // Emissive intensity based on rage and calm state
     const baseEmissiveIntensity =
       this.rageBuildupLevel > 0.5 ? this.rageBuildupLevel : 0;
 
     if (baseEmissiveIntensity > 0 || this.calmLevel > 0.2) {
-      // Red spectrum emissive glow
-      const emissiveRed = Math.min(
-        1,
-        0.4 - this.calmLevel * 0.3, // Less intense when calm
-      );
+      const emissiveRed = Math.min(1, 0.4 - this.calmLevel * 0.3);
 
       const emissiveGreen = Math.max(
         0,
-        this.calmLevel * 0.3 + // Soothing green when calm
-          this.contentmentLevel * 0.2,
+        this.calmLevel * 0.3 + this.contentmentLevel * 0.2,
       );
 
       const emissiveBlue = Math.max(
         0,
-        this.calmLevel * 0.5 + // Soothing blue when calm
-          this.contentmentLevel * 0.4,
+        this.calmLevel * 0.5 + this.contentmentLevel * 0.4,
       );
 
       coreMaterial.emissive = new THREE.Color(
@@ -1134,14 +1058,13 @@ class Void {
       const calmEmissiveIntensity =
         this.calmLevel * 0.5 + this.contentmentLevel * 0.3;
       coreMaterial.emissiveIntensity = Math.max(
-        baseEmissiveIntensity * (1 - this.calmLevel * 0.8), // Reduce rage glow when calm
+        baseEmissiveIntensity * (1 - this.calmLevel * 0.8),
         calmEmissiveIntensity,
       );
     } else {
       coreMaterial.emissiveIntensity = 0;
     }
 
-    // Make inner components pulse wickedly
     this.flowingSphere.children.forEach((child, index) => {
       child.rotation.x += (0.02 + index * 0.01) * this.timeWarp;
       child.rotation.y -= (0.025 + index * 0.008) * this.timeWarp;
@@ -1149,10 +1072,8 @@ class Void {
       const childMesh = child as THREE.Mesh;
       const childMaterial = childMesh.material as THREE.MeshBasicMaterial;
       if (index === 0) {
-        // Inner core - darker and more intense
         childMaterial.opacity = 0.9 + Math.sin(this.currentTime * 0.1) * 0.1;
       } else {
-        // Energy shell - crackling effect
         childMaterial.opacity =
           0.3 +
           Math.sin(this.currentTime * 0.08 + index) * 0.2 +
@@ -1160,23 +1081,19 @@ class Void {
       }
     });
 
-    // Update sphere morphing with mouse influence
     this.updateFlowingSphere();
 
-    // Update particle system
     this.updateParticles();
 
-    // Animate corruption rings with malevolent energy
     this.beautyRings.children.forEach((ring, index) => {
       const ringMesh = ring as THREE.Mesh;
       const userData = ring.userData as RingUserData;
       let speed = userData.speed * this.timeWarp;
 
       if (this.mousePressed) {
-        speed *= 6; // Chaotic acceleration when disturbed
+        speed *= 6;
       }
 
-      // Irregular, unsettling rotation
       ring.rotation.z = userData.originalRotationZ + this.currentTime * speed;
       ring.rotation.x += 0.002 * this.timeWarp * (index % 2 === 0 ? 1 : -1);
       ring.rotation.y +=
@@ -1184,7 +1101,6 @@ class Void {
         this.timeWarp *
         Math.sin(this.currentTime * 0.01 + userData.corruptionPhase);
 
-      // Evil corruption breathing effect
       const mouseInfluence = Math.abs(this.targetX) + Math.abs(this.targetY);
       const corruptionPulse =
         1 +
@@ -1192,24 +1108,21 @@ class Void {
           (0.15 + mouseInfluence * 0.2 + totalEnergy * 0.4);
       ring.scale.setScalar(corruptionPulse);
 
-      // Dynamic evil coloring
       const material = ringMesh.material as THREE.MeshBasicMaterial;
       const corruptionIntensity =
         0.3 + mouseInfluence * 0.4 + totalEnergy * 0.5;
       material.opacity = Math.min(corruptionIntensity, 0.8);
 
-      // Shift between different shades of evil
       const evilHue = Math.sin(this.currentTime * 0.005 + index) * 0.5 + 0.5;
       if (evilHue > 0.7) {
-        material.color.set(1, 0, 0.2); // Bright blood red
+        material.color.set(1, 0, 0.2);
       } else if (evilHue > 0.4) {
-        material.color.set(0.8, 0, 0.4); // Dark crimson
+        material.color.set(0.8, 0, 0.4);
       } else {
-        material.color.set(0.6, 0, 0.1); // Deep maroon
+        material.color.set(0.6, 0, 0.1);
       }
     });
 
-    // Update quantum field visibility based on energy
     this.scene.children.forEach((child) => {
       if (
         child.userData &&
@@ -1227,7 +1140,6 @@ class Void {
         child.scale.setScalar(scale);
       }
 
-      // Update gravity well visuals
       if (child.userData && child.userData.life !== undefined) {
         child.userData.life--;
         const lifeRatio = child.userData.life / child.userData.maxLife;
@@ -1242,11 +1154,9 @@ class Void {
       }
     });
 
-    // Animate corruption tentacles with PURE CHAOS
     this.corruptionTentacles.forEach((tentacle, index) => {
       const userData = tentacle.userData as TentacleUserData;
 
-      // INSANE multi-axis writhing motion
       tentacle.rotation.z +=
         userData.writheSpeed * this.timeWarp * userData.thrashIntensity;
       tentacle.rotation.x +=
@@ -1258,25 +1168,21 @@ class Void {
         Math.cos(this.currentTime * 0.025 + index) *
         userData.thrashIntensity;
 
-      // Corruption pulsing with more violence
       userData.corruptionLevel *= 0.97;
       const corruption =
         userData.corruptionLevel +
         totalEnergy * 0.7 +
         this.rageBuildupLevel * 0.8;
 
-      // Dynamic morphing of the tentacle shape (throttled for performance)
       this.tentacleMorphFrame++;
       if (
         this.tentacleMorphFrame % CONSTANTS.TENTACLE_MORPH_THROTTLE === 0 &&
         Math.random() < 0.3 &&
         corruption > 0.3
       ) {
-        // Randomly deform the tentacle geometry (less frequently, more dramatically)
         const geometry = tentacle.geometry as THREE.TubeGeometry;
         const positionAttribute = geometry.attributes.position;
 
-        // Only morph a subset of vertices for better performance
         const stepSize = Math.max(1, Math.floor(positionAttribute.count / 20));
         for (let i = 0; i < positionAttribute.count; i += stepSize) {
           const chaos = (Math.random() - 0.5) * corruption * 15;
@@ -1294,16 +1200,14 @@ class Void {
       const material = tentacle.material as THREE.MeshBasicMaterial;
       material.opacity = 0.3 + corruption * 0.7;
 
-      // More dynamic evil coloring
       if (corruption > 0.8) {
-        material.color.set(1, 0.2, 0); // Bright blood red when very corrupt
+        material.color.set(1, 0.2, 0);
       } else if (corruption > 0.5) {
-        material.color.set(0.8, 0, 0.2); // Deep crimson
+        material.color.set(0.8, 0, 0.2);
       } else {
-        material.color.set(0.4 + corruption * 0.4, 0, corruption * 0.3); // Dark red
+        material.color.set(0.4 + corruption * 0.4, 0, corruption * 0.3);
       }
 
-      // Dynamic scaling based on corruption level
       const corruptionScale =
         1 +
         corruption * 0.5 +
@@ -1312,7 +1216,6 @@ class Void {
           0.3;
       tentacle.scale.setScalar(corruptionScale);
 
-      // Tentacles lash out randomly when highly corrupted
       if (corruption > 0.6) {
         tentacle.position.x =
           Math.sin(
@@ -1333,13 +1236,11 @@ class Void {
           corruption *
           15;
       } else {
-        // Return to center when calmer
         tentacle.position.x *= 0.95;
         tentacle.position.y *= 0.95;
         tentacle.position.z *= 0.95;
       }
 
-      // Reaching toward mouse when seeking attention
       if (this.rageBuildupLevel > 0.4 && Math.random() < 0.02) {
         const reachDirection = new THREE.Vector3(
           this.targetX * 100,
@@ -1353,11 +1254,9 @@ class Void {
       }
     });
 
-    // Animate evil eyes
     this.evilEyes.forEach((eye) => {
       const userData = eye.userData as EyeUserData;
 
-      // Eyes track the mouse like they're watching
       const lookDirection = new THREE.Vector3(
         this.targetX * 100,
         this.targetY * 100,
@@ -1365,7 +1264,6 @@ class Void {
       );
       eye.lookAt(lookDirection);
 
-      // Blinking effect
       const timeSinceLastBlink = this.currentTime - userData.lastBlink;
       if (timeSinceLastBlink > Random.numberBetween(100, 300)) {
         userData.lastBlink = this.currentTime;
@@ -1374,7 +1272,6 @@ class Void {
       const blinkCycle = Math.min(timeSinceLastBlink / 20, 1);
       const blink = blinkCycle < 0.1 ? 0 : 1;
 
-      // Watch intensity fades over time
       userData.watchIntensity *= 0.995;
 
       const intensity =
@@ -1383,7 +1280,6 @@ class Void {
       material.opacity = intensity * blink;
       material.emissiveIntensity = intensity * 2;
 
-      // Eyes glow brighter when evil is stronger
       if (intensity > 0.7) {
         material.color.set(1, 0.2, 0);
       } else if (intensity > 0.4) {
@@ -1393,7 +1289,6 @@ class Void {
       }
     });
 
-    // Update blood veins with proper cleanup and pooling
     this.bloodVeins = this.bloodVeins.filter((vein) => {
       vein.userData.life--;
       const lifeRatio = vein.userData.life / vein.userData.maxLife;
@@ -1403,14 +1298,12 @@ class Void {
 
       if (vein.userData.life <= 0) {
         this.scene.remove(vein);
-        // Return to pool instead of disposing
         this.bloodVeinPool.push(vein);
         return false;
       }
       return true;
     });
 
-    // Emergency cleanup if too many objects
     if (this.bloodVeins.length > CONSTANTS.MAX_BLOOD_VEINS) {
       const toRemove = this.bloodVeins.splice(0, 10);
       toRemove.forEach((vein) => {
@@ -1420,7 +1313,6 @@ class Void {
       });
     }
 
-    // Dynamic camera movement with enhanced mouse interaction
     const cameraRadius = 50 + Math.abs(this.targetX) * 100;
     this.camera.position.x =
       Math.sin(this.currentTime * 0.001) * 20 + this.targetX * cameraRadius;
@@ -1428,7 +1320,6 @@ class Void {
       Math.cos(this.currentTime * 0.0015) * 15 + this.targetY * 50;
     this.camera.position.z = 200 + this.targetY * 100;
 
-    // Look at target influenced by mouse
     const lookAtTarget = new THREE.Vector3(
       this.targetX * 50,
       this.targetY * 50,
@@ -1436,7 +1327,6 @@ class Void {
     );
     this.camera.lookAt(lookAtTarget);
 
-    // Render the scene
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.render());
   }

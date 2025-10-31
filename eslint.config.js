@@ -2,6 +2,10 @@ import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 import globals from "globals";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default [
   {
@@ -15,7 +19,7 @@ export default [
         project: ["./tsconfig.json"],
         ecmaVersion: "latest",
         sourceType: "module",
-        tsconfigRootDir: ".",
+        tsconfigRootDir: __dirname,
       },
       globals: {
         ...globals.browser,
