@@ -22,6 +22,7 @@ export default class Playlist {
     "static",
     "shitstorm",
     "void",
+    "crane-game",
   ];
 
   playlist: string[] = [];
