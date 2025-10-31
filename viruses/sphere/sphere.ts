@@ -29,7 +29,6 @@ class Sphere {
     this.controls.update();
 
     this.render();
-    this.diamond_color();
   }
 
   setRenderOptions() {
@@ -105,13 +104,16 @@ class Sphere {
       this.randomizeMeshColor(this.vortex);
     }
 
+    if (this.randomizeDiamondColor) {
+      this.randomizeMeshColor(this.diamond);
+    }
+
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.render());
   }
 
   randomizeMeshColor(objMesh: THREE.Mesh) {
-    // Type guard to ensure material has color property and is a MeshBasicMaterial
     if (
       objMesh.material &&
       objMesh.material instanceof THREE.MeshBasicMaterial
@@ -121,13 +123,6 @@ class Sphere {
         Math.round(Math.random()),
         Math.round(Math.random()),
       );
-    }
-  }
-
-  diamond_color() {
-    if (this.randomizeDiamondColor) {
-      this.randomizeMeshColor(this.diamond);
-      requestAnimationFrame(() => this.diamond_color());
     }
   }
 }
