@@ -1,7 +1,7 @@
 import "./sphere.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import Random from "../../utils/random";
+import { randomBool, randomInt } from "../../utils/random";
 
 class Sphere {
   WIDTH: number;
@@ -12,9 +12,9 @@ class Sphere {
   camera: THREE.PerspectiveCamera;
   vortex: THREE.Mesh;
   diamond: THREE.Mesh;
-  randomizeSphereColor = Random.bool();
-  randomizeDiamondColor = Random.bool();
-  shouldRotateDiamond = Random.bool();
+  randomizeSphereColor = randomBool();
+  randomizeDiamondColor = randomBool();
+  shouldRotateDiamond = randomBool();
 
   constructor() {
     this.setRenderOptions();
@@ -63,7 +63,7 @@ class Sphere {
 
   createVortex() {
     const segmentOptions = [7, 12, 20, 22];
-    const segment = Random.int(segmentOptions.length);
+    const segment = randomInt(segmentOptions.length);
     const segments = segmentOptions[segment];
     const extraOptions = [0, Math.PI * 2, 0, Math.PI * 2];
 

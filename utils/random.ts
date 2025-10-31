@@ -1,32 +1,30 @@
-export default class Random {
-  static int(max: number): number {
-    return Math.floor(Math.random() * max);
-  }
+export function randomInt(max: number): number {
+  return Math.floor(Math.random() * max);
+}
 
-  static numberBetween(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min) + min);
-  }
+export function randomIntBetween(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min) + min);
+}
 
-  static floatBetween(min: number, max: number) {
-    return Math.random() * (max - min) + min;
-  }
+export function randomFloat(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
 
-  static rgbColor() {
-    return (
-      "" +
-      (Math.round(Math.random() * 256) +
-        "," +
-        Math.round(Math.random() * 256) +
-        "," +
-        Math.round(Math.random() * 256))
-    );
-  }
+export function randomRgbColor(): string {
+  return (
+    "" +
+    (Math.round(Math.random() * 256) +
+      "," +
+      Math.round(Math.random() * 256) +
+      "," +
+      Math.round(Math.random() * 256))
+  );
+}
 
-  static bool() {
-    return Math.random() < 0.5;
-  }
+export function randomBool(): boolean {
+  return Math.random() < 0.5;
+}
 
-  static itemInArray<T>(array: T[]): T {
-    return array[Math.floor(Math.random() * array.length)];
-  }
+export function randomItem<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
 }

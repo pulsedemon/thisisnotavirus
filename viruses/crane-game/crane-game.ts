@@ -2,7 +2,7 @@ import "./crane-game.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import Random from "../../utils/random";
+import { randomFloat } from "../../utils/random";
 import { isMobile } from "../../utils/misc";
 import { setupKeyboardControl } from "../../utils/keyboard-control";
 import RAPIER from "@dimforge/rapier3d-compat";
@@ -335,21 +335,21 @@ export default class CraneGame {
     this.storeOriginalEmissiveProperties(prizeGroup);
 
     prizeGroup.position.set(x, y, z);
-    prizeGroup.rotation.y = Random.floatBetween(0, Math.PI * 2);
+    prizeGroup.rotation.y = randomFloat(0, Math.PI * 2);
     prizeGroup.frustumCulled = false;
 
     this.scene.add(prizeGroup);
 
     const prizeRadius = this.calculatePrizeRadius(prizeGroup);
-    const weight = Random.floatBetween(
+    const weight = randomFloat(
       GAME_CONFIG.prizes.weightRange[0],
       GAME_CONFIG.prizes.weightRange[1],
     );
-    const bounciness = Random.floatBetween(
+    const bounciness = randomFloat(
       GAME_CONFIG.prizes.bouncinessRange[0],
       GAME_CONFIG.prizes.bouncinessRange[1],
     );
-    const deformability = Random.floatBetween(0.6, 0.9);
+    const deformability = randomFloat(0.6, 0.9);
 
     this.applyDeformabilityVisuals(prizeGroup, deformability);
 
@@ -431,14 +431,14 @@ export default class CraneGame {
 
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const x = offsetX + col * spacingX + Random.floatBetween(-0.15, 0.15);
-        const z = offsetZ + row * spacingZ + Random.floatBetween(-0.15, 0.15);
+        const x = offsetX + col * spacingX + randomFloat(-0.15, 0.15);
+        const z = offsetZ + row * spacingZ + randomFloat(-0.15, 0.15);
 
         if (this.isTooCloseToBin(x, z)) {
           continue;
         }
 
-        const dropHeight = Random.floatBetween(
+        const dropHeight = randomFloat(
           GAME_CONFIG.prizes.dropHeightRange[0],
           GAME_CONFIG.prizes.dropHeightRange[1],
         );

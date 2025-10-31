@@ -1,5 +1,5 @@
 import { UAParser } from "ua-parser-js";
-import Random from "./random";
+import { randomInt } from "./random";
 
 const usparser = new UAParser();
 
@@ -41,7 +41,7 @@ export function shuffle(array: string[]): string[] {
   // While there remain elements to shuffle.
   while (currentIndex != 0) {
     // Pick a remaining element.
-    randomIndex = Random.int(currentIndex);
+    randomIndex = randomInt(currentIndex);
     currentIndex--;
 
     // And swap it with the current element.

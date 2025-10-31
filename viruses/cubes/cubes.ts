@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import Random from "../../utils/random";
+import { randomBool, randomItem } from "../../utils/random";
 import "./cubes.scss";
 
 class Cubes {
@@ -9,12 +9,12 @@ class Cubes {
   width = window.innerWidth;
   height = window.innerHeight;
   cubes: THREE.LineSegments[] = [];
-  randomizeCubeColor = Random.bool();
+  randomizeCubeColor = randomBool();
   colors = [
     0xff0000, 0xffffff, 0xffff00, 0x00ffff, 0x00ff00, 0xccff00, 0xff1d58,
     0xf75990, 0x00ff7f, 0xffd700,
   ];
-  speedModifier = Random.bool() ? 3 : 1;
+  speedModifier = randomBool() ? 3 : 1;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -56,7 +56,7 @@ class Cubes {
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         const color = this.randomizeCubeColor
-          ? Random.itemInArray(this.colors)
+          ? randomItem(this.colors)
           : 0xffffff;
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const edges = new THREE.EdgesGeometry(geometry);
@@ -70,7 +70,7 @@ class Cubes {
         cube.position.x = col * (cubeSize + spacing) + xOffset;
         cube.position.y = -row * (cubeSize + spacing) + yOffset;
         // @ts-expect-error added attribute
-        cube.useSpeedModifier = Random.bool();
+        cube.useSpeedModifier = randomBool();
 
         this.scene.add(cube);
         this.cubes.push(cube);

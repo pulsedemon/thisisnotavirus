@@ -1,5 +1,5 @@
 import "./doors.scss";
-import Random from "../../utils/random";
+import { randomBool, randomItem, randomIntBetween } from "../../utils/random";
 
 interface DoorConfig {
   y: number;
@@ -15,7 +15,7 @@ interface DoorsConfig {
 }
 
 class Doors {
-  maybe = Random.bool();
+  maybe = randomBool();
   canvas: HTMLCanvasElement;
   doorHeight: number;
   doorWidth: number;
@@ -172,7 +172,7 @@ const colorPalettes: colorPaletteType[] = [
     primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
   },
 ];
-const colorPalette = Random.itemInArray(colorPalettes);
+const colorPalette = randomItem(colorPalettes);
 const minSpeed = 10;
 const maxSpeed = 30;
 
@@ -180,7 +180,7 @@ document.body.style.backgroundColor = colorPalette.bg;
 
 const numInstances = 6;
 for (let i = 0; i < numInstances; i++) {
-  const numCols = Random.numberBetween(
+  const numCols = randomIntBetween(
     container.clientWidth / 20,
     container.clientWidth / 30
   );
@@ -188,7 +188,7 @@ for (let i = 0; i < numInstances; i++) {
   const doorsInstance = new Doors(
     Math.round(width / numCols),
     colorPalette.primary[0],
-    Random.numberBetween(minSpeed, maxSpeed),
+    randomIntBetween(minSpeed, maxSpeed),
     1,
     0
   );
@@ -199,7 +199,7 @@ for (let i = 0; i < numInstances; i++) {
     doorsInstance.addDoors(
       Math.round(width / numCols) * x,
       colorPalette.primary[0],
-      Random.numberBetween(minSpeed, maxSpeed)
+      randomIntBetween(minSpeed, maxSpeed)
     );
   }
 }

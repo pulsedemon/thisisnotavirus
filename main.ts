@@ -9,7 +9,7 @@ import { showVirusThumbnailOverlay } from "./components/VirusThumbnailOverlay";
 import "./sass/main.scss";
 import { createStyledIframe } from "./utils/iframe";
 import { isMobile } from "./utils/misc";
-import Random from "./utils/random";
+import { randomIntBetween, randomInt } from "./utils/random";
 
 declare let gtag: (
   eventName: string,
@@ -408,7 +408,7 @@ class VirusLoader {
     clearInterval(this.loadRandomInterval);
 
     // Set random time between 2-12 seconds
-    const randomTime = Random.numberBetween(2, 12) * 1000;
+    const randomTime = randomIntBetween(2, 12) * 1000;
 
     // Create a new interval - simplified without recursive calls
     this.loadRandomInterval = setInterval(() => {
@@ -830,7 +830,7 @@ function teleportMenu() {
 
   menu.classList.add(animationClassName);
   setTimeout(() => {
-    menu.style.inset = menuPositions[Random.int(menuPositions.length)];
+    menu.style.inset = menuPositions[randomInt(menuPositions.length)];
     setTimeout(() => {
       menu.classList.remove(animationClassName);
     }, 400);

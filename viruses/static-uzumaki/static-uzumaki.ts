@@ -1,5 +1,5 @@
 import TVStaticLoading from "../../components/TVStaticLoading";
-import Random from "../../utils/random";
+import { randomBool, randomItem } from "../../utils/random";
 import "./static-uzumaki.scss";
 
 // Initialize TV static effect
@@ -23,15 +23,15 @@ const colors = [
   "#f75990",
 ];
 
-const randomizeBgContinuously = Random.bool();
+const randomizeBgContinuously = randomBool();
 let randomColor;
 
 if (randomizeBgContinuously) {
   setInterval(() => {
-    randomColor = Random.itemInArray(colors);
+    randomColor = randomItem(colors);
     document.body.style.backgroundColor = randomColor;
   }, 200);
 } else {
-  randomColor = Random.itemInArray(colors);
+  randomColor = randomItem(colors);
   document.body.style.backgroundColor = randomColor;
 }

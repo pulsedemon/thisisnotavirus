@@ -1,4 +1,4 @@
-import Random from "../../utils/random";
+import { randomBool, randomIntBetween, randomRgbColor } from "../../utils/random";
 
 class RandomBlocks {
   screenWidth!: number;
@@ -7,16 +7,16 @@ class RandomBlocks {
   count = 0;
   blocksAppended = 0;
   canvas!: HTMLCanvasElement;
-  maybe = Random.bool();
+  maybe = randomBool();
 
   canvasCtx!: CanvasRenderingContext2D;
-  blockSize = Random.numberBetween(10, 30);
+  blockSize = randomIntBetween(10, 30);
   container = document.getElementById("container")!;
   bgColors = ["black", "aqua", "red"];
 
   constructor() {
     document.body.style.backgroundColor =
-      this.bgColors[Random.numberBetween(0, this.bgColors.length)];
+      this.bgColors[randomIntBetween(0, this.bgColors.length)];
     this.canvas = document.createElement("canvas");
     this.canvasCtx = this.canvas.getContext("2d")!;
     this.container.appendChild(this.canvas);
@@ -65,7 +65,7 @@ class RandomBlocks {
   }
 
   addSquare(position: number[]) {
-    const randomColor = Random.rgbColor();
+    const randomColor = randomRgbColor();
     const xPosition = position[0];
     const yPosition = position[1];
 
@@ -84,7 +84,7 @@ class RandomBlocks {
   }
 
   triangle(position: number[]) {
-    const randomColor = Random.rgbColor();
+    const randomColor = randomRgbColor();
     const xPosition = position[0];
     const yPosition = position[1];
 

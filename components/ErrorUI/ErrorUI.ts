@@ -1,5 +1,5 @@
 import "./error-ui.scss";
-import Random from "../../utils/random";
+import { randomIntBetween, randomInt } from "../../utils/random";
 
 export default class ErrorUI {
   el;
@@ -45,7 +45,7 @@ export default class ErrorUI {
   }
 
   randomFontSize() {
-    return `${Random.numberBetween(10, 100)}px`;
+    return `${randomIntBetween(10, 100)}px`;
   }
 
   appendError() {
@@ -67,8 +67,8 @@ export default class ErrorUI {
   }
 
   getRandomCoords() {
-    const randomX = Random.int(this.width);
-    const randomY = Random.int(this.height);
+    const randomX = randomInt(this.width);
+    const randomY = randomInt(this.height);
 
     return {
       x: randomX - 40,

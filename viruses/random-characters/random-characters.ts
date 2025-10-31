@@ -1,4 +1,4 @@
-import Random from "../../utils/random";
+import { randomInt } from "../../utils/random";
 import "./random-characters.scss";
 
 class RandomCharacters {
@@ -20,7 +20,7 @@ class RandomCharacters {
     let string = "";
 
     for (let i = 0; i < length; i++) {
-      string += this.characters.charAt(Random.int(this.characters.length));
+      string += this.characters.charAt(randomInt(this.characters.length));
     }
 
     string = this.insertRandomEmoji(string);
@@ -31,10 +31,10 @@ class RandomCharacters {
   }
 
   insertRandomEmoji(string: string): string {
-    const pos = Random.int(string.length);
+    const pos = randomInt(string.length);
     string =
       string.slice(0, pos) +
-      this.emojis[Random.int(this.emojis.length)] +
+      this.emojis[randomInt(this.emojis.length)] +
       string.slice(pos);
     return string;
   }

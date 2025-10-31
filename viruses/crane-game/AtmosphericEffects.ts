@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import Random from "../../utils/random";
+import { randomFloat } from "../../utils/random";
 import { isMobile } from "../../utils/misc";
 
 /**
@@ -140,16 +140,16 @@ export class AtmosphericEffects {
 
       const particle = new THREE.Mesh(geometry, material);
       particle.position.set(
-        Random.floatBetween(-50, 50),
-        Random.floatBetween(-20, 40),
-        Random.floatBetween(-60, -20),
+        randomFloat(-50, 50),
+        randomFloat(-20, 40),
+        randomFloat(-60, -20),
       );
 
       // Store animation data
       particle.userData = particle.userData || {};
-      particle.userData.floatSpeed = Random.floatBetween(0.01, 0.03);
-      particle.userData.floatOffset = Random.floatBetween(0, Math.PI * 2);
-      particle.userData.horizontalSpeed = Random.floatBetween(0.005, 0.015);
+      particle.userData.floatSpeed = randomFloat(0.01, 0.03);
+      particle.userData.floatOffset = randomFloat(0, Math.PI * 2);
+      particle.userData.horizontalSpeed = randomFloat(0.005, 0.015);
 
       scene.add(particle);
       this.particles.push(particle);

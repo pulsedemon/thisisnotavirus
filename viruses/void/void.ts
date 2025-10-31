@@ -1,6 +1,6 @@
 import "./void.scss";
 import * as THREE from "three";
-import Random from "../../utils/random";
+import { randomIntBetween, randomBool } from "../../utils/random";
 
 const CONSTANTS = {
   CORE_RADIUS: 35,
@@ -262,12 +262,12 @@ class Void {
     );
 
     for (let i = 0; i < CONSTANTS.CHAOTIC_PARTICLE_COUNT; i++) {
-      const spawnRadius = Random.numberBetween(
+      const spawnRadius = randomIntBetween(
         CONSTANTS.SPAWN_RADIUS_MIN,
         CONSTANTS.SPAWN_RADIUS_MAX,
       );
-      const sphericalTheta = Random.numberBetween(0, Math.PI * 2);
-      const sphericalPhi = Random.numberBetween(0, Math.PI);
+      const sphericalTheta = randomIntBetween(0, Math.PI * 2);
+      const sphericalPhi = randomIntBetween(0, Math.PI);
 
       particlePositions[i * 3] =
         spawnRadius * Math.sin(sphericalPhi) * Math.cos(sphericalTheta);
@@ -275,20 +275,20 @@ class Void {
         spawnRadius * Math.sin(sphericalPhi) * Math.sin(sphericalTheta);
       particlePositions[i * 3 + 2] = spawnRadius * Math.cos(sphericalPhi);
 
-      const colorVariant = Random.numberBetween(0, COLOR_VARIANT_COUNT);
+      const colorVariant = randomIntBetween(0, COLOR_VARIANT_COUNT);
 
       if (colorVariant < DEEP_RED_CORRUPTION_THRESHOLD) {
-        particleColors[i * 3] = Random.numberBetween(0.7, 1.0);
-        particleColors[i * 3 + 1] = Random.numberBetween(0.0, 0.2);
-        particleColors[i * 3 + 2] = Random.numberBetween(0.0, 0.3);
+        particleColors[i * 3] = randomIntBetween(0.7, 1.0);
+        particleColors[i * 3 + 1] = randomIntBetween(0.0, 0.2);
+        particleColors[i * 3 + 2] = randomIntBetween(0.0, 0.3);
       } else if (colorVariant < DARK_PURPLE_MALEVOLENCE_THRESHOLD) {
-        particleColors[i * 3] = Random.numberBetween(0.4, 0.8);
-        particleColors[i * 3 + 1] = Random.numberBetween(0.0, 0.2);
-        particleColors[i * 3 + 2] = Random.numberBetween(0.4, 0.9);
+        particleColors[i * 3] = randomIntBetween(0.4, 0.8);
+        particleColors[i * 3 + 1] = randomIntBetween(0.0, 0.2);
+        particleColors[i * 3 + 2] = randomIntBetween(0.4, 0.9);
       } else {
-        particleColors[i * 3] = Random.numberBetween(0.1, 0.4);
-        particleColors[i * 3 + 1] = Random.numberBetween(0.0, 0.1);
-        particleColors[i * 3 + 2] = Random.numberBetween(0.0, 0.1);
+        particleColors[i * 3] = randomIntBetween(0.1, 0.4);
+        particleColors[i * 3 + 1] = randomIntBetween(0.0, 0.1);
+        particleColors[i * 3 + 2] = randomIntBetween(0.0, 0.1);
       }
     }
 
@@ -396,25 +396,25 @@ class Void {
       const geometry = new THREE.TubeGeometry(
         new THREE.CatmullRomCurve3(points),
         segments,
-        Random.numberBetween(1, 4),
-        Random.numberBetween(6, 12),
+        randomIntBetween(1, 4),
+        randomIntBetween(6, 12),
         false,
       );
 
       const material = new THREE.MeshBasicMaterial({
         color: i % 2 === 0 ? 0x440000 : 0x660000,
         transparent: true,
-        opacity: Random.numberBetween(0.4, 0.8),
-        wireframe: Random.bool(),
+        opacity: randomIntBetween(0.4, 0.8),
+        wireframe: randomBool(),
       });
 
       const tentacle = new THREE.Mesh(geometry, material);
       tentacle.userData = {
         baseAngle: (i / 12) * Math.PI * 2,
-        writheSpeed: Random.numberBetween(0.01, 0.05),
+        writheSpeed: randomIntBetween(0.01, 0.05),
         corruptionLevel: 0,
-        chaosPhase: Random.numberBetween(0, Math.PI * 2),
-        thrashIntensity: Random.numberBetween(0.5, 2.0),
+        chaosPhase: randomIntBetween(0, Math.PI * 2),
+        thrashIntensity: randomIntBetween(0.5, 2.0),
         originalPoints: points.map((p) => p.clone()),
       } as TentacleUserData;
 
@@ -440,11 +440,11 @@ class Void {
       const radius = 180;
       eye.position.x = Math.cos(angle) * radius;
       eye.position.y = Math.sin(angle) * radius;
-      eye.position.z = Random.numberBetween(-50, 50);
+      eye.position.z = randomIntBetween(-50, 50);
 
       eye.userData = {
         originalAngle: angle,
-        blinkPhase: Random.numberBetween(0, Math.PI * 2),
+        blinkPhase: randomIntBetween(0, Math.PI * 2),
         watchIntensity: 0,
         lastBlink: 0,
       } as EyeUserData;
@@ -499,9 +499,9 @@ class Void {
       const positions = this.particles.geometry.attributes.position
         .array as Float32Array;
       for (let i = 0; i < positions.length / 3; i++) {
-        const radius = Random.numberBetween(60, 300);
-        const theta = Random.numberBetween(0, Math.PI * 2);
-        const phi = Random.numberBetween(0, Math.PI);
+        const radius = randomIntBetween(60, 300);
+        const theta = randomIntBetween(0, Math.PI * 2);
+        const phi = randomIntBetween(0, Math.PI);
         positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
         positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
         positions[i * 3 + 2] = radius * Math.cos(phi);
@@ -667,11 +667,11 @@ class Void {
       .array as Float32Array;
 
     for (let i = 0; i < positions.length; i += 3) {
-      const force = Random.numberBetween(1.0, 4.0);
+      const force = randomIntBetween(1.0, 4.0);
       const direction = new THREE.Vector3(
-        Random.numberBetween(-1, 1),
-        Random.numberBetween(-1, 1),
-        Random.numberBetween(-1, 1),
+        randomIntBetween(-1, 1),
+        randomIntBetween(-1, 1),
+        randomIntBetween(-1, 1),
       ).normalize();
 
       positions[i] += direction.x * force;
@@ -735,7 +735,7 @@ class Void {
 
     for (let i = 0; i < burstCount; i++) {
       const angle = (i / burstCount) * Math.PI * 2;
-      const radius = Random.numberBetween(5, 30);
+      const radius = randomIntBetween(5, 30);
 
       burstPositions[i * 3] = clickWorld.x + Math.cos(angle) * radius;
       burstPositions[i * 3 + 1] = clickWorld.y + Math.sin(angle) * radius;
@@ -787,9 +787,9 @@ class Void {
         const positions = this.particles.geometry.attributes.position
           .array as Float32Array;
         for (let i = 0; i < positions.length / 3; i++) {
-          const radius = Random.numberBetween(60, 300);
-          const theta = Random.numberBetween(0, Math.PI * 2);
-          const phi = Random.numberBetween(0, Math.PI);
+          const radius = randomIntBetween(60, 300);
+          const theta = randomIntBetween(0, Math.PI * 2);
+          const phi = randomIntBetween(0, Math.PI);
           positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
           positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
           positions[i * 3 + 2] = radius * Math.cos(phi);
@@ -903,8 +903,8 @@ class Void {
         Math.random() < 0.003 &&
         this.gravityWells.length < 2
       ) {
-        const x = Random.numberBetween(100, window.innerWidth - 100);
-        const y = Random.numberBetween(100, window.innerHeight - 100);
+        const x = randomIntBetween(100, window.innerWidth - 100);
+        const y = randomIntBetween(100, window.innerHeight - 100);
         this.createGravityWell(x, y);
       }
 
@@ -926,8 +926,8 @@ class Void {
 
         for (let i = 0; i < 2; i++) {
           setTimeout(() => {
-            const x = Random.numberBetween(0, window.innerWidth);
-            const y = Random.numberBetween(0, window.innerHeight);
+            const x = randomIntBetween(0, window.innerWidth);
+            const y = randomIntBetween(0, window.innerHeight);
             this.createClickBurst(x, y);
           }, i * 200);
         }
@@ -1265,7 +1265,7 @@ class Void {
       eye.lookAt(lookDirection);
 
       const timeSinceLastBlink = this.currentTime - userData.lastBlink;
-      if (timeSinceLastBlink > Random.numberBetween(100, 300)) {
+      if (timeSinceLastBlink > randomIntBetween(100, 300)) {
         userData.lastBlink = this.currentTime;
       }
 
