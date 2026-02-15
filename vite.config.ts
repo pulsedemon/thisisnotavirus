@@ -119,7 +119,10 @@ export default defineConfig(() => {
         transform(code: string, id: string) {
           if (id.endsWith('.hbs')) {
             const template = readFileSync(id, 'utf-8');
-            return `export default function() { return ${JSON.stringify(template)}; }`;
+            return {
+              code: `export default function() { return ${JSON.stringify(template)}; }`,
+              map: null,
+            };
           }
           return null;
         },
@@ -143,6 +146,9 @@ export default defineConfig(() => {
 
       // Generate source maps
       sourcemap: true,
+
+      // rapier3d WASM package exceeds default 500kB limit
+      chunkSizeWarningLimit: 2500,
 
       // Multi-entry build configuration
       rollupOptions: {
