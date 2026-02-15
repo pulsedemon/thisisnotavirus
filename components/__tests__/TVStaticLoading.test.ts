@@ -15,6 +15,12 @@ describe('TVStaticLoading', () => {
     globalThis.requestAnimationFrame = vi.fn(() => ++rafId);
     globalThis.cancelAnimationFrame = vi.fn();
 
+    // Mock canvas getContext to avoid jsdom "Not implemented" warnings
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      createImageData: vi.fn(() => ({ data: new Uint8ClampedArray(0) })),
+      putImageData: vi.fn(),
+    } as unknown as CanvasRenderingContext2D);
+
     // Mock performance.now for throttle logic
     vi.spyOn(performance, 'now').mockReturnValue(0);
   });
