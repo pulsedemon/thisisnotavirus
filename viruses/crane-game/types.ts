@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat";
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
 
 export interface Prize {
   mesh: THREE.Mesh | THREE.Group;
@@ -9,7 +9,7 @@ export interface Prize {
   weight: number;
   deformability: number;
   bounciness: number;
-  materialType: "plush";
+  materialType: 'plush';
   gripStrength: number;
   dropChance: number;
 }

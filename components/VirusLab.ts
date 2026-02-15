@@ -1,7 +1,7 @@
-import { createStyledIframe } from "../utils/iframe";
-import { formatVirusName } from "../utils/misc";
-import Playlist from "./Playlist";
-import controlsTemplate from "./templates/virus-lab-controls.hbs";
+import { createStyledIframe } from '../utils/iframe';
+import { formatVirusName } from '../utils/misc';
+import Playlist from './Playlist';
+import controlsTemplate from './templates/virus-lab-controls.hbs';
 
 interface VirusMix {
   primary: string;
@@ -31,28 +31,28 @@ export default class VirusLab {
     this.displayOnly = displayOnly;
 
     // Set container styles for perfect alignment
-    this.container.className = "virus-lab";
-    this.container.style.position = "absolute";
-    this.container.style.top = "0";
-    this.container.style.left = "0";
-    this.container.style.right = "0";
-    this.container.style.bottom = "0";
-    this.container.style.width = "100%";
-    this.container.style.height = "100%";
-    this.container.style.margin = "0";
-    this.container.style.padding = "0";
-    this.container.style.boxSizing = "border-box";
-    this.container.style.overflow = "visible";
-    this.container.style.pointerEvents = "auto";
+    this.container.className = 'virus-lab';
+    this.container.style.position = 'absolute';
+    this.container.style.top = '0';
+    this.container.style.left = '0';
+    this.container.style.right = '0';
+    this.container.style.bottom = '0';
+    this.container.style.width = '100%';
+    this.container.style.height = '100%';
+    this.container.style.margin = '0';
+    this.container.style.padding = '0';
+    this.container.style.boxSizing = 'border-box';
+    this.container.style.overflow = 'visible';
+    this.container.style.pointerEvents = 'auto';
 
     // Create iframes using utility functions
     this.primaryIframe = createStyledIframe();
     this.secondaryIframe = createStyledIframe(true);
-    this.secondaryIframe.style.opacity = "0.5"; // Default opacity
+    this.secondaryIframe.style.opacity = '0.5'; // Default opacity
 
     // Ensure iframes don't block interactions
-    this.primaryIframe.style.pointerEvents = "none";
-    this.secondaryIframe.style.pointerEvents = "none";
+    this.primaryIframe.style.pointerEvents = 'none';
+    this.secondaryIframe.style.pointerEvents = 'none';
 
     // Add iframes to container
     this.container.appendChild(this.primaryIframe);
@@ -89,13 +89,13 @@ export default class VirusLab {
     }
 
     // Clear container
-    this.container.innerHTML = "";
+    this.container.innerHTML = '';
   }
 
   private loadSavedMixesFromStorage(): VirusMix[] {
     try {
       return JSON.parse(
-        localStorage.getItem("savedVirusMixes") || "[]"
+        localStorage.getItem('savedVirusMixes') || '[]'
       ) as VirusMix[];
     } catch {
       return [];
@@ -107,14 +107,14 @@ export default class VirusLab {
   }
 
   private initializeUI() {
-    const controls = document.createElement("div");
-    controls.className = "virus-lab-controls";
+    const controls = document.createElement('div');
+    controls.className = 'virus-lab-controls';
     controls.innerHTML = controlsTemplate();
 
     // Ensure controls are interactive and properly positioned
-    controls.style.pointerEvents = "auto";
-    controls.style.zIndex = "1000";
-    controls.style.position = "absolute";
+    controls.style.pointerEvents = 'auto';
+    controls.style.zIndex = '1000';
+    controls.style.position = 'absolute';
 
     this.container.appendChild(controls);
     this.setupEventListeners();
@@ -124,13 +124,13 @@ export default class VirusLab {
 
   private setupEventListeners() {
     const primarySelect = document.getElementById(
-      "primary-virus"
+      'primary-virus'
     ) as HTMLSelectElement;
     const secondarySelect = document.getElementById(
-      "secondary-virus"
+      'secondary-virus'
     ) as HTMLSelectElement;
-    const mixRatio = document.getElementById("mix-ratio") as HTMLInputElement;
-    const saveButton = document.getElementById("save-mix");
+    const mixRatio = document.getElementById('mix-ratio') as HTMLInputElement;
+    const saveButton = document.getElementById('save-mix');
 
     if (!primarySelect || !secondarySelect || !mixRatio) return;
 
@@ -144,25 +144,25 @@ export default class VirusLab {
     };
     const mixRatioHandler = () => {
       this.currentMix.mixRatio = parseFloat(mixRatio.value);
-      this.secondaryIframe.style.mixBlendMode = "screen";
+      this.secondaryIframe.style.mixBlendMode = 'screen';
       this.secondaryIframe.style.opacity = this.currentMix.mixRatio.toString();
     };
     const saveHandler = () => this.saveMix();
 
-    primarySelect.addEventListener("change", primaryHandler);
-    secondarySelect.addEventListener("change", secondaryHandler);
-    mixRatio.addEventListener("input", mixRatioHandler);
-    saveButton?.addEventListener("click", saveHandler);
+    primarySelect.addEventListener('change', primaryHandler);
+    secondarySelect.addEventListener('change', secondaryHandler);
+    mixRatio.addEventListener('input', mixRatioHandler);
+    saveButton?.addEventListener('click', saveHandler);
 
     this.eventListeners.push(
-      { element: primarySelect, type: "change", handler: primaryHandler },
-      { element: secondarySelect, type: "change", handler: secondaryHandler },
-      { element: mixRatio, type: "input", handler: mixRatioHandler }
+      { element: primarySelect, type: 'change', handler: primaryHandler },
+      { element: secondarySelect, type: 'change', handler: secondaryHandler },
+      { element: mixRatio, type: 'input', handler: mixRatioHandler }
     );
     if (saveButton) {
       this.eventListeners.push({
         element: saveButton,
-        type: "click",
+        type: 'click',
         handler: saveHandler,
       });
     }
@@ -170,16 +170,16 @@ export default class VirusLab {
 
   private populateVirusSelects() {
     const primarySelect = document.getElementById(
-      "primary-virus"
+      'primary-virus'
     ) as HTMLSelectElement;
     const secondarySelect = document.getElementById(
-      "secondary-virus"
+      'secondary-virus'
     ) as HTMLSelectElement;
 
     if (!primarySelect || !secondarySelect) return;
 
-    this.playlist.viruses.forEach((virus) => {
-      const option = document.createElement("option");
+    this.playlist.viruses.forEach(virus => {
+      const option = document.createElement('option');
       option.value = virus;
       option.textContent = formatVirusName(virus);
 
@@ -197,7 +197,7 @@ export default class VirusLab {
     this.secondaryIframe.src = `/viruses/${this.currentMix.secondary}/`;
 
     // Set initial opacity and ensure mix-blend-mode is set
-    this.secondaryIframe.style.mixBlendMode = "screen";
+    this.secondaryIframe.style.mixBlendMode = 'screen';
     this.secondaryIframe.style.opacity = this.currentMix.mixRatio.toString();
   }
 
@@ -214,9 +214,9 @@ export default class VirusLab {
 
     if (isDuplicate) {
       // Show error message
-      const message = document.createElement("div");
-      message.className = "save-message error";
-      message.textContent = "This mix has already been saved!";
+      const message = document.createElement('div');
+      message.className = 'save-message error';
+      message.textContent = 'This mix has already been saved!';
       this.container.appendChild(message);
       setTimeout(() => message.remove(), 2000);
       return;
@@ -231,28 +231,28 @@ export default class VirusLab {
     };
 
     savedMixes.push(newMix);
-    localStorage.setItem("savedVirusMixes", JSON.stringify(savedMixes));
+    localStorage.setItem('savedVirusMixes', JSON.stringify(savedMixes));
     this.savedMixes = savedMixes;
     this.updateSavedMixesList();
     this.playlist.loadSavedMixes();
 
     // Show success message
-    const message = document.createElement("div");
-    message.className = "save-message";
-    message.textContent = "Mix saved successfully!";
+    const message = document.createElement('div');
+    message.className = 'save-message';
+    message.textContent = 'Mix saved successfully!';
     this.container.appendChild(message);
     setTimeout(() => message.remove(), 2000);
   }
 
   private updateSavedMixesList() {
-    const savedMixesList = document.getElementById("saved-mixes-list");
+    const savedMixesList = document.getElementById('saved-mixes-list');
     if (!savedMixesList) return;
 
-    savedMixesList.innerHTML = "";
+    savedMixesList.innerHTML = '';
 
-    this.savedMixes.forEach((mix) => {
-      const mixElement = document.createElement("div");
-      mixElement.className = "saved-mix";
+    this.savedMixes.forEach(mix => {
+      const mixElement = document.createElement('div');
+      mixElement.className = 'saved-mix';
       mixElement.innerHTML = `
         <span>${mix.name}</span>
         <div class="saved-mix-actions">
@@ -261,11 +261,11 @@ export default class VirusLab {
         </div>
       `;
 
-      const loadButton = mixElement.querySelector(".load-mix");
-      const deleteButton = mixElement.querySelector(".delete-mix");
+      const loadButton = mixElement.querySelector('.load-mix');
+      const deleteButton = mixElement.querySelector('.delete-mix');
 
-      loadButton?.addEventListener("click", () => this.loadMix(mix));
-      deleteButton?.addEventListener("click", () => this.deleteMix(mix.id!));
+      loadButton?.addEventListener('click', () => this.loadMix(mix));
+      deleteButton?.addEventListener('click', () => this.deleteMix(mix.id!));
 
       savedMixesList.appendChild(mixElement);
     });
@@ -276,12 +276,12 @@ export default class VirusLab {
 
     if (!this.displayOnly) {
       const primarySelect = document.getElementById(
-        "primary-virus"
+        'primary-virus'
       ) as HTMLSelectElement;
       const secondarySelect = document.getElementById(
-        "secondary-virus"
+        'secondary-virus'
       ) as HTMLSelectElement;
-      const mixRatio = document.getElementById("mix-ratio") as HTMLInputElement;
+      const mixRatio = document.getElementById('mix-ratio') as HTMLInputElement;
 
       if (primarySelect) primarySelect.value = mix.primary;
       if (secondarySelect) secondarySelect.value = mix.secondary;
@@ -300,8 +300,8 @@ export default class VirusLab {
   }
 
   private deleteMix(mixId: number) {
-    const savedMixes = this.savedMixes.filter((mix) => mix.id !== mixId);
-    localStorage.setItem("savedVirusMixes", JSON.stringify(savedMixes));
+    const savedMixes = this.savedMixes.filter(mix => mix.id !== mixId);
+    localStorage.setItem('savedVirusMixes', JSON.stringify(savedMixes));
     this.savedMixes = savedMixes;
     this.updateSavedMixesList();
     this.playlist.loadSavedMixes();

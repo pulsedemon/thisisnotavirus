@@ -1,5 +1,5 @@
-import { UAParser } from "ua-parser-js";
-import { randomInt } from "./random";
+import { UAParser } from 'ua-parser-js';
+import { randomInt } from './random';
 
 const usparser = new UAParser();
 
@@ -10,15 +10,15 @@ const usparser = new UAParser();
 export function isMobile(): boolean {
   // Check user agent
   const uaResult = usparser.getResult();
-  const isUAMobile = uaResult.device.type === "mobile";
+  const isUAMobile = uaResult.device.type === 'mobile';
 
   // Check for touch capabilities
-  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   // Check user agent string for mobile patterns
   const isUserAgentMobile =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent,
+      navigator.userAgent
     );
 
   // Check for small screen sizes (common mobile breakpoints)
@@ -55,9 +55,9 @@ export function shuffle(array: string[]): string[] {
 }
 
 export function draggable(el: HTMLElement) {
-  const downEvent = isMobile() ? "touchstart" : "mousedown";
-  const upEvent = isMobile() ? "touchend" : "mouseup";
-  const moveEvent = isMobile() ? "touchmove" : "mousemove";
+  const downEvent = isMobile() ? 'touchstart' : 'mousedown';
+  const upEvent = isMobile() ? 'touchend' : 'mouseup';
+  const moveEvent = isMobile() ? 'touchmove' : 'mousemove';
 
   el.addEventListener(downEvent, function (e: MouseEvent | TouchEvent) {
     if (!isMobile()) e.preventDefault();
@@ -76,8 +76,8 @@ export function draggable(el: HTMLElement) {
         e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;
       const clientX =
         e instanceof MouseEvent ? e.clientX : e.changedTouches[0].clientX;
-      el.style.top = clientY - offsetY + "px";
-      el.style.left = clientX - offsetX + "px";
+      el.style.top = clientY - offsetY + 'px';
+      el.style.left = clientX - offsetX + 'px';
     }
 
     function reset() {
@@ -91,7 +91,7 @@ export function draggable(el: HTMLElement) {
 }
 
 export function stripTags(str: string) {
-  return str.replace(/(<([^>]+)>)/gi, "");
+  return str.replace(/(<([^>]+)>)/gi, '');
 }
 
 // export async function checkResponse(response: Response) {
@@ -109,5 +109,5 @@ export function stripTags(str: string) {
 // }
 
 export function formatVirusName(name: string) {
-  return name.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  return name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }

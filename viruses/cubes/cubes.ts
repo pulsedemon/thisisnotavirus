@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import { randomBool, randomItem } from "../../utils/random";
-import "./cubes.scss";
+import * as THREE from 'three';
+import { randomBool, randomItem } from '../../utils/random';
+import './cubes.scss';
 
 class Cubes {
   renderer;
@@ -28,16 +28,16 @@ class Cubes {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(this.width, this.height);
-    document.getElementById("container")!.appendChild(this.renderer.domElement);
+    document.getElementById('container')!.appendChild(this.renderer.domElement);
 
     this.createCubes();
     this.animate();
 
-    window.addEventListener("resize", () => this.onWindowResize());
+    window.addEventListener('resize', () => this.onWindowResize());
   }
 
   createCubes() {
-    this.cubes.forEach((cube) => this.scene.remove(cube));
+    this.cubes.forEach(cube => this.scene.remove(cube));
     this.cubes = [];
 
     const cubeSize = 7;
@@ -92,7 +92,7 @@ class Cubes {
   animate() {
     requestAnimationFrame(() => this.animate());
 
-    this.cubes.forEach((cube) => {
+    this.cubes.forEach(cube => {
       cube.rotation.x +=
         // @ts-expect-error added attribute
         0.01 * (cube.useSpeedModifier ? this.speedModifier : 1);

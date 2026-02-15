@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import { randomFloat } from "../../utils/random";
-import { isMobile } from "../../utils/misc";
+import * as THREE from 'three';
+import { randomFloat } from '../../utils/random';
+import { isMobile } from '../../utils/misc';
 
 /**
  * AtmosphericEffects - Mobile Optimized
@@ -62,10 +62,10 @@ export class AtmosphericEffects {
       colors[2] = 0.5 + Math.random() * 0.1;
 
       geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(positions, 3),
+        'position',
+        new THREE.BufferAttribute(positions, 3)
       );
-      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
       const material = new THREE.PointsMaterial({
         size: 0.05,
@@ -81,7 +81,7 @@ export class AtmosphericEffects {
   }
 
   animateDust(windStrength = 0.01) {
-    this.dustParticles.forEach((particle) => {
+    this.dustParticles.forEach(particle => {
       const positions = particle.geometry.attributes.position
         .array as Float32Array;
 
@@ -102,12 +102,12 @@ export class AtmosphericEffects {
   createAnimatedBackground(scene: THREE.Scene) {
     // Animated gradient background using a large sphere
     const geometry = new THREE.SphereGeometry(200, 32, 32);
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     // Reduce canvas resolution on mobile for better performance
     const canvasSize = isMobile() ? 256 : 512;
     canvas.width = canvasSize;
     canvas.height = canvasSize;
-    const context = canvas.getContext("2d")!;
+    const context = canvas.getContext('2d')!;
 
     // Store canvas for animation
     this.bgCanvas = canvas;
@@ -142,7 +142,7 @@ export class AtmosphericEffects {
       particle.position.set(
         randomFloat(-50, 50),
         randomFloat(-20, 40),
-        randomFloat(-60, -20),
+        randomFloat(-60, -20)
       );
 
       // Store animation data
@@ -164,7 +164,7 @@ export class AtmosphericEffects {
     const lightnesses = [15, 10, 12];
 
     return baseHues.map(
-      (hue, i) => `hsl(${hue}, ${saturations[i]}%, ${lightnesses[i]}%)`,
+      (hue, i) => `hsl(${hue}, ${saturations[i]}%, ${lightnesses[i]}%)`
     );
   }
 
@@ -206,7 +206,7 @@ export class AtmosphericEffects {
   private createRadialGlow(
     bgContext: CanvasRenderingContext2D,
     time: number,
-    i: number,
+    i: number
   ) {
     const x = Math.sin(time * 0.5 + i * 2) * 200 + 256;
     const y = Math.cos(time * 0.3 + i * 2) * 200 + 256;
@@ -214,7 +214,7 @@ export class AtmosphericEffects {
 
     const radialGradient = bgContext.createRadialGradient(x, y, 0, x, y, 150);
     radialGradient.addColorStop(0, `hsla(${hue}, 100%, 50%, 0.15)`);
-    radialGradient.addColorStop(1, "rgba(0,0,0,0)");
+    radialGradient.addColorStop(1, 'rgba(0,0,0,0)');
 
     return radialGradient;
   }

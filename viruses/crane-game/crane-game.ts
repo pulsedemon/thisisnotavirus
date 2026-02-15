@@ -1,20 +1,20 @@
-import "./crane-game.scss";
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { randomFloat } from "../../utils/random";
-import { isMobile } from "../../utils/misc";
-import { setupKeyboardControl } from "../../utils/keyboard-control";
-import RAPIER from "@dimforge/rapier3d-compat";
-import { PhysicsManager } from "./PhysicsManager";
-import { CraneRope } from "./CraneRope";
-import { ClawPhysics } from "./ClawPhysics";
-import { AudioManager } from "./AudioManager";
-import { AtmosphericEffects } from "./AtmosphericEffects";
-import { Cabinet } from "./Cabinet";
-import { ClawManager } from "./ClawManager";
-import { GAME_CONFIG } from "./config";
-import { Prize } from "./types";
+import './crane-game.scss';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { randomFloat } from '../../utils/random';
+import { isMobile } from '../../utils/misc';
+import { setupKeyboardControl } from '../../utils/keyboard-control';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { PhysicsManager } from './PhysicsManager';
+import { CraneRope } from './CraneRope';
+import { ClawPhysics } from './ClawPhysics';
+import { AudioManager } from './AudioManager';
+import { AtmosphericEffects } from './AtmosphericEffects';
+import { Cabinet } from './Cabinet';
+import { ClawManager } from './ClawManager';
+import { GAME_CONFIG } from './config';
+import { Prize } from './types';
 
 export default class CraneGame {
   scene: THREE.Scene;
@@ -82,7 +82,7 @@ export default class CraneGame {
     this.clawPhysics = new ClawPhysics(
       this.physicsManager,
       RAPIER,
-      new THREE.Vector3(0, GAME_CONFIG.claw.restingHeight, 0),
+      new THREE.Vector3(0, GAME_CONFIG.claw.restingHeight, 0)
     );
 
     this.createPhysicsBoundaries();
@@ -95,7 +95,7 @@ export default class CraneGame {
       this.physicsManager,
       GAME_CONFIG,
       // Joystick callback
-      (direction) => {
+      direction => {
         this.joystickInput = direction;
         this.clawManager.updateJoystickInput(direction);
       },
@@ -104,9 +104,9 @@ export default class CraneGame {
         this.dropClaw();
       },
       // Camera controls callback
-      (enabled) => {
+      enabled => {
         this.controls.enabled = enabled;
-      },
+      }
     );
     this.cabinet = cabinet;
     this.ledStrips = cabinet.ledStrips;
@@ -120,7 +120,7 @@ export default class CraneGame {
       this.scene,
       this.physicsManager,
       this.binPosition,
-      this.prizeSize,
+      this.prizeSize
     );
 
     // Setup controls FIRST so this.keys is initialized
@@ -136,32 +136,32 @@ export default class CraneGame {
       this.prizes,
       this.audioManager,
       {
-        onPrizeGrabbed: (prizes) => {
+        onPrizeGrabbed: prizes => {
           // Prizes were grabbed - this could update UI or play sounds
           // Could show "GRABBED!" message or play grab sound
           console.log(`Grabbed ${prizes.length} prize(s)`);
         },
-        onPrizeDropped: (prize) => {
+        onPrizeDropped: prize => {
           // Prize was dropped - this could play sound or show effect
           // Could play a drop sound or show particles
           console.log(
-            `Prize dropped: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}`,
+            `Prize dropped: ${prize.mesh.position.x.toFixed(2)}, ${prize.mesh.position.y.toFixed(2)}, ${prize.mesh.position.z.toFixed(2)}`
           );
         },
-        onPrizeWon: (prize) => {
+        onPrizeWon: prize => {
           // Prize reached the bin - add to won prizes
           this.wonPrizes.push(prize);
-          this.showMessage("YOU WIN!");
-          this.audioManager.playSound("win", 0.6, 1.0);
+          this.showMessage('YOU WIN!');
+          this.audioManager.playSound('win', 0.6, 1.0);
           this.updateUI();
         },
         onLose: () => {
           // No prizes grabbed - show lose message and play lose sound
-          this.showMessage("TRY AGAIN!");
-          this.audioManager.playSound("lose", 0.7, 0.6);
+          this.showMessage('TRY AGAIN!');
+          this.audioManager.playSound('lose', 0.7, 0.6);
           this.updateUI();
         },
-      },
+      }
     );
 
     this.craneRope = this.clawManager.craneRope;
@@ -169,14 +169,14 @@ export default class CraneGame {
     this.setupUI();
     this.animate();
 
-    window.addEventListener("resize", () => this.onWindowResize());
+    window.addEventListener('resize', () => this.onWindowResize());
   }
 
   createPhysicsBoundaries() {
     const floorY = GAME_CONFIG.physics.floorY;
     this.physicsManager.createStaticBox(
       new THREE.Vector3(0, floorY, 0),
-      new THREE.Vector3(10, 0.25, 10),
+      new THREE.Vector3(10, 0.25, 10)
     );
 
     const wallHeight = 12.5;
@@ -185,32 +185,32 @@ export default class CraneGame {
     // Left wall
     this.physicsManager.createStaticBox(
       new THREE.Vector3(-10, wallY, 0),
-      new THREE.Vector3(0.1, wallHeight, 10),
+      new THREE.Vector3(0.1, wallHeight, 10)
     );
 
     // Right wall
     this.physicsManager.createStaticBox(
       new THREE.Vector3(10, wallY, 0),
-      new THREE.Vector3(0.1, wallHeight, 10),
+      new THREE.Vector3(0.1, wallHeight, 10)
     );
 
     // Back wall
     this.physicsManager.createStaticBox(
       new THREE.Vector3(0, wallY, -10),
-      new THREE.Vector3(10, wallHeight, 0.1),
+      new THREE.Vector3(10, wallHeight, 0.1)
     );
 
     // Front wall
     this.physicsManager.createStaticBox(
       new THREE.Vector3(0, wallY, 10),
-      new THREE.Vector3(10, wallHeight, 0.1),
+      new THREE.Vector3(10, wallHeight, 0.1)
     );
   }
 
   async loadPlushieModel() {
     const models = [
-      "/viruses/crane-game/models/rei-ayanami-plushie/scene.gltf",
-      "/viruses/crane-game/models/makima-bean-plushie/scene.gltf",
+      '/viruses/crane-game/models/rei-ayanami-plushie/scene.gltf',
+      '/viruses/crane-game/models/makima-bean-plushie/scene.gltf',
     ];
 
     for (const modelPath of models) {
@@ -228,7 +228,7 @@ export default class CraneGame {
   }
 
   private disableShadowsForPerformance(model: THREE.Group) {
-    model.traverse((child) => {
+    model.traverse(child => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = false;
         child.receiveShadow = false;
@@ -243,7 +243,7 @@ export default class CraneGame {
       60,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000,
+      1000
     );
     this.camera.position.set(0, 5, isMobile() ? 50 : 40);
     this.camera.lookAt(0, 5, 0);
@@ -254,7 +254,7 @@ export default class CraneGame {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.5;
-    document.getElementById("container")!.appendChild(this.renderer.domElement);
+    document.getElementById('container')!.appendChild(this.renderer.domElement);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
@@ -270,7 +270,7 @@ export default class CraneGame {
 
     if (isMobile()) {
       this.controls.enabled = false;
-      this.renderer.domElement.style.touchAction = "none";
+      this.renderer.domElement.style.touchAction = 'none';
     } else {
       this.controls.enabled = true;
     }
@@ -343,11 +343,11 @@ export default class CraneGame {
     const prizeRadius = this.calculatePrizeRadius(prizeGroup);
     const weight = randomFloat(
       GAME_CONFIG.prizes.weightRange[0],
-      GAME_CONFIG.prizes.weightRange[1],
+      GAME_CONFIG.prizes.weightRange[1]
     );
     const bounciness = randomFloat(
       GAME_CONFIG.prizes.bouncinessRange[0],
-      GAME_CONFIG.prizes.bouncinessRange[1],
+      GAME_CONFIG.prizes.bouncinessRange[1]
     );
     const deformability = randomFloat(0.6, 0.9);
 
@@ -359,7 +359,7 @@ export default class CraneGame {
       weight,
       bounciness,
       GAME_CONFIG.prizes.friction,
-      deformability,
+      deformability
     );
 
     const prize: Prize = {
@@ -370,7 +370,7 @@ export default class CraneGame {
       weight,
       deformability,
       bounciness,
-      materialType: "plush",
+      materialType: 'plush',
       gripStrength: 0,
       dropChance: 0,
     };
@@ -386,7 +386,7 @@ export default class CraneGame {
   }
 
   private storeOriginalEmissiveProperties(prizeGroup: THREE.Group) {
-    prizeGroup.traverse((child) => {
+    prizeGroup.traverse(child => {
       if (child instanceof THREE.Mesh) {
         const material = child.material as THREE.MeshStandardMaterial;
         if (material.userData) {
@@ -404,16 +404,16 @@ export default class CraneGame {
     return (
       Math.max(
         scaledBox.max.x - scaledBox.min.x,
-        scaledBox.max.z - scaledBox.min.z,
+        scaledBox.max.z - scaledBox.min.z
       ) / 2
     );
   }
 
   private applyDeformabilityVisuals(
     prizeGroup: THREE.Group,
-    deformability: number,
+    deformability: number
   ) {
-    prizeGroup.traverse((child) => {
+    prizeGroup.traverse(child => {
       if (child instanceof THREE.Mesh) {
         const material = child.material as THREE.MeshStandardMaterial;
         material.roughness = 0.6 + deformability * 0.3;
@@ -440,7 +440,7 @@ export default class CraneGame {
 
         const dropHeight = randomFloat(
           GAME_CONFIG.prizes.dropHeightRange[0],
-          GAME_CONFIG.prizes.dropHeightRange[1],
+          GAME_CONFIG.prizes.dropHeightRange[1]
         );
         const y = floorY + dropHeight;
 
@@ -469,21 +469,21 @@ export default class CraneGame {
 
   private isTooCloseToBin(x: number, z: number): boolean {
     const distanceToBin = Math.sqrt(
-      Math.pow(x - this.binPosition.x, 2) + Math.pow(z - this.binPosition.z, 2),
+      Math.pow(x - this.binPosition.x, 2) + Math.pow(z - this.binPosition.z, 2)
     );
     return distanceToBin < GAME_CONFIG.physics.binDistanceThreshold;
   }
 
   setupUI() {
-    this.uiElement = document.createElement("div");
-    this.uiElement.className = "ui-overlay";
+    this.uiElement = document.createElement('div');
+    this.uiElement.className = 'ui-overlay';
     this.updateUI();
     document.body.appendChild(this.uiElement);
   }
 
   updateUI() {
     let instruction =
-      "WASD or Arrow Keys: Move | SPACE: Drop Claw | Mouse: Rotate Camera";
+      'WASD or Arrow Keys: Move | SPACE: Drop Claw | Mouse: Rotate Camera';
 
     // Get claw state from ClawManager
     if (
@@ -491,11 +491,11 @@ export default class CraneGame {
       this.clawManager.isAscending ||
       this.clawManager.isMovingToBin
     ) {
-      instruction = "Grabbing...";
+      instruction = 'Grabbing...';
     } else if (this.clawManager.isReturning) {
-      instruction = "Returning...";
+      instruction = 'Returning...';
     } else if (this.clawManager.isGrabbing) {
-      instruction = "Opening claw...";
+      instruction = 'Opening claw...';
     }
 
     this.uiElement.innerHTML = `
@@ -517,19 +517,19 @@ export default class CraneGame {
       space: false,
     };
 
-    window.addEventListener("keydown", (e) => {
+    window.addEventListener('keydown', e => {
       // Handle both regular keys (lowercase) and arrow keys (as-is)
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       if (key in this.keys) this.keys[key] = true;
 
       // Camera toggle (desktop only)
-      if (key === "c" && !isMobile()) {
+      if (key === 'c' && !isMobile()) {
         this.toggleCameraControls();
         return;
       }
 
       if (
-        (e.key === " " || e.key === " ") &&
+        (e.key === ' ' || e.key === ' ') &&
         !this.clawManager.isDescending &&
         !this.clawManager.isAscending &&
         !this.clawManager.isMovingToBin &&
@@ -540,7 +540,7 @@ export default class CraneGame {
       }
     });
 
-    window.addEventListener("keyup", (e) => {
+    window.addEventListener('keyup', e => {
       // Handle both regular keys (lowercase) and arrow keys (as-is)
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       if (key in this.keys) this.keys[key] = false;
@@ -549,7 +549,7 @@ export default class CraneGame {
 
   dropClaw() {
     if (this.credits <= 0) {
-      this.showMessage("OUT OF CREDITS!");
+      this.showMessage('OUT OF CREDITS!');
       return;
     }
 
@@ -568,8 +568,8 @@ export default class CraneGame {
   }
 
   showMessage(text: string) {
-    const messageEl = document.createElement("div");
-    messageEl.className = "win-message";
+    const messageEl = document.createElement('div');
+    messageEl.className = 'win-message';
     messageEl.textContent = text;
     document.body.appendChild(messageEl);
 
@@ -581,7 +581,7 @@ export default class CraneGame {
   updatePhysics() {
     this.physicsManager.step();
 
-    this.prizes.forEach((prize) => {
+    this.prizes.forEach(prize => {
       if (prize.grabbed) {
         this.updateGrabbedPrize(prize);
       } else {
@@ -608,7 +608,7 @@ export default class CraneGame {
         y: prize.mesh.position.y,
         z: prize.mesh.position.z,
       },
-      true,
+      true
     );
     prize.rigidBody.setLinvel({ x: 0, y: 0, z: 0 }, true);
 
@@ -617,7 +617,7 @@ export default class CraneGame {
 
   private applyGrabbedPrizeVisuals(prize: Prize) {
     if (prize.mesh instanceof THREE.Group) {
-      prize.mesh.traverse((child) => {
+      prize.mesh.traverse(child => {
         if (child instanceof THREE.Mesh) {
           const material = child.material as THREE.MeshStandardMaterial;
           material.emissiveIntensity = 1.5;
@@ -642,7 +642,7 @@ export default class CraneGame {
   private updatePrizeSettledState(prize: Prize) {
     const linvel = prize.rigidBody.linvel();
     const speed = Math.sqrt(
-      linvel.x * linvel.x + linvel.y * linvel.y + linvel.z * linvel.z,
+      linvel.x * linvel.x + linvel.y * linvel.y + linvel.z * linvel.z
     );
 
     prize.settled = speed < 0.05 && prize.mesh.position.y < -8;
@@ -650,7 +650,7 @@ export default class CraneGame {
 
   private resetPrizeVisuals(prize: Prize) {
     if (prize.mesh instanceof THREE.Group) {
-      prize.mesh.traverse((child) => {
+      prize.mesh.traverse(child => {
         if (child instanceof THREE.Mesh) {
           const material = child.material as THREE.MeshStandardMaterial;
           if (material.emissiveIntensity > 0.2) {
@@ -669,7 +669,7 @@ export default class CraneGame {
           (material.userData?.originalEmissiveIntensity as number) || 0.05;
         material.emissive =
           (material.userData?.originalEmissiveColor as THREE.Color) ||
-          new THREE.Color("#222222");
+          new THREE.Color('#222222');
       }
     }
   }
@@ -683,11 +683,11 @@ export default class CraneGame {
       inBinX &&
       inBinZ &&
       inBinY &&
-      !this.wonPrizes.some((wonPrize) => wonPrize.mesh.id === prize.mesh.id)
+      !this.wonPrizes.some(wonPrize => wonPrize.mesh.id === prize.mesh.id)
     ) {
       this.wonPrizes.push(prize);
-      this.showMessage("YOU WIN!");
-      this.audioManager.playSound("win", 0.6, 1.0);
+      this.showMessage('YOU WIN!');
+      this.audioManager.playSound('win', 0.6, 1.0);
       this.updateUI();
     }
   }
@@ -768,10 +768,10 @@ export default class CraneGame {
     const floorTexture = this.floorTexture;
     if (!floorCanvas || !floorTexture) return;
 
-    const ctx = floorCanvas.getContext("2d")!;
+    const ctx = floorCanvas.getContext('2d')!;
     const time = Date.now() * 0.001;
 
-    ctx.fillStyle = "#f0f0f0";
+    ctx.fillStyle = '#f0f0f0';
     ctx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
 
     this.drawPulsingGrid(ctx, floorCanvas, time);
@@ -782,7 +782,7 @@ export default class CraneGame {
   private drawPulsingGrid(
     ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
-    time: number,
+    time: number
   ) {
     const gridSize = 32;
     const pulseIntensity = Math.sin(time * 2) * 0.3 + 0.7;
@@ -810,17 +810,17 @@ export default class CraneGame {
     this.cameraControlsEnabled = !this.cameraControlsEnabled;
     this.controls.enabled = this.cameraControlsEnabled;
     this.renderer.domElement.style.cursor = this.cameraControlsEnabled
-      ? "grab"
-      : "crosshair";
+      ? 'grab'
+      : 'crosshair';
     this.updateControlModeUI();
   }
 
   private updateControlModeUI(): void {
     const modeText = this.cameraControlsEnabled
-      ? "Camera Mode (WASD/Arrows: Move | Space: Drop | C: Control Panel)"
-      : "Control Panel Mode (WASD/Arrows: Move | Space: Drop | C: Camera)";
+      ? 'Camera Mode (WASD/Arrows: Move | Space: Drop | C: Control Panel)'
+      : 'Control Panel Mode (WASD/Arrows: Move | Space: Drop | C: Camera)';
 
-    const instructionEl = document.querySelector(".instruction");
+    const instructionEl = document.querySelector('.instruction');
     if (instructionEl) {
       instructionEl.textContent = modeText;
     }

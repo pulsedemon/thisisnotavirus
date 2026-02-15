@@ -14,7 +14,7 @@ export class AudioManager {
           .webkitAudioContext)();
       this.loadSounds();
     } catch {
-      console.warn("Web Audio API not supported");
+      console.warn('Web Audio API not supported');
     }
   }
 
@@ -25,9 +25,9 @@ export class AudioManager {
 
   private generateProceduralSounds() {
     // Generate basic sound effects using oscillators
-    const soundTypes = ["clawDescend", "clawBounce", "win", "lose"];
+    const soundTypes = ['clawDescend', 'clawBounce', 'win', 'lose'];
 
-    soundTypes.forEach((soundName) => {
+    soundTypes.forEach(soundName => {
       const buffer = this.generateProceduralSound(soundName);
       if (buffer) this.sounds.set(soundName, buffer);
     });
@@ -40,7 +40,7 @@ export class AudioManager {
       const buffer = this.audioContext.createBuffer(
         1,
         sampleRate * duration,
-        sampleRate,
+        sampleRate
       );
       const data = buffer.getChannelData(0);
 
@@ -48,7 +48,7 @@ export class AudioManager {
         const t = i / sampleRate;
 
         switch (soundName) {
-          case "clawDescend": {
+          case 'clawDescend': {
             // Clean mechanical whirring sound - normalized to prevent clipping
             const motorFreq = 100 + t * 40; // Rising pitch like a motor speeding up
             const harmonicFreq = motorFreq * 1.5; // Slight detuning for mechanical character
@@ -60,7 +60,7 @@ export class AudioManager {
               Math.sin(t * harmonicFreq * 2 * Math.PI) * envelope * 0.15;
             break;
           }
-          case "clawBounce": {
+          case 'clawBounce': {
             // Video game style collision sound - sharp impact with harmonics
             const impactFreq = 150 + t * 100; // Low fundamental for solid impact feel
             const envelope = Math.exp(-t * 8); // Sharp attack, quick decay
@@ -85,14 +85,14 @@ export class AudioManager {
               (fundamental + harmonic1 + harmonic2 + click) * envelope * 0.65;
             break;
           }
-          case "win": {
+          case 'win': {
             // Celebratory ascending notes
             const noteFreq = 220 + (Math.floor(t * 4) % 5) * 110;
             data[i] =
               Math.sin(t * noteFreq * 2 * Math.PI) * Math.exp(-t * 0.5) * 0.4;
             break;
           }
-          case "lose": {
+          case 'lose': {
             // Depressing descending notes with smooth fade-out (no clipping)
             const loseNoteFreq = 220 - (Math.floor(t * 3) % 4) * 80; // Descending minor scale
             data[i] =
@@ -142,7 +142,7 @@ export class AudioManager {
 
       source.start();
     } catch {
-      console.warn("Failed to play sound:", name);
+      console.warn('Failed to play sound:', name);
     }
   }
 

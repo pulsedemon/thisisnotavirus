@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from 'vitest';
 
 /**
  * Creates simple factory functions for Three.js mocks
@@ -28,7 +28,7 @@ export function createThreeMocks() {
       toneMappingExposure: 1,
       dispose: vi.fn(),
       get domElement() {
-        return document.createElement("canvas");
+        return document.createElement('canvas');
       },
     })),
     Vector3: vi.fn((x = 0, y = 0, z = 0) => ({

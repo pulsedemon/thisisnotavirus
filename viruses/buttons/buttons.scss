@@ -1,4 +1,4 @@
-@use "../../sass/animations.scss";
+@use '../../sass/animations.scss';
 
 body {
   background-color: #ffffff;
@@ -16,7 +16,9 @@ img {
 }
 
 button {
-  cursor: url("../../images/cursor.png") 15 0, pointer;
+  cursor:
+    url('../../images/cursor.png') 15 0,
+    pointer;
   animation: floating 1.5s ease-in-out infinite;
   white-space: nowrap;
   z-index: 1;
@@ -57,7 +59,7 @@ img.fffffuuuuuuuu {
 /* buttons */
 .button-54 {
   background-color: #fff;
-  font-family: "Open Sans", sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 16px;
   letter-spacing: 2px;
   text-decoration: none;
@@ -65,7 +67,11 @@ img.fffffuuuuuuuu {
   color: #000;
   border: 3px solid;
   padding: 0.25em 0.5em;
-  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px,
+  box-shadow:
+    1px 1px 0px 0px,
+    2px 2px 0px 0px,
+    3px 3px 0px 0px,
+    4px 4px 0px 0px,
     5px 5px 0px 0px;
   user-select: none;
   -webkit-user-select: none;
@@ -94,7 +100,7 @@ img.fffffuuuuuuuu {
 .button-49:after {
   font-size: 16px;
   padding: 5px 8px;
-  font-family: "Bebas Neue", sans-serif;
+  font-family: 'Bebas Neue', sans-serif;
   background: linear-gradient(45deg, transparent 5%, #ff013c 5%);
   border: 0;
   color: #fff;
@@ -114,7 +120,7 @@ img.fffffuuuuuuuu {
   --slice-4: inset(40% -6px 43% 0);
   --slice-5: inset(80% -6px 5% 0);
 
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   top: 0;
@@ -128,7 +134,9 @@ img.fffffuuuuuuuu {
     #00e6f6 5%,
     #ff013c 5%
   );
-  text-shadow: -3px -3px 0px #f8f005, 3px 3px 0px #00e6f6;
+  text-shadow:
+    -3px -3px 0px #f8f005,
+    3px 3px 0px #00e6f6;
   clip-path: var(--slice-0);
 }
 
@@ -148,11 +156,13 @@ img.fffffuuuuuuuu {
   animation: spin 1.5s forwards infinite;
 
   &:hover {
-    animation: shake 1.5s ease-in-out forwards infinite, text-blink 1s infinite;
+    animation:
+      shake 1.5s ease-in-out forwards infinite,
+      text-blink 1s infinite;
   }
 
   &::before {
-    content: "";
+    content: '';
     border-bottom: 100px solid black;
     border-left: 60px solid transparent;
     border-right: 60px solid transparent;

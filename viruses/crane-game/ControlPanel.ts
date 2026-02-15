@@ -1,13 +1,13 @@
-import * as THREE from "three";
-import { isMobile } from "../../utils/misc";
-import { GAME_CONFIG } from "./config";
+import * as THREE from 'three';
+import { isMobile } from '../../utils/misc';
+import { GAME_CONFIG } from './config';
 
 // Type declarations for nipplejs
-declare module "nipplejs" {
+declare module 'nipplejs' {
   export interface JoystickManager {
     on(
       event: string,
-      callback: (evt: unknown, data: JoystickData) => void,
+      callback: (evt: unknown, data: JoystickData) => void
     ): void;
     destroy(): void;
   }
@@ -40,7 +40,7 @@ declare module "nipplejs" {
   export function create(options: JoystickOptions): JoystickManager;
 }
 
-import nipplejs from "nipplejs";
+import nipplejs from 'nipplejs';
 
 export class ControlPanel {
   controlPanel: THREE.Group;
@@ -78,7 +78,7 @@ export class ControlPanel {
     const panelGeometry = new THREE.BoxGeometry(
       panelWidth,
       panelHeight,
-      panelDepth,
+      panelDepth
     );
     const panelMaterial = new THREE.MeshStandardMaterial({
       color: 0x4a4a4a, // Lighter gray for better contrast
@@ -100,7 +100,7 @@ export class ControlPanel {
     });
     const startButton = new THREE.Mesh(
       startButtonGeometry,
-      startButtonMaterial,
+      startButtonMaterial
     );
     startButton.rotation.x = Math.PI / 2;
     startButton.position.set(0, panelY, panelZ + panelDepth / 2); // Increased offset
@@ -121,7 +121,7 @@ export class ControlPanel {
     });
     const joystickBase = new THREE.Mesh(
       joystickBaseGeometry,
-      joystickBaseMaterial,
+      joystickBaseMaterial
     );
     joystickBase.position.set(0, 0, 0);
     joystickBaseGroup.add(joystickBase);
@@ -136,7 +136,7 @@ export class ControlPanel {
       0.15,
       0.15,
       1.5,
-      8,
+      8
     );
     const joystickStickMaterial = new THREE.MeshStandardMaterial({
       color: 0x333333,
@@ -145,7 +145,7 @@ export class ControlPanel {
     });
     this.joystickStick = new THREE.Mesh(
       joystickStickGeometry,
-      joystickStickMaterial,
+      joystickStickMaterial
     );
     this.joystickStick.position.set(0, 0.75, 0);
     this.joystickStickGroup.add(this.joystickStick);
@@ -158,7 +158,7 @@ export class ControlPanel {
     });
     this.joystickBall = new THREE.Mesh(
       joystickBallGeometry,
-      joystickBallMaterial,
+      joystickBallMaterial
     );
     this.joystickBall.position.set(0, 1.5, 0);
     this.joystickStickGroup.add(this.joystickBall);
@@ -216,8 +216,8 @@ export class ControlPanel {
 
   // Create mobile controls container
   private createMobileControlsContainer(): void {
-    const controlsContainer = document.createElement("div");
-    controlsContainer.id = "mobile-controls";
+    const controlsContainer = document.createElement('div');
+    controlsContainer.id = 'mobile-controls';
     const controlsHeight = GAME_CONFIG.ui.mobileControlsHeight;
     controlsContainer.style.cssText = `
       position: fixed;
@@ -238,8 +238,8 @@ export class ControlPanel {
     const joystickSize = GAME_CONFIG.ui.joystickSize;
 
     // Joystick zone - match nipplejs size
-    const joystickZone = document.createElement("div");
-    joystickZone.id = "joystick-zone";
+    const joystickZone = document.createElement('div');
+    joystickZone.id = 'joystick-zone';
     joystickZone.style.cssText = `
       width: ${joystickSize}px;
       height: ${joystickSize}px;
@@ -248,8 +248,8 @@ export class ControlPanel {
     `;
 
     // Start button zone - match joystick size
-    const startButtonZone = document.createElement("div");
-    startButtonZone.id = "start-button-zone";
+    const startButtonZone = document.createElement('div');
+    startButtonZone.id = 'start-button-zone';
     startButtonZone.style.cssText = `
       width: ${joystickSize}px;
       height: ${joystickSize}px;
@@ -263,14 +263,14 @@ export class ControlPanel {
 
   // Setup nippleJS virtual joystick
   private setupNippleJoystick(): void {
-    const joystickZone = document.getElementById("joystick-zone");
+    const joystickZone = document.getElementById('joystick-zone');
     if (!joystickZone) return;
 
     this.nippleJoystick = nipplejs.create({
       zone: joystickZone,
-      mode: "static",
-      position: { left: "50%", top: "50%" },
-      color: "#ff6b6b",
+      mode: 'static',
+      position: { left: '50%', top: '50%' },
+      color: '#ff6b6b',
       size: GAME_CONFIG.ui.joystickSize,
       threshold: 0.1,
       fadeTime: 200,
@@ -283,12 +283,12 @@ export class ControlPanel {
       restOpacity: 0.6,
       dynamicPage: true,
       follow: false,
-      shape: "circle",
+      shape: 'circle',
       dynamicPosition: false,
     });
 
     // Handle joystick movement
-    this.nippleJoystick.on("move", (evt, data) => {
+    this.nippleJoystick.on('move', (evt, data) => {
       const direction = {
         x: data.vector.x,
         y: data.vector.y, // Use Y as-is to match keyboard mapping
@@ -299,7 +299,7 @@ export class ControlPanel {
     });
 
     // Handle joystick release
-    this.nippleJoystick.on("end", () => {
+    this.nippleJoystick.on('end', () => {
       this.handleJoystickInput({ x: 0, y: 0 });
     });
   }
@@ -310,23 +310,23 @@ export class ControlPanel {
   private addUnifiedEventListeners(
     element: HTMLElement,
     onStart: (e: Event) => void,
-    onEnd: (e: Event) => void,
+    onEnd: (e: Event) => void
   ): void {
     // Touch events
-    element.addEventListener("touchstart", onStart);
-    element.addEventListener("touchend", onEnd);
+    element.addEventListener('touchstart', onStart);
+    element.addEventListener('touchend', onEnd);
 
     // Mouse events (for desktop testing of mobile mode)
-    element.addEventListener("mousedown", onStart);
-    element.addEventListener("mouseup", onEnd);
+    element.addEventListener('mousedown', onStart);
+    element.addEventListener('mouseup', onEnd);
   }
 
   // Setup virtual start button
   private setupVirtualStartButton(): void {
-    const startButtonZone = document.getElementById("start-button-zone");
+    const startButtonZone = document.getElementById('start-button-zone');
     if (!startButtonZone) return;
 
-    this.virtualStartButton = document.createElement("div");
+    this.virtualStartButton = document.createElement('div');
     this.virtualStartButton.style.cssText = `
       width: 100%;
       height: 100%;
@@ -344,28 +344,28 @@ export class ControlPanel {
       transition: all 0.1s ease;
       cursor: pointer;
     `;
-    this.virtualStartButton.textContent = "START";
+    this.virtualStartButton.textContent = 'START';
 
     startButtonZone.appendChild(this.virtualStartButton);
 
     // Add unified event listeners
     this.addUnifiedEventListeners(
       this.virtualStartButton,
-      (e) => {
+      e => {
         e.preventDefault();
         this.animateVirtualStartButton(true);
       },
-      (e) => {
+      e => {
         e.preventDefault();
         this.animateVirtualStartButton(false);
         this.onStartButtonPress?.();
-      },
+      }
     );
   }
 
   // Setup desktop controls with raycaster
   private setupDesktopControls(): void {
-    const canvas = document.querySelector("canvas");
+    const canvas = document.querySelector('canvas');
     if (!canvas) return;
 
     const raycaster = new THREE.Raycaster();
@@ -378,20 +378,20 @@ export class ControlPanel {
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     };
 
-    canvas.addEventListener("mousemove", (e) => {
+    canvas.addEventListener('mousemove', e => {
       updateMousePosition(e);
 
       // Only check for hover states (no joystick dragging)
       this.handleMouseInteraction(mouse, raycaster);
     });
 
-    canvas.addEventListener("mousedown", (e) => {
+    canvas.addEventListener('mousedown', e => {
       updateMousePosition(e);
 
       // Check if mouse is over start button
       const buttonIntersects = raycaster.intersectObject(
         this.startButton!,
-        true,
+        true
       );
       isMouseOverStartButton = buttonIntersects.length > 0;
 
@@ -401,11 +401,11 @@ export class ControlPanel {
       }
     });
 
-    canvas.addEventListener("mouseup", () => {
+    canvas.addEventListener('mouseup', () => {
       // No joystick dragging to handle
     });
 
-    canvas.addEventListener("mouseleave", () => {
+    canvas.addEventListener('mouseleave', () => {
       // No joystick dragging to handle
     });
   }
@@ -413,7 +413,7 @@ export class ControlPanel {
   // Handle mouse interaction with 3D control panel (hover states only)
   private handleMouseInteraction(
     mouse: THREE.Vector2,
-    raycaster: THREE.Raycaster,
+    raycaster: THREE.Raycaster
   ): void {
     if (!this.camera) return;
 
@@ -424,12 +424,12 @@ export class ControlPanel {
     const isMouseOverStartButton = buttonIntersects.length > 0;
 
     // Update cursor
-    const canvas = document.querySelector("canvas");
+    const canvas = document.querySelector('canvas');
     if (canvas) {
       if (isMouseOverStartButton) {
-        canvas.style.cursor = "pointer";
+        canvas.style.cursor = 'pointer';
       } else {
-        canvas.style.cursor = "crosshair";
+        canvas.style.cursor = 'crosshair';
       }
     }
   }
@@ -459,11 +459,11 @@ export class ControlPanel {
     if (!this.virtualStartButton) return;
 
     this.virtualStartButton.style.transform = pressed
-      ? "scale(0.9)"
-      : "scale(1)";
+      ? 'scale(0.9)'
+      : 'scale(1)';
     this.virtualStartButton.style.backgroundColor = pressed
-      ? "#cc0000"
-      : "#ff0000";
+      ? '#cc0000'
+      : '#ff0000';
   }
 
   // Animate 3D start button
@@ -484,7 +484,7 @@ export class ControlPanel {
   }
 
   setJoystickCallback(
-    callback: (direction: { x: number; y: number }) => void,
+    callback: (direction: { x: number; y: number }) => void
   ): void {
     this.onJoystickMove = callback;
   }
@@ -525,7 +525,7 @@ export class ControlPanel {
       this.nippleJoystick.destroy();
     }
 
-    const mobileControls = document.getElementById("mobile-controls");
+    const mobileControls = document.getElementById('mobile-controls');
     if (mobileControls) {
       mobileControls.remove();
     }

@@ -1,4 +1,4 @@
-import { randomRgbColor } from "../../utils/random";
+import { randomRgbColor } from '../../utils/random';
 
 export default class Flash {
   el: HTMLDivElement;
@@ -9,19 +9,19 @@ export default class Flash {
   }
 
   start() {
-    this.el.style.display = "block";
+    this.el.style.display = 'block';
     this.animationInterval = setInterval(() => this.update(), 100);
   }
 
   stop() {
     setTimeout(() => {
       clearInterval(this.animationInterval);
-      this.el.style.display = "none";
+      this.el.style.display = 'none';
     }, 200);
   }
 
   update() {
     const randomColor = randomRgbColor();
-    this.el.style.backgroundColor = "rgb(" + randomColor + ")";
+    this.el.style.backgroundColor = 'rgb(' + randomColor + ')';
   }
 }

@@ -8,7 +8,7 @@ body {
   width: 100vw;
   height: 100vh;
   cursor: crosshair;
-  
+
   canvas {
     display: block;
   }
@@ -24,14 +24,16 @@ body {
   font-size: 18px;
   text-align: center;
   pointer-events: none;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  text-shadow:
+    0 0 10px #00ffff,
+    0 0 20px #00ffff;
   z-index: 100;
-  
+
   .instruction {
     margin: 5px 0;
     animation: pulse 2s infinite;
   }
-  
+
   .coins {
     font-size: 24px;
     font-weight: bold;
@@ -40,8 +42,13 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .win-message {
@@ -53,7 +60,9 @@ body {
   font-size: 48px;
   font-family: 'Courier New', monospace;
   font-weight: bold;
-  text-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00;
+  text-shadow:
+    0 0 20px #ffff00,
+    0 0 40px #ffff00;
   animation: winAnimation 1s ease-out;
   pointer-events: none;
   z-index: 200;
@@ -72,4 +81,3 @@ body {
     opacity: 1;
   }
 }
-

@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from 'vitest';
 
 /**
  * Mock implementation of the Cabinet class
@@ -29,9 +29,9 @@ export class MockCabinet {
   ];
   floorCanvas = {
     getContext: vi.fn(() => ({
-      fillStyle: "",
+      fillStyle: '',
       fillRect: vi.fn(),
-      strokeStyle: "",
+      strokeStyle: '',
       lineWidth: 0,
       beginPath: vi.fn(),
       moveTo: vi.fn(),

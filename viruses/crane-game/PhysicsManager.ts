@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat";
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
 
 export class PhysicsManager {
   world: RAPIER.World;
@@ -23,7 +23,7 @@ export class PhysicsManager {
     mass = 1.0,
     restitution = 0.2,
     friction = 0.8,
-    deformability = 0.5,
+    deformability = 0.5
   ): RAPIER.RigidBody {
     const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(position.x, position.y, position.z)
@@ -44,12 +44,12 @@ export class PhysicsManager {
 
   createStaticBox(
     position: THREE.Vector3,
-    halfExtents: THREE.Vector3,
+    halfExtents: THREE.Vector3
   ): RAPIER.RigidBody {
     const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(
       position.x,
       position.y,
-      position.z,
+      position.z
     );
 
     const rigidBody = this.world.createRigidBody(rigidBodyDesc);
@@ -57,7 +57,7 @@ export class PhysicsManager {
     const colliderDesc = RAPIER.ColliderDesc.cuboid(
       halfExtents.x,
       halfExtents.y,
-      halfExtents.z,
+      halfExtents.z
     );
 
     this.world.createCollider(colliderDesc, rigidBody);
@@ -67,7 +67,7 @@ export class PhysicsManager {
 
   syncMeshWithBody(
     mesh: THREE.Mesh | THREE.Group,
-    rigidBody: RAPIER.RigidBody,
+    rigidBody: RAPIER.RigidBody
   ) {
     const position = rigidBody.translation();
     mesh.position.set(position.x, position.y, position.z);

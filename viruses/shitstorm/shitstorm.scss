@@ -1,7 +1,9 @@
 html,
 body,
 * {
-  cursor: url("/images/cursor.png") 15 0, pointer !important;
+  cursor:
+    url('/images/cursor.png') 15 0,
+    pointer !important;
 }
 
 html,

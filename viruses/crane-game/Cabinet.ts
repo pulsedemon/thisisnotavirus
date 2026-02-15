@@ -1,7 +1,7 @@
-import * as THREE from "three";
-import { PhysicsManager } from "./PhysicsManager";
-import { GAME_CONFIG, ARCADE_COLORS } from "./config";
-import { ControlPanel } from "./ControlPanel";
+import * as THREE from 'three';
+import { PhysicsManager } from './PhysicsManager';
+import { GAME_CONFIG, ARCADE_COLORS } from './config';
+import { ControlPanel } from './ControlPanel';
 
 export class Cabinet {
   cabinet: THREE.Group;
@@ -20,7 +20,7 @@ export class Cabinet {
     config: typeof GAME_CONFIG,
     onJoystickMove?: (direction: { x: number; y: number }) => void,
     onStartButtonPress?: () => void,
-    onCameraControlsChange?: (enabled: boolean) => void,
+    onCameraControlsChange?: (enabled: boolean) => void
   ) {
     this.physicsManager = physicsManager;
     this.cabinetSize = config.cabinet;
@@ -50,7 +50,7 @@ export class Cabinet {
   private createLED(
     color: number,
     position: THREE.Vector3,
-    size: number = GAME_CONFIG.leds.size,
+    size: number = GAME_CONFIG.leds.size
   ): THREE.Mesh {
     const ledGeometry = new THREE.SphereGeometry(size, 8, 8);
     const ledMaterial = new THREE.MeshStandardMaterial({
@@ -71,7 +71,7 @@ export class Cabinet {
     height: number,
     depth: number,
     position: THREE.Vector3,
-    material: THREE.Material,
+    material: THREE.Material
   ): THREE.Mesh {
     const geometry = new THREE.BoxGeometry(width, height, depth);
     const wall = new THREE.Mesh(geometry, material);
@@ -84,12 +84,12 @@ export class Cabinet {
    */
   private createFramePost(
     position: THREE.Vector3,
-    material: THREE.Material,
+    material: THREE.Material
   ): THREE.Mesh {
     const geometry = new THREE.BoxGeometry(
       GAME_CONFIG.cabinet.framePostSize,
       this.cabinetSize.height,
-      GAME_CONFIG.cabinet.framePostSize,
+      GAME_CONFIG.cabinet.framePostSize
     );
     const post = new THREE.Mesh(geometry, material);
     post.position.copy(position);
@@ -102,7 +102,7 @@ export class Cabinet {
     const baseGeometry = new THREE.BoxGeometry(
       this.cabinetSize.width + 2,
       baseHeight,
-      this.cabinetSize.depth + 2,
+      this.cabinetSize.depth + 2
     );
     const baseMaterial = new THREE.MeshPhysicalMaterial({
       color: ARCADE_COLORS.LIGHT_GRAY,
@@ -127,23 +127,23 @@ export class Cabinet {
 
     const leftPanel = new THREE.Mesh(
       new THREE.BoxGeometry(0.3, baseHeight - 2, this.cabinetSize.depth + 1),
-      panelMaterial,
+      panelMaterial
     );
     leftPanel.position.set(
       -(this.cabinetSize.width + 2) / 2 - 0.15, // Moved outside the base
       -10 - baseHeight / 2 - 0.5,
-      0,
+      0
     );
     this.cabinet.add(leftPanel);
 
     const rightPanel = new THREE.Mesh(
       new THREE.BoxGeometry(0.3, baseHeight - 2, this.cabinetSize.depth + 1),
-      panelMaterial,
+      panelMaterial
     );
     rightPanel.position.set(
       (this.cabinetSize.width + 2) / 2 + 0.15, // Moved outside the base
       -10 - baseHeight / 2 - 0.5,
-      0,
+      0
     );
     this.cabinet.add(rightPanel);
 
@@ -151,11 +151,11 @@ export class Cabinet {
     const floorGeometry = new THREE.BoxGeometry(
       this.cabinetSize.width,
       0.5,
-      this.cabinetSize.depth,
+      this.cabinetSize.depth
     );
 
     // Create canvas for animated floor
-    const floorCanvas = document.createElement("canvas");
+    const floorCanvas = document.createElement('canvas');
     floorCanvas.width = 256;
     floorCanvas.height = 256;
     const floorTexture = new THREE.CanvasTexture(floorCanvas);
@@ -203,7 +203,7 @@ export class Cabinet {
       this.cabinetSize.height,
       glassThickness,
       new THREE.Vector3(0, 2.5, this.cabinetSize.depth / 2),
-      glassMaterial,
+      glassMaterial
     );
     this.cabinet.add(frontWall);
 
@@ -213,7 +213,7 @@ export class Cabinet {
       this.cabinetSize.height,
       glassThickness,
       new THREE.Vector3(0, 2.5, -this.cabinetSize.depth / 2),
-      glassMaterial,
+      glassMaterial
     );
     this.cabinet.add(backWall);
 
@@ -223,7 +223,7 @@ export class Cabinet {
       this.cabinetSize.height,
       this.cabinetSize.depth,
       new THREE.Vector3(-this.cabinetSize.width / 2, 2.5, 0),
-      glassMaterial,
+      glassMaterial
     );
     this.cabinet.add(leftWall);
 
@@ -232,7 +232,7 @@ export class Cabinet {
       this.cabinetSize.height,
       this.cabinetSize.depth,
       new THREE.Vector3(this.cabinetSize.width / 2, 2.5, 0),
-      glassMaterial,
+      glassMaterial
     );
     this.cabinet.add(rightWall);
 
@@ -248,26 +248,26 @@ export class Cabinet {
       new THREE.Vector3(
         -this.cabinetSize.width / 2,
         2.5,
-        this.cabinetSize.depth / 2,
+        this.cabinetSize.depth / 2
       ), // Front left
       new THREE.Vector3(
         this.cabinetSize.width / 2,
         2.5,
-        this.cabinetSize.depth / 2,
+        this.cabinetSize.depth / 2
       ), // Front right
       new THREE.Vector3(
         -this.cabinetSize.width / 2,
         2.5,
-        -this.cabinetSize.depth / 2,
+        -this.cabinetSize.depth / 2
       ), // Back left
       new THREE.Vector3(
         this.cabinetSize.width / 2,
         2.5,
-        -this.cabinetSize.depth / 2,
+        -this.cabinetSize.depth / 2
       ), // Back right
     ];
 
-    postPositions.forEach((position) => {
+    postPositions.forEach(position => {
       const post = this.createFramePost(position, frameMaterial);
       this.cabinet.add(post);
     });
@@ -277,7 +277,7 @@ export class Cabinet {
     const marqueeGeometry = new THREE.BoxGeometry(
       this.cabinetSize.width + 2,
       marqueeHeight,
-      this.cabinetSize.depth + 2,
+      this.cabinetSize.depth + 2
     );
     const marqueeMaterial = new THREE.MeshStandardMaterial({
       color: 0xff1493,
@@ -297,7 +297,7 @@ export class Cabinet {
     const trimGeometry = new THREE.BoxGeometry(
       this.cabinetSize.width + 2.2,
       0.3,
-      this.cabinetSize.depth + 2.2,
+      this.cabinetSize.depth + 2.2
     );
     const trimMaterial = new THREE.MeshStandardMaterial({
       color: 0xffff00,
@@ -362,7 +362,7 @@ export class Cabinet {
     });
     const stripHousing = new THREE.Mesh(
       stripHousingGeometry,
-      stripHousingMaterial,
+      stripHousingMaterial
     );
     stripHousing.rotation.x = Math.PI / 2;
     stripHousing.position.y = topY;
@@ -378,7 +378,7 @@ export class Cabinet {
       const position = new THREE.Vector3(
         Math.cos(angle) * radius,
         topY,
-        Math.sin(angle) * radius,
+        Math.sin(angle) * radius
       );
 
       const led = this.createLED(ARCADE_COLORS.MAGENTA, position);
@@ -400,12 +400,12 @@ export class Cabinet {
       this.cabinetSize.width / 2,
     ]; // -10, 10
 
-    edgePositions.forEach((x) => {
+    edgePositions.forEach(x => {
       // Vertical strip housing - full height
       const verticalHousingGeometry = new THREE.BoxGeometry(
         0.6,
         glassHeight,
-        0.4,
+        0.4
       );
       const verticalHousingMaterial = new THREE.MeshStandardMaterial({
         color: ARCADE_COLORS.PINK,
@@ -416,7 +416,7 @@ export class Cabinet {
       });
       const verticalHousing = new THREE.Mesh(
         verticalHousingGeometry,
-        verticalHousingMaterial,
+        verticalHousingMaterial
       );
       verticalHousing.position.set(x, 2.5, this.cabinetSize.depth / 2 + 0.3);
       this.cabinet.add(verticalHousing);
@@ -428,7 +428,7 @@ export class Cabinet {
         const position = new THREE.Vector3(
           x,
           yPos,
-          this.cabinetSize.depth / 2 + 0.4,
+          this.cabinetSize.depth / 2 + 0.4
         );
         const led = this.createLED(ARCADE_COLORS.CYAN, position);
         this.cabinet.add(led);
@@ -446,7 +446,7 @@ export class Cabinet {
       { x: 0, z: 0 },
     ];
 
-    spotlightPositions.forEach((pos) => {
+    spotlightPositions.forEach(pos => {
       const spotlight = new THREE.SpotLight(0xffffff, 1.5);
       spotlight.position.set(pos.x, 8, pos.z);
       spotlight.target.position.set(pos.x, -10, pos.z);
@@ -542,7 +542,7 @@ export class Cabinet {
       roughness: 0.2,
     });
 
-    [-0.8, 0.8].forEach((x) => {
+    [-0.8, 0.8].forEach(x => {
       const drum = new THREE.Mesh(drumGeometry, drumMaterial);
       drum.position.set(x, 11, -4.5); // Move to back
       drum.rotation.x = Math.PI / 2;
@@ -587,7 +587,7 @@ export class Cabinet {
       metalness: 0.9,
       roughness: 0.2,
     });
-    [-1, 1].forEach((x) => {
+    [-1, 1].forEach(x => {
       const pulley = new THREE.Mesh(pulleyGeometry, pulleyMaterial);
       pulley.position.set(x, 11.5, 0);
       pulley.rotation.x = Math.PI / 2;
@@ -601,7 +601,7 @@ export class Cabinet {
       metalness: 0.9,
       roughness: 0.3,
     });
-    [-10, 10].forEach((x) => {
+    [-10, 10].forEach(x => {
       const track = new THREE.Mesh(trackGeometry, trackMaterial);
       track.position.set(x, 10, 0);
       this.cabinet.add(track);
@@ -619,7 +619,7 @@ export class Cabinet {
       { x: 10, z: -10 },
       { x: -10, z: 10 },
       { x: 10, z: 10 },
-    ].forEach((pos) => {
+    ].forEach(pos => {
       const beam = new THREE.Mesh(beamGeometry, beamMaterial);
       beam.position.set(pos.x, 0, pos.z);
       this.cabinet.add(beam);
@@ -629,13 +629,13 @@ export class Cabinet {
   private addCabinetDetails() {
     // Speaker grills on sides
     const grillGeometry = new THREE.PlaneGeometry(2, 3);
-    const grillCanvas = document.createElement("canvas");
+    const grillCanvas = document.createElement('canvas');
     grillCanvas.width = 64;
     grillCanvas.height = 96;
-    const ctx = grillCanvas.getContext("2d")!;
-    ctx.fillStyle = "#1a1a1a";
+    const ctx = grillCanvas.getContext('2d')!;
+    ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, grillCanvas.width, grillCanvas.height);
-    ctx.fillStyle = "#666666";
+    ctx.fillStyle = '#666666';
     for (let y = 5; y < grillCanvas.height; y += 10) {
       for (let x = 5; x < grillCanvas.width; x += 8) {
         ctx.fillRect(x, y, 4, 4);
@@ -648,7 +648,7 @@ export class Cabinet {
       depthWrite: false, // Disable depth writing to prevent z-fighting
     });
 
-    [-11.5, 11.5].forEach((x) => {
+    [-11.5, 11.5].forEach(x => {
       const grill = new THREE.Mesh(grillGeometry, grillMaterial);
       grill.renderOrder = 999; // Render last to ensure it's on top
       // Position significantly away from cabinet sides
@@ -664,7 +664,7 @@ export class Cabinet {
       metalness: 0.5,
       roughness: 0.7,
     });
-    [0, 1, 2].forEach((i) => {
+    [0, 1, 2].forEach(i => {
       const vent = new THREE.Mesh(ventGeometry, ventMaterial);
       vent.position.set(-6, -15 + i * 1, 11.5);
       this.cabinet.add(vent);
@@ -693,7 +693,7 @@ export class Cabinet {
       { x: 10, y: 10, z: 10 },
       { x: -10, y: -10, z: 10 },
       { x: 10, y: -10, z: 10 },
-    ].forEach((pos) => {
+    ].forEach(pos => {
       const screw = new THREE.Mesh(screwGeometry, screwMaterial);
       screw.position.set(pos.x, pos.y, pos.z + 0.5);
       screw.rotation.x = Math.PI / 2;
@@ -703,30 +703,30 @@ export class Cabinet {
 
   private addGlassDecals() {
     // PUSH button instructions in Japanese on front glass
-    const instructionCanvas = document.createElement("canvas");
+    const instructionCanvas = document.createElement('canvas');
     instructionCanvas.width = 256;
     instructionCanvas.height = 128;
-    const ctx = instructionCanvas.getContext("2d")!;
+    const ctx = instructionCanvas.getContext('2d')!;
 
     // Background
-    ctx.fillStyle = "rgba(255, 255, 0, 0.9)";
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
     ctx.fillRect(0, 0, instructionCanvas.width, instructionCanvas.height);
-    ctx.strokeStyle = "#ff0000";
+    ctx.strokeStyle = '#ff0000';
     ctx.lineWidth = 4;
     ctx.strokeRect(
       5,
       5,
       instructionCanvas.width - 10,
-      instructionCanvas.height - 10,
+      instructionCanvas.height - 10
     );
 
     // Text
-    ctx.fillStyle = "#ff0000";
-    ctx.font = "bold 48px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("PUSH", 128, 50);
-    ctx.font = "bold 32px Arial";
-    ctx.fillText("ボタン", 128, 90);
+    ctx.fillStyle = '#ff0000';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('PUSH', 128, 50);
+    ctx.font = 'bold 32px Arial';
+    ctx.fillText('ボタン', 128, 90);
 
     const instructionTexture = new THREE.CanvasTexture(instructionCanvas);
     const instructionMaterial = new THREE.MeshBasicMaterial({
@@ -737,31 +737,31 @@ export class Cabinet {
     });
     const instructionDecal = new THREE.Mesh(
       new THREE.PlaneGeometry(4, 2),
-      instructionMaterial,
+      instructionMaterial
     );
     instructionDecal.renderOrder = 1; // Render after glass to prevent z-fighting
     instructionDecal.position.set(-5, 3, 10.5); // Moved significantly further out to prevent z-fighting
     this.cabinet.add(instructionDecal);
 
     // Warning sticker
-    const warningCanvas = document.createElement("canvas");
+    const warningCanvas = document.createElement('canvas');
     warningCanvas.width = 128;
     warningCanvas.height = 128;
-    const wctx = warningCanvas.getContext("2d")!;
-    wctx.fillStyle = "#ffff00";
+    const wctx = warningCanvas.getContext('2d')!;
+    wctx.fillStyle = '#ffff00';
     wctx.beginPath();
     wctx.moveTo(64, 10);
     wctx.lineTo(118, 108);
     wctx.lineTo(10, 108);
     wctx.closePath();
     wctx.fill();
-    wctx.strokeStyle = "#ff0000";
+    wctx.strokeStyle = '#ff0000';
     wctx.lineWidth = 4;
     wctx.stroke();
-    wctx.fillStyle = "#000000";
-    wctx.font = "bold 72px Arial";
-    wctx.textAlign = "center";
-    wctx.fillText("!", 64, 90);
+    wctx.fillStyle = '#000000';
+    wctx.font = 'bold 72px Arial';
+    wctx.textAlign = 'center';
+    wctx.fillText('!', 64, 90);
 
     const warningTexture = new THREE.CanvasTexture(warningCanvas);
     const warningMaterial = new THREE.MeshBasicMaterial({
@@ -772,7 +772,7 @@ export class Cabinet {
     });
     const warningDecal = new THREE.Mesh(
       new THREE.PlaneGeometry(1.5, 1.5),
-      warningMaterial,
+      warningMaterial
     );
     warningDecal.renderOrder = 1; // Render after glass to prevent z-fighting
     warningDecal.position.set(5, 6, 10.5); // Moved significantly further out to prevent z-fighting
@@ -781,44 +781,44 @@ export class Cabinet {
 
   private addJapaneseText(marquee: THREE.Mesh, marqueeHeight: number) {
     // Create canvas for text
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 256;
-    const context = canvas.getContext("2d")!;
+    const context = canvas.getContext('2d')!;
 
     // Clear canvas
-    context.fillStyle = "#ff1493";
+    context.fillStyle = '#ff1493';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     // Add exciting Japanese text
-    context.font = "bold 120px Arial, sans-serif";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
+    context.font = 'bold 120px Arial, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
 
     // White outline
-    context.strokeStyle = "#ffffff";
+    context.strokeStyle = '#ffffff';
     context.lineWidth = 8;
     context.strokeText(
-      "クレーンゲーム",
+      'クレーンゲーム',
       canvas.width / 2,
-      canvas.height / 2 - 20,
+      canvas.height / 2 - 20
     );
 
     // Yellow fill
-    context.fillStyle = "#ffff00";
+    context.fillStyle = '#ffff00';
     context.fillText(
-      "クレーンゲーム",
+      'クレーンゲーム',
       canvas.width / 2,
-      canvas.height / 2 - 20,
+      canvas.height / 2 - 20
     );
 
     // Add "GET PRIZE!" in smaller text
-    context.font = "bold 60px Arial, sans-serif";
-    context.strokeStyle = "#ffffff";
+    context.font = 'bold 60px Arial, sans-serif';
+    context.strokeStyle = '#ffffff';
     context.lineWidth = 4;
-    context.strokeText("挑戦！", canvas.width / 2, canvas.height / 2 + 60);
-    context.fillStyle = "#00ffff";
-    context.fillText("挑戦！", canvas.width / 2, canvas.height / 2 + 60);
+    context.strokeText('挑戦！', canvas.width / 2, canvas.height / 2 + 60);
+    context.fillStyle = '#00ffff';
+    context.fillText('挑戦！', canvas.width / 2, canvas.height / 2 + 60);
 
     // Create texture from canvas
     const texture = new THREE.CanvasTexture(canvas);
@@ -838,7 +838,7 @@ export class Cabinet {
     textPlane.position.set(
       0,
       15 + marqueeHeight / 2,
-      this.cabinetSize.depth / 2 + 2.0,
+      this.cabinetSize.depth / 2 + 2.0
     );
     this.cabinet.add(textPlane);
   }
@@ -862,36 +862,36 @@ export class Cabinet {
     // Back wall of bin
     const backWall = new THREE.Mesh(
       new THREE.BoxGeometry(binWidth, binHeight, 0.2),
-      binMaterial,
+      binMaterial
     );
     backWall.position.set(
       this.binPosition.x,
       binFloorY + binHeight / 2,
-      this.binPosition.z - binDepth / 2,
+      this.binPosition.z - binDepth / 2
     );
     this.cabinet.add(backWall);
 
     // Left wall of bin
     const leftWall = new THREE.Mesh(
       new THREE.BoxGeometry(0.2, binHeight, binDepth),
-      binMaterial,
+      binMaterial
     );
     leftWall.position.set(
       this.binPosition.x - binWidth / 2,
       binFloorY + binHeight / 2,
-      this.binPosition.z,
+      this.binPosition.z
     );
     this.cabinet.add(leftWall);
 
     // Right wall of bin
     const rightWall = new THREE.Mesh(
       new THREE.BoxGeometry(0.2, binHeight, binDepth),
-      binMaterial,
+      binMaterial
     );
     rightWall.position.set(
       this.binPosition.x + binWidth / 2,
       binFloorY + binHeight / 2,
-      this.binPosition.z,
+      this.binPosition.z
     );
     this.cabinet.add(rightWall);
 
@@ -901,9 +901,9 @@ export class Cabinet {
       new THREE.Vector3(
         this.binPosition.x,
         binFloorY + binHeight / 2,
-        this.binPosition.z - binDepth / 2,
+        this.binPosition.z - binDepth / 2
       ),
-      new THREE.Vector3(binWidth / 2, binHeight / 2, 0.1),
+      new THREE.Vector3(binWidth / 2, binHeight / 2, 0.1)
     );
 
     // Left wall collider
@@ -911,9 +911,9 @@ export class Cabinet {
       new THREE.Vector3(
         this.binPosition.x - binWidth / 2,
         binFloorY + binHeight / 2,
-        this.binPosition.z,
+        this.binPosition.z
       ),
-      new THREE.Vector3(0.1, binHeight / 2, binDepth / 2),
+      new THREE.Vector3(0.1, binHeight / 2, binDepth / 2)
     );
 
     // Right wall collider
@@ -921,9 +921,9 @@ export class Cabinet {
       new THREE.Vector3(
         this.binPosition.x + binWidth / 2,
         binFloorY + binHeight / 2,
-        this.binPosition.z,
+        this.binPosition.z
       ),
-      new THREE.Vector3(0.1, binHeight / 2, binDepth / 2),
+      new THREE.Vector3(0.1, binHeight / 2, binDepth / 2)
     );
 
     // Bin floor collider (slightly raised from main floor)
@@ -931,13 +931,13 @@ export class Cabinet {
       new THREE.Vector3(
         this.binPosition.x,
         binFloorY + 0.1,
-        this.binPosition.z,
+        this.binPosition.z
       ),
-      new THREE.Vector3(binWidth / 2, 0.1, binDepth / 2),
+      new THREE.Vector3(binWidth / 2, 0.1, binDepth / 2)
     );
 
     // Add glowing edges to bin
-    [backWall, leftWall, rightWall].forEach((wall) => {
+    [backWall, leftWall, rightWall].forEach(wall => {
       const edgeGeometry = new THREE.EdgesGeometry(wall.geometry);
       const edgeMaterial = new THREE.LineBasicMaterial({
         color: 0xffff00,
@@ -958,7 +958,7 @@ export class Cabinet {
     sign.position.set(
       this.binPosition.x,
       -10 + binHeight + 0.5,
-      this.binPosition.z - binDepth / 2,
+      this.binPosition.z - binDepth / 2
     );
     this.cabinet.add(sign);
   }
