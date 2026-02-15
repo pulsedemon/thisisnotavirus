@@ -298,8 +298,6 @@ body {
   }
 
   &[title] {
-    position: relative;
-
     &::after {
       content: attr(title);
       position: absolute;
