@@ -4,6 +4,19 @@ import { glob } from 'glob';
 import { readFileSync, existsSync } from 'fs';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
+function escapeUnsafeChars(str: string): string {
+  return str.replace(/[<>/\u2028\u2029]/g, ch => {
+    const map: Record<string, string> = {
+      '<': '\\u003C',
+      '>': '\\u003E',
+      '/': '\\u002F',
+      '\u2028': '\\u2028',
+      '\u2029': '\\u2029',
+    };
+    return map[ch] ?? ch;
+  });
+}
+
 export default defineConfig(() => {
   const virusTargets = glob.sync('viruses/*/').flatMap(dir => {
     const name = dir.split('/')[1];
@@ -120,7 +133,7 @@ export default defineConfig(() => {
           if (id.endsWith('.hbs')) {
             const template = readFileSync(id, 'utf-8');
             return {
-              code: `export default function() { return ${JSON.stringify(template)}; }`,
+              code: `export default function() { return ${escapeUnsafeChars(JSON.stringify(template))}; }`,
               map: null,
             };
           }
