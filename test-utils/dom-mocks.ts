@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from 'vitest';
 
 /**
  * Creates a mock DOM element with common properties
@@ -6,19 +6,19 @@ import { vi } from "vitest";
  * @param tagName - The HTML tag name for the element (default: "div")
  * @returns A mock DOM element with common properties and methods
  */
-export function createMockElement(tagName = "div") {
+export function createMockElement(tagName = 'div') {
   return {
-    className: "",
-    textContent: "",
-    innerHTML: "",
-    innerText: "",
+    className: '',
+    textContent: '',
+    innerHTML: '',
+    innerText: '',
     tagName,
     appendChild: vi.fn(),
     remove: vi.fn(),
     getContext: vi.fn().mockReturnValue({
-      fillStyle: "",
+      fillStyle: '',
       fillRect: vi.fn(),
-      strokeStyle: "",
+      strokeStyle: '',
       lineWidth: 0,
       beginPath: vi.fn(),
       moveTo: vi.fn(),
@@ -41,9 +41,16 @@ export function createMockElement(tagName = "div") {
  * Call this in beforeEach() to ensure a clean DOM state for each test.
  */
 export function setupDOMMocks() {
-  document.getElementById = vi.fn().mockReturnValue(createMockElement());
-  document.createElement = vi.fn().mockImplementation(createMockElement);
-  document.body = {
-    appendChild: vi.fn(),
-  } as unknown as HTMLBodyElement;
+  // Use direct assignment instead of vi.spyOn so vi.clearAllMocks() won't
+  // restore these to jsdom's originals (which would break async code that
+  // calls getElementById after test cleanup)
+  document.getElementById = vi
+    .fn()
+    .mockReturnValue(createMockElement()) as typeof document.getElementById;
+  document.createElement = vi
+    .fn()
+    .mockImplementation(createMockElement) as typeof document.createElement;
+  vi.spyOn(document.body, 'appendChild').mockImplementation(
+    vi.fn() as typeof document.body.appendChild
+  );
 }

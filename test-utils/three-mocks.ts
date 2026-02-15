@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from 'vitest';
 
 /**
  * Mock implementation of Three.js Vector3
@@ -38,7 +38,7 @@ export class MockBox3 {
     this.max = new MockVector3();
   }
 
-  setFromObject(object: any) {
+  setFromObject(_object: unknown) {
     // Mock implementation - return a box with reasonable dimensions
     this.min.set(-1, -1, -1);
     this.max.set(1, 1, 1);
@@ -137,7 +137,7 @@ export class MockWebGLRenderer {
   dispose = vi.fn();
   domElement = {
     style: {
-      touchAction: "",
+      touchAction: '',
     },
   } as HTMLCanvasElement;
 }

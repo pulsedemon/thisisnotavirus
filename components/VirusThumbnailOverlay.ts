@@ -1,11 +1,6 @@
-import { formatVirusName, isMobile } from "../utils/misc";
-import Playlist from "./Playlist";
-
-declare let gtag: (
-  command: "config" | "event",
-  targetId: string,
-  config?: Record<string, unknown>,
-) => void;
+import { formatVirusName, isMobile } from '../utils/misc';
+import { safeGtag } from '../utils/gtag';
+import Playlist from './Playlist';
 
 interface VirusLoader {
   virusLab: unknown;
@@ -22,32 +17,30 @@ export function showVirusThumbnailOverlay({
   virusLoader?: VirusLoader; // VirusLoader instance to close lab if open
 }) {
   // Track overlay open event
-  if (typeof gtag !== "undefined") {
-    gtag("event", "virus_overlay_open", {
-      event_category: "engagement",
-      event_label: "virus_thumbnail_overlay",
-    });
-  }
+  safeGtag('event', 'virus_overlay_open', {
+    event_category: 'engagement',
+    event_label: 'virus_thumbnail_overlay',
+  });
 
   // Remove any existing overlay
-  const existing = document.getElementById("virus-thumbnail-overlay");
+  const existing = document.getElementById('virus-thumbnail-overlay');
   if (existing) existing.remove();
 
   // Get virus list
   const playlist = new Playlist();
-  const viruses = playlist.viruses.map((virus) => ({
+  const viruses = playlist.viruses.map(virus => ({
     value: virus,
     label: formatVirusName(virus),
-    type: "builtin",
+    type: 'builtin',
   }));
 
   // Get custom viruses (saved mixes)
-  const customViruses = playlist.savedMixes.map((mix) => ({
+  const customViruses = playlist.savedMixes.map(mix => ({
     value: `mixed:${mix.id}`,
     label: `${formatVirusName(mix.primary)} / ${formatVirusName(
-      mix.secondary,
+      mix.secondary
     )} (${Math.round(mix.mixRatio * 100)}%)`,
-    type: "custom",
+    type: 'custom',
     mix: {
       ...mix,
       mixRatioPercent: Math.round(mix.mixRatio * 100),
@@ -55,9 +48,9 @@ export function showVirusThumbnailOverlay({
   }));
 
   // Create overlay HTML directly
-  const overlay = document.createElement("div");
-  overlay.id = "virus-thumbnail-overlay";
-  overlay.className = "virus-overlay";
+  const overlay = document.createElement('div');
+  overlay.id = 'virus-thumbnail-overlay';
+  overlay.className = 'virus-overlay';
 
   overlay.innerHTML = `
     <div class="virus-overlay-header">
@@ -87,10 +80,10 @@ export function showVirusThumbnailOverlay({
           <div class="virus-section-title-wrapper">
             <h3 class="virus-section-title">Viruses</h3>
           </div>
-          <div class="virus-thumbnail-grid ${isMobile ? "mobile" : ""}">
+          <div class="virus-thumbnail-grid ${isMobile() ? 'mobile' : ''}">
             ${viruses
               .map(
-                (virus) => `
+                virus => `
               <div class="virus-thumbnail-item" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} virus">
                 <div class="virus-thumbnail-preview">
                   <iframe 
@@ -106,9 +99,9 @@ export function showVirusThumbnailOverlay({
                 </div>
                 <div class="virus-label">${virus.label}</div>
               </div>
-            `,
+            `
               )
-              .join("")}
+              .join('')}
           </div>
         </div>
 
@@ -117,10 +110,10 @@ export function showVirusThumbnailOverlay({
             ? `
         <div class="virus-section custom-viruses">
           <h3 class="virus-section-title">Mixes</h3>
-          <div class="virus-thumbnail-grid ${isMobile ? "mobile" : ""}">
+          <div class="virus-thumbnail-grid ${isMobile() ? 'mobile' : ''}">
             ${customViruses
               .map(
-                (virus) => `
+                virus => `
               <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} custom virus">
                 <div class="virus-thumbnail-preview custom-preview">
                   <div class="custom-virus-display">
@@ -139,13 +132,13 @@ export function showVirusThumbnailOverlay({
                 </div>
                 <div class="virus-label custom-label">${virus.label}</div>
               </div>
-            `,
+            `
               )
-              .join("")}
+              .join('')}
           </div>
         </div>
         `
-            : ""
+            : ''
         }
       </div>
     </div>
@@ -153,11 +146,11 @@ export function showVirusThumbnailOverlay({
 
   // Get references to key elements
   const searchInput = overlay.querySelector(
-    ".virus-search",
+    '.virus-search'
   ) as HTMLInputElement;
-  const thumbnailItems = overlay.querySelectorAll(".virus-thumbnail-item");
+  const thumbnailItems = overlay.querySelectorAll('.virus-thumbnail-item');
   const closeBtn = overlay.querySelector(
-    ".virus-thumbnail-close",
+    '.virus-thumbnail-close'
   ) as HTMLButtonElement;
 
   // Search functionality
@@ -169,21 +162,21 @@ export function showVirusThumbnailOverlay({
     const term = searchTerm.toLowerCase().trim();
     filteredItems = [];
 
-    thumbnailItems.forEach((item) => {
+    thumbnailItems.forEach(item => {
       const htmlItem = item as HTMLElement;
-      const virus = htmlItem.getAttribute("data-virus")!;
+      const virus = htmlItem.getAttribute('data-virus')!;
       let matches = false;
 
-      if (virus.startsWith("mixed:")) {
+      if (virus.startsWith('mixed:')) {
         // For custom viruses, search in the label and component virus names
-        const customVirus = customViruses.find((cv) => cv.value === virus);
+        const customVirus = customViruses.find(cv => cv.value === virus);
         if (customVirus) {
           const label = customVirus.label.toLowerCase();
           const primaryVirus = formatVirusName(
-            customVirus.mix.primary,
+            customVirus.mix.primary
           ).toLowerCase();
           const secondaryVirus = formatVirusName(
-            customVirus.mix.secondary,
+            customVirus.mix.secondary
           ).toLowerCase();
 
           matches =
@@ -200,11 +193,11 @@ export function showVirusThumbnailOverlay({
       }
 
       if (matches) {
-        htmlItem.classList.remove("filtered-out");
-        htmlItem.style.removeProperty("display");
+        htmlItem.classList.remove('filtered-out');
+        htmlItem.style.removeProperty('display');
         filteredItems.push(htmlItem);
       } else {
-        htmlItem.classList.add("filtered-out");
+        htmlItem.classList.add('filtered-out');
       }
     });
   }
@@ -232,7 +225,7 @@ export function showVirusThumbnailOverlay({
 
   const handleTouchEnd = (e: TouchEvent, htmlWrapper: HTMLElement) => {
     if (!isScrolling) {
-      const virus = htmlWrapper.getAttribute("data-virus")!;
+      const virus = htmlWrapper.getAttribute('data-virus')!;
       cleanup();
 
       // Close lab if it's open
@@ -241,13 +234,11 @@ export function showVirusThumbnailOverlay({
       }
 
       // Track touch selection
-      if (typeof gtag !== "undefined") {
-        gtag("event", "virus_select", {
-          event_category: "engagement",
-          event_label: "touch_select",
-          animation_name: virus,
-        });
-      }
+      safeGtag('event', 'virus_select', {
+        event_category: 'engagement',
+        event_label: 'touch_select',
+        animation_name: virus,
+      });
 
       onSelect(virus);
     }
@@ -257,12 +248,12 @@ export function showVirusThumbnailOverlay({
     if (filteredItems.length === 0) return;
 
     switch (e.key) {
-      case "ArrowDown":
+      case 'ArrowDown':
         e.preventDefault();
         currentFocusIndex = (currentFocusIndex + 1) % filteredItems.length;
         updateFocus(currentFocusIndex);
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         e.preventDefault();
         currentFocusIndex =
           currentFocusIndex <= 0
@@ -270,58 +261,54 @@ export function showVirusThumbnailOverlay({
             : currentFocusIndex - 1;
         updateFocus(currentFocusIndex);
         break;
-      case "ArrowRight": {
+      case 'ArrowRight': {
         if (document.activeElement === searchInput) return;
         e.preventDefault();
         const nextIndex = Math.min(
           currentFocusIndex + Math.floor(filteredItems.length / 4) || 1,
-          filteredItems.length - 1,
+          filteredItems.length - 1
         );
         updateFocus(nextIndex);
         break;
       }
-      case "ArrowLeft": {
+      case 'ArrowLeft': {
         if (document.activeElement === searchInput) return;
         e.preventDefault();
         const prevIndex = Math.max(
           currentFocusIndex - Math.floor(filteredItems.length / 4) || 1,
-          0,
+          0
         );
         updateFocus(prevIndex);
         break;
       }
-      case "Enter":
+      case 'Enter':
         if (currentFocusIndex >= 0 && filteredItems[currentFocusIndex]) {
           const virus =
-            filteredItems[currentFocusIndex].getAttribute("data-virus")!;
+            filteredItems[currentFocusIndex].getAttribute('data-virus')!;
           cleanup();
 
           // Track keyboard Enter selection
-          if (typeof gtag !== "undefined") {
-            gtag("event", "virus_select", {
-              event_category: "engagement",
-              event_label: "keyboard_enter",
-              animation_name: virus,
-            });
-          }
+          safeGtag('event', 'virus_select', {
+            event_category: 'engagement',
+            event_label: 'keyboard_enter',
+            animation_name: virus,
+          });
 
           onSelect(virus);
         }
         break;
-      case "Escape":
+      case 'Escape':
         cleanup();
 
         // Track Escape key close
-        if (typeof gtag !== "undefined") {
-          gtag("event", "virus_overlay_close", {
-            event_category: "engagement",
-            event_label: "escape_key",
-          });
-        }
+        safeGtag('event', 'virus_overlay_close', {
+          event_category: 'engagement',
+          event_label: 'escape_key',
+        });
 
         onClose();
         break;
-      case "/":
+      case '/':
         if (document.activeElement !== searchInput) {
           e.preventDefault();
           searchInput.focus();
@@ -335,12 +322,10 @@ export function showVirusThumbnailOverlay({
     cleanup();
 
     // Track close button click
-    if (typeof gtag !== "undefined") {
-      gtag("event", "virus_overlay_close", {
-        event_category: "engagement",
-        event_label: "close_button",
-      });
-    }
+    safeGtag('event', 'virus_overlay_close', {
+      event_category: 'engagement',
+      event_label: 'close_button',
+    });
 
     onClose();
   };
@@ -350,12 +335,10 @@ export function showVirusThumbnailOverlay({
       cleanup();
 
       // Track background click close
-      if (typeof gtag !== "undefined") {
-        gtag("event", "virus_overlay_close", {
-          event_category: "engagement",
-          event_label: "background_click",
-        });
-      }
+      safeGtag('event', 'virus_overlay_close', {
+        event_category: 'engagement',
+        event_label: 'background_click',
+      });
 
       onClose();
     }
@@ -364,7 +347,7 @@ export function showVirusThumbnailOverlay({
   const handleThumbnailClick = (e: MouseEvent, htmlWrapper: HTMLElement) => {
     e.stopPropagation();
     cleanup();
-    const virus = htmlWrapper.getAttribute("data-virus")!;
+    const virus = htmlWrapper.getAttribute('data-virus')!;
 
     // Close lab if it's open
     if (virusLoader && virusLoader.virusLab) {
@@ -372,24 +355,22 @@ export function showVirusThumbnailOverlay({
     }
 
     // Track virus selection
-    if (typeof gtag !== "undefined") {
-      gtag("event", "virus_select", {
-        event_category: "engagement",
-        event_label: "thumbnail_click",
-        animation_name: virus,
-      });
-    }
+    safeGtag('event', 'virus_select', {
+      event_category: 'engagement',
+      event_label: 'thumbnail_click',
+      animation_name: virus,
+    });
 
     onSelect(virus);
   };
 
   const handleThumbnailKeydown = (
     e: KeyboardEvent,
-    htmlWrapper: HTMLElement,
+    htmlWrapper: HTMLElement
   ) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      const virus = htmlWrapper.getAttribute("data-virus")!;
+      const virus = htmlWrapper.getAttribute('data-virus')!;
       cleanup();
 
       // Close lab if it's open
@@ -398,13 +379,11 @@ export function showVirusThumbnailOverlay({
       }
 
       // Track keyboard virus selection
-      if (typeof gtag !== "undefined") {
-        gtag("event", "virus_select", {
-          event_category: "engagement",
-          event_label: "keyboard_select",
-          animation_name: virus,
-        });
-      }
+      safeGtag('event', 'virus_select', {
+        event_category: 'engagement',
+        event_label: 'keyboard_select',
+        animation_name: virus,
+      });
 
       onSelect(virus);
     }
@@ -418,17 +397,17 @@ export function showVirusThumbnailOverlay({
     filteredItems.forEach((item, i) => {
       if (i === index) {
         item.focus();
-        item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     });
     currentFocusIndex = index;
   }
 
   // Add event listeners
-  searchInput.addEventListener("input", handleSearchInput);
-  overlay.addEventListener("keydown", handleKeyNavigation);
-  closeBtn.addEventListener("click", handleCloseClick);
-  overlay.addEventListener("click", handleBackgroundClick);
+  searchInput.addEventListener('input', handleSearchInput);
+  overlay.addEventListener('keydown', handleKeyNavigation);
+  closeBtn.addEventListener('click', handleCloseClick);
+  overlay.addEventListener('click', handleBackgroundClick);
 
   // Add click and touch events for each thumbnail
   const thumbnailHandlers = new Map<
@@ -442,7 +421,7 @@ export function showVirusThumbnailOverlay({
     }
   >();
 
-  thumbnailItems.forEach((thumbWrapper) => {
+  thumbnailItems.forEach(thumbWrapper => {
     const htmlWrapper = thumbWrapper as HTMLElement;
     const handlers = {
       click: (e: MouseEvent) => handleThumbnailClick(e, htmlWrapper),
@@ -453,11 +432,11 @@ export function showVirusThumbnailOverlay({
     };
 
     thumbnailHandlers.set(htmlWrapper, handlers);
-    htmlWrapper.addEventListener("click", handlers.click);
-    htmlWrapper.addEventListener("keydown", handlers.keydown);
-    htmlWrapper.addEventListener("touchstart", handlers.touchstart);
-    htmlWrapper.addEventListener("touchmove", handlers.touchmove);
-    htmlWrapper.addEventListener("touchend", handlers.touchend);
+    htmlWrapper.addEventListener('click', handlers.click);
+    htmlWrapper.addEventListener('keydown', handlers.keydown);
+    htmlWrapper.addEventListener('touchstart', handlers.touchstart);
+    htmlWrapper.addEventListener('touchmove', handlers.touchmove);
+    htmlWrapper.addEventListener('touchend', handlers.touchend);
   });
 
   // Focus search input initially
@@ -469,23 +448,23 @@ export function showVirusThumbnailOverlay({
   document.body.appendChild(overlay);
 
   // Prevent body scroll when overlay is open
-  document.body.style.overflow = "hidden";
+  document.body.style.overflow = 'hidden';
 
   // Cleanup function to restore body scroll and remove event listeners
   function cleanup() {
-    document.body.style.overflow = "";
-    overlay.removeEventListener("keydown", handleKeyNavigation);
-    searchInput.removeEventListener("input", handleSearchInput);
-    closeBtn.removeEventListener("click", handleCloseClick);
-    overlay.removeEventListener("click", handleBackgroundClick);
+    document.body.style.overflow = '';
+    overlay.removeEventListener('keydown', handleKeyNavigation);
+    searchInput.removeEventListener('input', handleSearchInput);
+    closeBtn.removeEventListener('click', handleCloseClick);
+    overlay.removeEventListener('click', handleBackgroundClick);
 
     // Clean up thumbnail event listeners using stored handlers
     thumbnailHandlers.forEach((handlers, element) => {
-      element.removeEventListener("click", handlers.click);
-      element.removeEventListener("keydown", handlers.keydown);
-      element.removeEventListener("touchstart", handlers.touchstart);
-      element.removeEventListener("touchmove", handlers.touchmove);
-      element.removeEventListener("touchend", handlers.touchend);
+      element.removeEventListener('click', handlers.click);
+      element.removeEventListener('keydown', handlers.keydown);
+      element.removeEventListener('touchstart', handlers.touchstart);
+      element.removeEventListener('touchmove', handlers.touchmove);
+      element.removeEventListener('touchend', handlers.touchend);
     });
     thumbnailHandlers.clear();
 
@@ -497,9 +476,9 @@ export function showVirusThumbnailOverlay({
     cleanup;
 
   // Auto-cleanup when overlay is removed
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.removedNodes.forEach((node) => {
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.removedNodes.forEach(node => {
         if (node === overlay) {
           cleanup();
           observer.disconnect();

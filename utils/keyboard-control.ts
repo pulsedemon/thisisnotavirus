@@ -1,6 +1,9 @@
 export function requestKeyboardControl(enabled: boolean): void {
   if (window.parent !== window) {
-    window.parent.postMessage({ type: "requestKeyboardControl", enabled }, "*");
+    window.parent.postMessage(
+      { type: 'requestKeyboardControl', enabled },
+      window.location.origin
+    );
   }
 }
 
@@ -17,16 +20,16 @@ interface KeyboardEventMessage {
 
 function isKeyboardEventMessage(data: unknown): data is KeyboardEventMessage {
   return (
-    typeof data === "object" &&
+    typeof data === 'object' &&
     data !== null &&
-    "type" in data &&
-    data.type === "keyboardEvent" &&
-    "eventType" in data &&
-    "key" in data &&
-    "code" in data &&
-    typeof data.eventType === "string" &&
-    typeof data.key === "string" &&
-    typeof data.code === "string"
+    'type' in data &&
+    data.type === 'keyboardEvent' &&
+    'eventType' in data &&
+    'key' in data &&
+    'code' in data &&
+    typeof data.eventType === 'string' &&
+    typeof data.key === 'string' &&
+    typeof data.code === 'string'
   );
 }
 
@@ -53,10 +56,10 @@ export function setupKeyboardControl(): () => void {
     }
   };
 
-  window.addEventListener("message", messageHandler);
+  window.addEventListener('message', messageHandler);
 
   return () => {
     requestKeyboardControl(false);
-    window.removeEventListener("message", messageHandler);
+    window.removeEventListener('message', messageHandler);
   };
 }
