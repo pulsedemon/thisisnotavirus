@@ -37,7 +37,7 @@ describe('Keyboard Control', () => {
 
       expect(postMessageSpy).toHaveBeenCalledWith(
         { type: 'requestKeyboardControl', enabled: true },
-        window.location.origin
+        '*'
       );
     });
 
@@ -55,7 +55,7 @@ describe('Keyboard Control', () => {
 
       expect(postMessageSpy).toHaveBeenCalledWith(
         { type: 'requestKeyboardControl', enabled: false },
-        window.location.origin
+        '*'
       );
     });
 
@@ -106,7 +106,7 @@ describe('Keyboard Control', () => {
 
       expect(postMessageSpy).toHaveBeenCalledWith(
         { type: 'requestKeyboardControl', enabled: true },
-        window.location.origin
+        '*'
       );
 
       cleanup();
@@ -126,7 +126,7 @@ describe('Keyboard Control', () => {
 
       expect(postMessageSpy).toHaveBeenCalledWith(
         { type: 'requestKeyboardControl', enabled: false },
-        window.location.origin
+        '*'
       );
     });
 

@@ -1,9 +1,6 @@
 export function requestKeyboardControl(enabled: boolean): void {
   if (window.parent !== window) {
-    window.parent.postMessage(
-      { type: 'requestKeyboardControl', enabled },
-      window.location.origin
-    );
+    window.parent.postMessage({ type: 'requestKeyboardControl', enabled }, '*');
   }
 }
 

@@ -13,6 +13,10 @@ export function safeGtag(
   params?: Record<string, unknown>
 ): void {
   if (typeof gtag === 'function') {
-    gtag(command, targetOrName, params);
+    try {
+      gtag(command, targetOrName, params);
+    } catch {
+      // Analytics errors should never break the app
+    }
   }
 }

@@ -3,7 +3,7 @@
  * Generates arcade-style sound effects using Web Audio API
  */
 export class AudioManager {
-  private audioContext: AudioContext;
+  private audioContext: AudioContext | undefined;
   private sounds = new Map<string, AudioBuffer>();
   private isEnabled = true;
 
@@ -13,8 +13,8 @@ export class AudioManager {
         (window as unknown as { webkitAudioContext: typeof AudioContext })
           .webkitAudioContext)();
       this.loadSounds();
-    } catch {
-      console.warn('Web Audio API not supported');
+    } catch (error) {
+      console.warn('Web Audio API not supported:', error);
     }
   }
 
@@ -24,6 +24,8 @@ export class AudioManager {
   }
 
   private generateProceduralSounds() {
+    if (!this.audioContext) return;
+
     // Generate basic sound effects using oscillators
     const soundTypes = ['clawDescend', 'clawBounce', 'win', 'lose'];
 
@@ -34,6 +36,8 @@ export class AudioManager {
   }
 
   private generateProceduralSound(soundName: string): AudioBuffer | null {
+    if (!this.audioContext) return null;
+
     try {
       const sampleRate = this.audioContext.sampleRate;
       const duration = this.getSoundDuration(soundName);
@@ -109,7 +113,8 @@ export class AudioManager {
       }
 
       return buffer;
-    } catch {
+    } catch (error) {
+      console.warn('Failed to generate sound:', error);
       return null;
     }
   }
@@ -125,7 +130,7 @@ export class AudioManager {
   }
 
   playSound(name: string, volume = 0.5, pitch = 1.0) {
-    if (!this.isEnabled || !this.sounds.has(name)) return;
+    if (!this.audioContext || !this.isEnabled || !this.sounds.has(name)) return;
 
     try {
       const buffer = this.sounds.get(name)!;
@@ -141,8 +146,8 @@ export class AudioManager {
       gainNode.connect(this.audioContext.destination);
 
       source.start();
-    } catch {
-      console.warn('Failed to play sound:', name);
+    } catch (error) {
+      console.warn('Failed to play sound:', name, error);
     }
   }
 

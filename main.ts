@@ -506,7 +506,7 @@ function forwardKeyboardEventToIframe(event: KeyboardEvent, eventType: string) {
         altKey: event.altKey,
         metaKey: event.metaKey,
       },
-      window.location.origin
+      '*'
     );
   }
 }

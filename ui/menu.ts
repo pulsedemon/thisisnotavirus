@@ -54,10 +54,10 @@ export function teleportMenu(): void {
   safeGtag('event', 'v_icon_click');
 }
 
-export function shuffleTitle(): void {
+export function shuffleTitle(): ReturnType<typeof setInterval> {
   const originalTitle = document.title;
   let intervalCounter = 0;
-  setInterval(function () {
+  return setInterval(function () {
     intervalCounter++;
     if (intervalCounter % 5 === 0) {
       document.title = originalTitle;

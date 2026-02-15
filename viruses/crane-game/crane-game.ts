@@ -225,6 +225,12 @@ export default class CraneGame {
         console.error(`Failed to load model ${modelPath}:`, error);
       }
     }
+
+    if (this.plushieTemplates.length === 0) {
+      console.error(
+        'No plushie models loaded — crane game will have no prizes'
+      );
+    }
   }
 
   private disableShadowsForPerformance(model: THREE.Group) {

@@ -97,7 +97,8 @@ export default class VirusLab {
       return JSON.parse(
         localStorage.getItem('savedVirusMixes') || '[]'
       ) as VirusMix[];
-    } catch {
+    } catch (error) {
+      console.error('Failed to load saved virus mixes:', error);
       return [];
     }
   }
