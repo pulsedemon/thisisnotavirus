@@ -1,4 +1,8 @@
-import { randomBool, randomIntBetween, randomRgbColor } from "../../utils/random";
+import {
+  randomBool,
+  randomIntBetween,
+  randomRgbColor,
+} from '../../utils/random';
 
 class RandomBlocks {
   screenWidth!: number;
@@ -11,20 +15,20 @@ class RandomBlocks {
 
   canvasCtx!: CanvasRenderingContext2D;
   blockSize = randomIntBetween(10, 30);
-  container = document.getElementById("container")!;
-  bgColors = ["black", "aqua", "red"];
+  container = document.getElementById('container')!;
+  bgColors = ['black', 'aqua', 'red'];
 
   constructor() {
     document.body.style.backgroundColor =
       this.bgColors[randomIntBetween(0, this.bgColors.length)];
-    this.canvas = document.createElement("canvas");
-    this.canvasCtx = this.canvas.getContext("2d")!;
+    this.canvas = document.createElement('canvas');
+    this.canvasCtx = this.canvas.getContext('2d')!;
     this.container.appendChild(this.canvas);
     this.setVariables();
 
     this.update();
 
-    window.addEventListener("resize", () => this.onWindowResize(), false);
+    window.addEventListener('resize', () => this.onWindowResize(), false);
   }
 
   setVariables() {
@@ -50,7 +54,7 @@ class RandomBlocks {
     const randomYNumber = this.randomYAxis(size);
 
     const position: number[] = [randomXNumber, randomYNumber];
-    if (!~this.locations.indexOf(position.join(""))) {
+    if (!~this.locations.indexOf(position.join(''))) {
       if (this.maybe) {
         this.triangle(position);
       } else {
@@ -69,7 +73,7 @@ class RandomBlocks {
     const xPosition = position[0];
     const yPosition = position[1];
 
-    this.canvasCtx.fillStyle = "rgb(" + randomColor + ")";
+    this.canvasCtx.fillStyle = 'rgb(' + randomColor + ')';
     this.canvasCtx.fillRect(
       xPosition,
       yPosition,

@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 // Import utilities that are used directly in tests (not in vi.mock)
-import { setupDOMMocks } from "../../../test-utils/dom-mocks";
+import { setupDOMMocks } from '../../../test-utils/dom-mocks';
 import {
   setupAnimationFrameMocks,
   cleanupAnimationFrameMocks,
-} from "../../../test-utils/anim-mocks";
+} from '../../../test-utils/anim-mocks';
 
 // Import mock classes from test-utils
 import {
@@ -26,12 +26,12 @@ import {
   MockTextureLoader,
   MockCanvasTexture,
   MockOrbitControls,
-} from "../../../test-utils/three-mocks";
+} from '../../../test-utils/three-mocks';
 
 import {
   MockPhysicsManager,
   MockRapierVector3,
-} from "../../../test-utils/physics-mocks";
+} from '../../../test-utils/physics-mocks';
 
 import {
   MockCabinet,
@@ -41,10 +41,10 @@ import {
   MockAudioManager,
   MockAtmosphericEffects,
   createMockGameConfig,
-} from "../../../test-utils/crane-game-mocks";
+} from '../../../test-utils/crane-game-mocks';
 
 // Mock all dependencies before importing CraneGame
-vi.mock("three", () => ({
+vi.mock('three', () => ({
   Scene: MockScene,
   PerspectiveCamera: MockPerspectiveCamera,
   WebGLRenderer: MockWebGLRenderer,
@@ -64,14 +64,14 @@ vi.mock("three", () => ({
   ACESFilmicToneMapping: 0,
   PCFSoftShadowMap: 0,
   RepeatWrapping: 0,
-  SRGBColorSpace: "",
+  SRGBColorSpace: '',
 }));
 
-vi.mock("three/addons/controls/OrbitControls.js", () => ({
+vi.mock('three/addons/controls/OrbitControls.js', () => ({
   OrbitControls: MockOrbitControls,
 }));
 
-vi.mock("three/addons/loaders/GLTFLoader.js", () => ({
+vi.mock('three/addons/loaders/GLTFLoader.js', () => ({
   GLTFLoader: class MockGLTFLoader {
     loadAsync = vi.fn().mockResolvedValue({
       scene: new MockGroup(),
@@ -79,41 +79,41 @@ vi.mock("three/addons/loaders/GLTFLoader.js", () => ({
   },
 }));
 
-vi.mock("../PhysicsManager", () => ({
+vi.mock('../PhysicsManager', () => ({
   PhysicsManager: MockPhysicsManager,
 }));
 
-import CraneGame from "../crane-game";
+import CraneGame from '../crane-game';
 
-vi.mock("../CraneRope", () => ({
+vi.mock('../CraneRope', () => ({
   CraneRope: MockCraneRope,
 }));
 
-vi.mock("../ClawPhysics", () => ({
+vi.mock('../ClawPhysics', () => ({
   ClawPhysics: MockClawPhysics,
 }));
 
-vi.mock("../AudioManager", () => ({
+vi.mock('../AudioManager', () => ({
   AudioManager: MockAudioManager,
 }));
 
-vi.mock("../AtmosphericEffects", () => ({
+vi.mock('../AtmosphericEffects', () => ({
   AtmosphericEffects: MockAtmosphericEffects,
 }));
 
-vi.mock("../Cabinet", () => ({
+vi.mock('../Cabinet', () => ({
   Cabinet: MockCabinet,
 }));
 
-vi.mock("../ClawManager", () => ({
+vi.mock('../ClawManager', () => ({
   ClawManager: MockClawManager,
 }));
 
-vi.mock("../config", () => ({
+vi.mock('../config', () => ({
   GAME_CONFIG: createMockGameConfig(),
 }));
 
-vi.mock("@dimforge/rapier3d-compat", () => ({
+vi.mock('@dimforge/rapier3d-compat', () => ({
   default: {
     init: vi.fn().mockResolvedValue(undefined),
     Vector3: MockRapierVector3,
@@ -126,10 +126,10 @@ setupAnimationFrameMocks();
 // Mock fetch globally
 global.fetch = vi.fn().mockResolvedValue({
   ok: true,
-  json: () => Promise.resolve({ images: ["test1.jpg", "test2.jpg"] }),
+  json: () => Promise.resolve({ images: ['test1.jpg', 'test2.jpg'] }),
 } as Response);
 
-describe("CraneGame", () => {
+describe('CraneGame', () => {
   let craneGame: CraneGame;
 
   beforeEach(async () => {
@@ -137,13 +137,13 @@ describe("CraneGame", () => {
     setupDOMMocks();
 
     // Mock Rapier init to avoid async issues in tests
-    const { default: RAPIER } = await import("@dimforge/rapier3d-compat");
+    const { default: RAPIER } = await import('@dimforge/rapier3d-compat');
     vi.mocked(RAPIER.init).mockResolvedValue(undefined);
 
     // Reset fetch mock before each test
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ images: ["test1.jpg", "test2.jpg"] }),
+      json: () => Promise.resolve({ images: ['test1.jpg', 'test2.jpg'] }),
     } as Response);
 
     // Mock the animate method before creating the instance
@@ -156,7 +156,7 @@ describe("CraneGame", () => {
     craneGame.animate = animateSpy;
 
     // Wait for the constructor and async init to complete (including loadImages)
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Manually initialize the keys object since setupControls may not be called properly in tests
     craneGame.keys = {
@@ -185,7 +185,7 @@ describe("CraneGame", () => {
 
     // Initialize UI element for tests
     craneGame.uiElement = {
-      innerHTML: "",
+      innerHTML: '',
     } as HTMLDivElement;
   });
 
@@ -196,8 +196,8 @@ describe("CraneGame", () => {
     vi.clearAllTimers();
   });
 
-  describe("constructor", () => {
-    it("should initialize with default values", () => {
+  describe('constructor', () => {
+    it('should initialize with default values', () => {
       expect(craneGame).toBeDefined();
       expect(craneGame.credits).toBe(10); // startingCredits from config
       expect(craneGame.wonPrizes).toEqual([]);
@@ -205,14 +205,14 @@ describe("CraneGame", () => {
     });
   });
 
-  describe("dropClaw", () => {
-    it("should decrease credits when dropping claw", () => {
+  describe('dropClaw', () => {
+    it('should decrease credits when dropping claw', () => {
       const initialCredits = craneGame.credits;
       craneGame.dropClaw();
       expect(craneGame.credits).toBe(initialCredits - 1);
     });
 
-    it("should not drop claw when out of credits", () => {
+    it('should not drop claw when out of credits', () => {
       craneGame.credits = 0 as typeof craneGame.credits;
       const initialCredits = craneGame.credits;
       craneGame.dropClaw();
@@ -220,35 +220,35 @@ describe("CraneGame", () => {
     });
   });
 
-  describe("showMessage", () => {
-    it("should create and remove message element", async () => {
-      const createElementSpy = vi.spyOn(document, "createElement");
-      const appendChildSpy = vi.spyOn(document.body, "appendChild");
+  describe('showMessage', () => {
+    it('should create and remove message element', async () => {
+      const createElementSpy = vi.spyOn(document, 'createElement');
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild');
 
-      craneGame.showMessage("TEST MESSAGE");
+      craneGame.showMessage('TEST MESSAGE');
 
-      expect(createElementSpy).toHaveBeenCalledWith("div");
+      expect(createElementSpy).toHaveBeenCalledWith('div');
       expect(appendChildSpy).toHaveBeenCalled();
 
       // Wait for timeout to complete
-      await new Promise((resolve) => setTimeout(resolve, 2100));
+      await new Promise(resolve => setTimeout(resolve, 2100));
     });
   });
 
-  describe("updateUI", () => {
-    it("should update UI element with current game state", () => {
+  describe('updateUI', () => {
+    it('should update UI element with current game state', () => {
       craneGame.updateUI();
 
       expect(craneGame.uiElement).toBeDefined();
-      expect(craneGame.uiElement.innerHTML).toContain("Credits:");
-      expect(craneGame.uiElement.innerHTML).toContain("Won:");
+      expect(craneGame.uiElement.innerHTML).toContain('Credits:');
+      expect(craneGame.uiElement.innerHTML).toContain('Won:');
     });
 
-    it("should show correct instruction text based on claw state", () => {
+    it('should show correct instruction text based on claw state', () => {
       // Test default state
       craneGame.updateUI();
       expect(craneGame.uiElement.innerHTML).toContain(
-        "WASD or Arrow Keys: Move | SPACE: Drop Claw",
+        'WASD or Arrow Keys: Move | SPACE: Drop Claw'
       );
 
       // Mock claw manager and its states
@@ -263,12 +263,12 @@ describe("CraneGame", () => {
       // Test different claw states
       craneGame.clawManager.isDescending = true;
       craneGame.updateUI();
-      expect(craneGame.uiElement.innerHTML).toContain("Grabbing...");
+      expect(craneGame.uiElement.innerHTML).toContain('Grabbing...');
     });
   });
 
-  describe("onWindowResize", () => {
-    it("should update camera aspect ratio and renderer size", () => {
+  describe('onWindowResize', () => {
+    it('should update camera aspect ratio and renderer size', () => {
       // Mock camera and renderer objects on the craneGame instance
       craneGame.camera = {
         aspect: 1,
@@ -281,9 +281,9 @@ describe("CraneGame", () => {
 
       const updateProjectionMatrixSpy = vi.spyOn(
         craneGame.camera,
-        "updateProjectionMatrix",
+        'updateProjectionMatrix'
       );
-      const setSizeSpy = vi.spyOn(craneGame.renderer, "setSize");
+      const setSizeSpy = vi.spyOn(craneGame.renderer, 'setSize');
 
       craneGame.onWindowResize();
 
@@ -292,18 +292,18 @@ describe("CraneGame", () => {
     });
   });
 
-  describe("prize management", () => {
-    it("should track won prizes", () => {
+  describe('prize management', () => {
+    it('should track won prizes', () => {
       const mockPrize = {
-        mesh: { id: "test-prize" },
+        mesh: { id: 'test-prize' },
         rigidBody: {},
         grabbed: false,
         settled: false,
-        imageUrl: "test.jpg",
+        imageUrl: 'test.jpg',
         weight: 1,
         deformability: 0.5,
         bounciness: 0.2,
-        materialType: "plush" as const,
+        materialType: 'plush' as const,
         gripStrength: 0,
         dropChance: 0,
       } as unknown as (typeof craneGame.wonPrizes)[0];
@@ -314,8 +314,8 @@ describe("CraneGame", () => {
     });
   });
 
-  describe("keyboard controls", () => {
-    it("should initialize keys object with default values", () => {
+  describe('keyboard controls', () => {
+    it('should initialize keys object with default values', () => {
       expect(craneGame.keys).toEqual({
         w: false,
         a: false,

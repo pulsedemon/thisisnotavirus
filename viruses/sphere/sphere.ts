@@ -1,7 +1,7 @@
-import "./sphere.scss";
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { randomBool, randomInt } from "../../utils/random";
+import './sphere.scss';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { randomBool, randomInt } from '../../utils/random';
 
 class Sphere {
   WIDTH: number;
@@ -22,8 +22,8 @@ class Sphere {
     this.createVortex();
     this.createDiamond();
 
-    document.getElementById("container")!.appendChild(this.renderer.domElement);
-    window.addEventListener("resize", () => this.setRenderOptions(), false);
+    document.getElementById('container')!.appendChild(this.renderer.domElement);
+    window.addEventListener('resize', () => this.setRenderOptions(), false);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.update();
@@ -46,7 +46,7 @@ class Sphere {
     this.renderer.setSize(this.WIDTH, this.HEIGHT);
 
     this.renderer.domElement.style.top =
-      window.innerHeight - this.HEIGHT / 2 + "px";
+      window.innerHeight - this.HEIGHT / 2 + 'px';
 
     if (!this.camera) {
       const VIEW_ANGLE = 45;
@@ -71,7 +71,7 @@ class Sphere {
       100,
       segments,
       18,
-      ...extraOptions,
+      ...extraOptions
     );
     const random_color = Math.random() * 0xffffff;
     const material = new THREE.MeshBasicMaterial({
@@ -121,7 +121,7 @@ class Sphere {
       objMesh.material.color.set(
         Math.round(Math.random()),
         Math.round(Math.random()),
-        Math.round(Math.random()),
+        Math.round(Math.random())
       );
     }
   }

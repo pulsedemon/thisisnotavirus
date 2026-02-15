@@ -1,5 +1,18 @@
-@use "./animations.scss";
-@use "./_virus-lab.scss";
+@use './animations.scss';
+@use './_virus-lab.scss';
+
+:root {
+  --color-primary: #00ffff;
+  --color-primary-dark: #00cccc;
+  --color-accent: #ff00ff;
+  --color-bg: #000;
+  --color-surface: #2a2a2a;
+  --z-base: 0;
+  --z-overlay: 100;
+  --z-controls: 1000;
+  --z-floating-btn: 2000;
+  --z-modal: 9999;
+}
 
 // Global hide class
 .hide {
@@ -17,8 +30,8 @@
 body {
   font-size: 62.5%;
   line-height: 1;
-  background-color: #000;
-  font-family: "Roboto", sans-serif;
+  background-color: var(--color-bg);
+  font-family: 'Roboto', sans-serif;
 }
 
 #container {
@@ -51,7 +64,7 @@ body {
   right: 0;
   cursor: pointer;
   user-select: none;
-  z-index: 100000;
+  z-index: var(--z-controls);
 
   .controls {
     display: flex;
@@ -63,7 +76,7 @@ body {
     padding: 0 5px;
 
     &:hover {
-      color: #00ffff;
+      color: var(--color-primary);
     }
   }
 
@@ -81,14 +94,14 @@ body {
 
     &::before,
     &::after {
-      content: "V";
+      content: 'V';
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       overflow: hidden;
       background: transparent;
-      color: #00ffff;
+      color: var(--color-primary);
       clip: rect(0, 900px, 0, 0);
     }
 
@@ -114,7 +127,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 3;
+  z-index: var(--z-modal);
 
   &.show {
     display: block;
@@ -148,7 +161,7 @@ body {
     color: #ff0000;
 
     &:hover {
-      color: #00ffff;
+      color: var(--color-primary);
     }
   }
 }
@@ -172,7 +185,7 @@ body {
   text-indent: -9999px;
 
   &.github-icon {
-    background-image: url("/images/github-mark-white.svg");
+    background-image: url('/images/github-mark-white.svg');
   }
 }
 
@@ -239,7 +252,7 @@ body {
   background-color: black;
   font-size: 30px;
   padding: 10px 15px;
-  z-index: 10000;
+  z-index: var(--z-controls);
 
   a {
     color: white;
@@ -256,7 +269,7 @@ body {
   color: white;
   font-family: sans-serif;
   font-size: 40px;
-  text-shadow: #00ffff 1px 0 10px;
+  text-shadow: var(--color-primary) 1px 0 10px;
 }
 
 .lab-button {
@@ -266,12 +279,12 @@ body {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #00ffff;
+  background: var(--color-primary);
   border: none;
   color: #000;
   font-size: 24px;
   cursor: pointer;
-  z-index: 2000;
+  z-index: var(--z-floating-btn);
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
 
@@ -285,8 +298,6 @@ body {
   }
 
   &[title] {
-    position: relative;
-
     &::after {
       content: attr(title);
       position: absolute;
@@ -295,7 +306,7 @@ body {
       transform: translateY(-50%);
       padding: 5px 10px;
       background: rgba(0, 0, 0, 0.8);
-      color: #00ffff;
+      color: var(--color-primary);
       font-size: 14px;
       border-radius: 4px;
       white-space: nowrap;
@@ -311,7 +322,17 @@ body {
   }
 }
 
+#lab-btn {
+  right: 20px;
+}
+
 #thumbnail-btn {
+  left: 20px;
+  right: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   &[title] {
     &::after {
       right: unset;
@@ -323,7 +344,7 @@ body {
 
 #secondary-virus,
 iframe.secondary-virus,
-iframe[id*="secondary"] {
+iframe[id*='secondary'] {
   mix-blend-mode: screen !important;
 }
 
@@ -345,7 +366,7 @@ iframe[id*="secondary"] {
 
   // Add subtle scanlines effect
   &::after {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
@@ -396,12 +417,12 @@ iframe[id*="secondary"] {
   align-items: center;
   padding: 15px 20px;
   background: #000;
-  border-bottom: 2px solid #00ffff;
+  border-bottom: 2px solid var(--color-primary);
   position: relative;
   z-index: 2;
 
   &::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
@@ -427,7 +448,7 @@ iframe[id*="secondary"] {
 }
 
 .virus-overlay-title {
-  color: #00ffff;
+  color: var(--color-primary);
   font-family: monospace;
   font-size: 1.5rem;
   font-weight: bold;
@@ -439,7 +460,7 @@ iframe[id*="secondary"] {
 
   &::before,
   &::after {
-    content: "SELECT VIRUS";
+    content: 'SELECT VIRUS';
     position: absolute;
     top: 0;
     left: 0;
@@ -494,9 +515,9 @@ iframe[id*="secondary"] {
   width: 100%;
   padding: 12px 20px 12px 16px;
   background: #000;
-  border: 2px solid #00ffff;
+  border: 2px solid var(--color-primary);
   border-radius: 0;
-  color: #00ffff;
+  color: var(--color-primary);
   font-size: 14px;
   font-family: monospace;
   transition: all 0.2s ease;
@@ -536,7 +557,7 @@ iframe[id*="secondary"] {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #00ffff;
+  color: var(--color-primary);
   font-size: 16px;
   pointer-events: none;
   font-family: monospace;
@@ -551,7 +572,7 @@ iframe[id*="secondary"] {
   overflow-x: hidden;
   padding: 10px 0;
   scrollbar-width: thin;
-  scrollbar-color: #00ffff #000;
+  scrollbar-color: var(--color-primary) var(--color-bg);
   align-items: start;
   justify-items: center;
   grid-auto-rows: max-content;
@@ -567,7 +588,7 @@ iframe[id*="secondary"] {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #00ffff;
+    background: var(--color-primary);
     border-radius: 0;
 
     &:hover {
@@ -587,7 +608,7 @@ iframe[id*="secondary"] {
   flex-direction: column;
   cursor: pointer;
   background: #000;
-  border: 1px solid #00ffff;
+  border: 1px solid var(--color-primary);
   border-radius: 0;
   padding: 10px;
   transition: all 0.2s ease;
@@ -743,13 +764,13 @@ iframe[id*="secondary"] {
 
 .play-icon {
   font-size: 1.5rem;
-  color: #00ffff;
+  color: var(--color-primary);
   text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
   font-family: monospace;
 }
 
 .virus-label {
-  color: #00ffff;
+  color: var(--color-primary);
   font-family: monospace;
   font-size: 0.8rem;
   font-weight: bold;
@@ -771,8 +792,8 @@ iframe[id*="secondary"] {
 
 .virus-thumbnail-close {
   background: #000;
-  color: #00ffff;
-  border: 2px solid #00ffff;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   border-radius: 0;
   width: 40px;
   height: 40px;
@@ -788,7 +809,7 @@ iframe[id*="secondary"] {
   font-weight: bold;
 
   &:hover {
-    background: #00ffff;
+    background: var(--color-primary);
     color: #000;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
     animation: buttonGlitch 0.1s ease-in-out;
@@ -1039,7 +1060,7 @@ iframe[id*="secondary"] {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: #00ffff #000;
+  scrollbar-color: var(--color-primary) var(--color-bg);
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -1050,7 +1071,7 @@ iframe[id*="secondary"] {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #00ffff;
+    background: var(--color-primary);
     border-radius: 0;
 
     &:hover {
@@ -1071,7 +1092,7 @@ iframe[id*="secondary"] {
   margin-bottom: 10px;
   display: block;
   font-size: 1.1rem;
-  color: #00ffff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   text-transform: uppercase;
   font-family: monospace;
@@ -1128,7 +1149,9 @@ iframe[id*="secondary"] {
     }
 
     .mix-symbol {
-      animation: pulse 1s infinite, textGlitch 0.1s ease-in-out;
+      animation:
+        pulse 1s infinite,
+        textGlitch 0.1s ease-in-out;
     }
   }
 
@@ -1177,7 +1200,7 @@ iframe[id*="secondary"] {
 
 .primary-virus,
 .secondary-virus {
-  color: #00ffff;
+  color: var(--color-primary);
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 1px;

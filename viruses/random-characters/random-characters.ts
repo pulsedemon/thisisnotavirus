@@ -1,5 +1,5 @@
-import { randomInt } from "../../utils/random";
-import "./random-characters.scss";
+import { randomInt } from '../../utils/random';
+import './random-characters.scss';
 
 class RandomCharacters {
   text!: string;
@@ -8,7 +8,7 @@ class RandomCharacters {
   randomStringLength = 170;
   characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()?;:[]{}<>,.+=≈~`/\\|-_"✖◕‿↼肉¿¡∞•ªº≠·■私';
-  emojis = [..."🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥🩸🩻"];
+  emojis = [...'🔪💊👾🤘✌🧠👁🦠🍷🍺🔥💧🎉🎮♥🩸🩻'];
   canvas: HTMLCanvasElement;
 
   constructor(canvas: HTMLCanvasElement, ystart: number) {
@@ -17,7 +17,7 @@ class RandomCharacters {
   }
 
   randomString(length: number): string {
-    let string = "";
+    let string = '';
 
     for (let i = 0; i < length; i++) {
       string += this.characters.charAt(randomInt(this.characters.length));
@@ -45,10 +45,10 @@ class RandomCharacters {
   }
 
   drawText() {
-    const context = this.canvas.getContext("2d")!;
-    context.font = "25px monospace";
-    context.fillStyle = "#000000";
-    context.textBaseline = "middle";
+    const context = this.canvas.getContext('2d')!;
+    context.font = '25px monospace';
+    context.fillStyle = '#000000';
+    context.textBaseline = 'middle';
     this.text = this.randomString(this.randomStringLength);
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     context.fillText(this.text, this.xloc, this.yloc);
@@ -61,12 +61,12 @@ appendCanvases();
 
 function appendCanvases() {
   const numCanvases = Math.ceil(
-    document.getElementById("container")!.clientHeight / canvasHeight
+    document.getElementById('container')!.clientHeight / canvasHeight
   );
   for (let i = 0; i < numCanvases; i++) {
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.height = canvasHeight;
-    document.getElementById("container")!.appendChild(canvas);
+    document.getElementById('container')!.appendChild(canvas);
     canvas.width = canvas.clientWidth;
 
     const rc = new RandomCharacters(canvas, 15);
@@ -76,12 +76,12 @@ function appendCanvases() {
 
 let resizeStop: ReturnType<typeof setTimeout>;
 window.addEventListener(
-  "resize",
+  'resize',
   () => {
     clearTimeout(resizeStop);
     resizeStop = setTimeout(() => {
-      const currentCanvases = document.querySelectorAll("#container canvas");
-      currentCanvases.forEach((el) => {
+      const currentCanvases = document.querySelectorAll('#container canvas');
+      currentCanvases.forEach(el => {
         el.remove();
       });
       appendCanvases();

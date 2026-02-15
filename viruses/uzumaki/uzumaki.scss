@@ -1,4 +1,4 @@
-@use "../../sass/animations.scss";
+@use '../../sass/animations.scss';
 
 body {
   transition: all 0.2s linear;
@@ -11,8 +11,8 @@ body {
   position: relative;
 
   &::before {
-    background-image: url("/viruses/uzumaki/uzumaki.webp");
-    content: "";
+    background-image: url('/viruses/uzumaki/uzumaki.webp');
+    content: '';
     position: fixed;
     width: 300%;
     height: 300%;

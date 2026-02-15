@@ -6,17 +6,17 @@
  */
 
 // Three.js mocks
-export * from "./three-mocks";
-export * from "./create-three-mocks";
+export * from './three-mocks';
+export * from './create-three-mocks';
 
 // DOM mocks
-export * from "./dom-mocks";
+export * from './dom-mocks';
 
 // Animation mocks
-export * from "./anim-mocks";
+export * from './anim-mocks';
 
 // Physics mocks
-export * from "./physics-mocks";
+export * from './physics-mocks';
 
 // Crane game specific mocks
-export * from "./crane-game-mocks";
+export * from './crane-game-mocks';

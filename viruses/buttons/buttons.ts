@@ -1,13 +1,13 @@
-import "./buttons.scss";
+import './buttons.scss';
 
-import { draggable, isMobile, preloadImage, shuffle } from "../../utils/misc";
-import { randomInt, randomIntBetween } from "../../utils/random";
+import { draggable, isMobile, preloadImage, shuffle } from '../../utils/misc';
+import { randomInt, randomIntBetween } from '../../utils/random';
 
 class Buttons {
   container: HTMLElement;
   width: number;
   height: number;
-  buttonClasses = ["button-54", "button-49", "button-triangle"];
+  buttonClasses = ['button-54', 'button-49', 'button-triangle'];
   grid: string[] = [];
   imageGridSize = 55;
   gridCols: number;
@@ -16,50 +16,50 @@ class Buttons {
   images: string[] = [];
   topzIndex = 2;
   buttonText = [
-    "Click Me",
-    "私をクリック", // japanese
-    "点我", // chinese (simplified)
-    "Haz click en mi", // spanish
-    "натисніть мене", // ukrainian
-    "klik my", // afrikaans
-    "кликнете на мене", // macedonian
-    "Klick mich", // german
-    "클릭 해주세요", // korean
-    "нажми на меня", // russian
-    "clique moi", // french
-    "Klikk på meg", // norwegian
-    "Klicka här", // swedish
-    "pindutin mo ako", // filipino
-    "Kliknij", // polish
-    "Klik hier", // dutch
-    "cliccami", // italian
+    'Click Me',
+    '私をクリック', // japanese
+    '点我', // chinese (simplified)
+    'Haz click en mi', // spanish
+    'натисніть мене', // ukrainian
+    'klik my', // afrikaans
+    'кликнете на мене', // macedonian
+    'Klick mich', // german
+    '클릭 해주세요', // korean
+    'нажми на меня', // russian
+    'clique moi', // french
+    'Klikk på meg', // norwegian
+    'Klicka här', // swedish
+    'pindutin mo ako', // filipino
+    'Kliknij', // polish
+    'Klik hier', // dutch
+    'cliccami', // italian
   ];
 
   constructor() {
-    this.container = document.getElementById("container")!;
+    this.container = document.getElementById('container')!;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
     this.gridCols = Math.ceil(this.width / this.imageGridSize);
     this.gridRows = Math.ceil(this.height / this.imageGridSize);
 
-    void fetch("/viruses/buttons/images.json")
-      .then((response) => (response.ok ? response.json() : undefined))
+    void fetch('/viruses/buttons/images.json')
+      .then(response => (response.ok ? response.json() : undefined))
       .then((data?: { images: string[] }) => {
         if (!data || !Array.isArray(data.images)) return;
         this.images = data.images;
-        this.images.forEach((i) => preloadImage(i));
+        this.images.forEach(i => preloadImage(i));
         this.assignImages();
       })
-      .catch(() => {
-        // Silently ignore missing JSON in preview/dev
+      .catch((err: unknown) => {
+        console.error('Failed to load button images:', err);
       });
   }
 
   addRandomButton() {
     const coords = b.getRandomCoords();
-    const button = document.createElement("button");
-    button.type = "button";
+    const button = document.createElement('button');
+    button.type = 'button';
     button.style.top = `${coords.y}px`;
     button.style.left = `${coords.x}px`;
     button.innerText = this.buttonText[randomInt(this.buttonText.length)];
@@ -79,20 +79,20 @@ class Buttons {
 
   appendImages(): void {
     this.grid.forEach((imgSrc, i) => {
-      const image = document.createElement("img");
+      const image = document.createElement('img');
       image.src = imgSrc;
 
       const coords = this.getRandomCoordsForCell(i + 1);
       image.style.top = `${coords.y}px`;
       image.style.left = `${coords.x}px`;
 
-      const filename = image.src.split("/").slice(-1)[0].split(".")[0];
+      const filename = image.src.split('/').slice(-1)[0].split('.')[0];
       image.classList.add(filename);
       this.container.appendChild(image);
 
       draggable(image);
 
-      image.addEventListener(isMobile ? "touchstart" : "mousedown", (e) => {
+      image.addEventListener(isMobile() ? 'touchstart' : 'mousedown', e => {
         this.bringToTop(e.target);
       });
     });
@@ -159,14 +159,14 @@ function initButtons() {
 initButtons();
 
 const explosions: string[] = [
-  "/viruses/buttons/explosions/nukeexplosion1.gif",
-  "/viruses/buttons/explosions/explosion1.gif",
+  '/viruses/buttons/explosions/nukeexplosion1.gif',
+  '/viruses/buttons/explosions/explosion1.gif',
 ];
 
-document.addEventListener("click", function (e) {
+document.addEventListener('click', function (e) {
   if (!e.target) return;
   const target = e.target as HTMLButtonElement;
-  if (target.type !== "button") return;
+  if (target.type !== 'button') return;
 
   continueAddingButtons = false;
 
@@ -174,14 +174,14 @@ document.addEventListener("click", function (e) {
     b.appendImages();
   });
 
-  const buttons = document.querySelectorAll<HTMLElement>("button[type=button]");
+  const buttons = document.querySelectorAll<HTMLElement>('button[type=button]');
   requestAnimationFrame(() => {
-    buttons.forEach((el) => {
-      const explode = document.createElement("img");
+    buttons.forEach(el => {
+      const explode = document.createElement('img');
       explode.src = explosions[0];
-      explode.style.top = `${parseInt(el.style.top.replace("px", "")) - 25}px`;
+      explode.style.top = `${parseInt(el.style.top.replace('px', '')) - 25}px`;
       explode.style.left = `${
-        parseInt(el.style.left.replace("px", "")) +
+        parseInt(el.style.left.replace('px', '')) +
         Math.floor(el.clientWidth / 2) -
         78 / 2
       }px`;
@@ -189,17 +189,17 @@ document.addEventListener("click", function (e) {
       b.container.appendChild(explode);
       explosions.push(explosions.shift()!);
 
-      el.classList.add("fade-out");
+      el.classList.add('fade-out');
       setTimeout(function () {
         b.container.removeChild(explode);
-        buttons.forEach((buttonEl) => buttonEl.remove());
+        buttons.forEach(buttonEl => buttonEl.remove());
       }, 1000);
     });
   });
 
   setTimeout(() => {
-    const css = "img { z-index: 2; }";
-    const styleSheet = document.createElement("style");
+    const css = 'img { z-index: 2; }';
+    const styleSheet = document.createElement('style');
     styleSheet.innerText = css;
     document.head.appendChild(styleSheet);
   }, 1000);

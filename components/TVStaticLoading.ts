@@ -27,26 +27,26 @@ export default class TVStaticLoading {
     baseAlpha: 0.18,
     revealAlpha: 0.7,
     step: 0.1,
-    currentWord: "",
+    currentWord: '',
   };
 
   private readonly WORDS = [
-    "VIRUS",
-    "404",
-    "HELLO",
-    "混沌",
-    "FAKE",
-    "PAIN",
-    "DANCE",
-    "DEATH",
-    "666",
-    "NUMBERS",
-    "悪魔",
-    "ANIMAL",
-    "THIS",
-    "SHOULD",
-    "BE",
-    "RANDOM",
+    'VIRUS',
+    '404',
+    'HELLO',
+    '混沌',
+    'FAKE',
+    'PAIN',
+    'DANCE',
+    'DEATH',
+    '666',
+    'NUMBERS',
+    '悪魔',
+    'ANIMAL',
+    'THIS',
+    'SHOULD',
+    'BE',
+    'RANDOM',
   ];
 
   private readonly DEFAULTS = {
@@ -62,21 +62,21 @@ export default class TVStaticLoading {
 
   constructor(cfg: TVStaticConfig = {}) {
     this.config = { ...this.DEFAULTS, ...cfg };
-    this.canvas = document.createElement("canvas");
-    this.canvas.className = "tv-static-canvas";
-    this.canvas.style.position = "fixed";
-    this.canvas.style.top = "0";
-    this.canvas.style.left = "0";
-    this.canvas.style.width = "100vw";
-    this.canvas.style.height = "100vh";
-    this.canvas.style.zIndex = "9999";
-    this.canvas.style.pointerEvents = "auto";
-    this.canvas.style.background = "black";
+    this.canvas = document.createElement('canvas');
+    this.canvas.className = 'tv-static-canvas';
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.top = '0';
+    this.canvas.style.left = '0';
+    this.canvas.style.width = '100vw';
+    this.canvas.style.height = '100vh';
+    this.canvas.style.zIndex = '9999';
+    this.canvas.style.pointerEvents = 'auto';
+    this.canvas.style.background = 'black';
     this._resizeHandler = this._resize.bind(this);
-    this._buffer = document.createElement("canvas");
+    this._buffer = document.createElement('canvas');
     this._buffer.width = this.config.bufferW;
     this._buffer.height = this.config.bufferH;
-    this._bufferCtx = this._buffer.getContext("2d", {
+    this._bufferCtx = this._buffer.getContext('2d', {
       willReadFrequently: true,
     })!;
     this.watermark.baseAlpha = this.config.watermarkBaseAlpha;
@@ -136,11 +136,11 @@ export default class TVStaticLoading {
         ctx.font = `bold ${fontSize}px 'Roboto', monospace`;
         metrics = ctx.measureText(randomWord);
       }
-      ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = "#fff";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#fff';
       if (this.watermark.fade > 0.1) {
-        ctx.shadowColor = "#000";
+        ctx.shadowColor = '#000';
         ctx.shadowBlur = 4 * this.watermark.fade;
       }
       const y =
@@ -178,7 +178,7 @@ export default class TVStaticLoading {
     const height = this.config.bufferH;
     this.withContext(ctx, () => {
       ctx.globalAlpha = 0.12;
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = '#000';
       for (let y = 0; y < height; y += 3) {
         ctx.fillRect(0, y, width, 1);
       }
@@ -203,7 +203,7 @@ export default class TVStaticLoading {
           shift,
           y,
           width,
-          bandHeight,
+          bandHeight
         );
       });
     }
@@ -214,10 +214,10 @@ export default class TVStaticLoading {
     const width = this.config.bufferW;
     const height = this.config.bufferH;
     const imageData = ctx.getImageData(0, 0, width, height);
-    const tempCanvas = document.createElement("canvas");
+    const tempCanvas = document.createElement('canvas');
     tempCanvas.width = width;
     tempCanvas.height = height;
-    const tempCtx = tempCanvas.getContext("2d")!;
+    const tempCtx = tempCanvas.getContext('2d')!;
     tempCtx.putImageData(imageData, 0, 0);
     ctx.clearRect(0, 0, width, height);
     for (let y = 0; y < height; y += 4) {
@@ -233,14 +233,14 @@ export default class TVStaticLoading {
     const barCount = 6 + Math.floor(Math.random() * 4);
     const barHeight = Math.floor(height / barCount);
     const colors = [
-      "#fff",
-      "#f00",
-      "#0f0",
-      "#00f",
-      "#ff0",
-      "#0ff",
-      "#f0f",
-      "#222",
+      '#fff',
+      '#f00',
+      '#0f0',
+      '#00f',
+      '#ff0',
+      '#0ff',
+      '#f0f',
+      '#222',
     ];
     for (let i = 0; i < barCount; i++) {
       ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
@@ -276,7 +276,7 @@ export default class TVStaticLoading {
     const height = this.config.bufferH;
     this.withContext(ctx, () => {
       ctx.globalAlpha = 0.7;
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = '#fff';
       const barHeight = Math.max(4, Math.floor(height * 0.08));
       const y = Math.floor(Math.random() * (height - barHeight));
       ctx.fillRect(0, y, width, barHeight);
@@ -316,10 +316,10 @@ export default class TVStaticLoading {
         width * 0.3,
         cx,
         cy,
-        maxRadius,
+        maxRadius
       );
-      grad.addColorStop(0, "rgba(0,0,0,0)");
-      grad.addColorStop(1, "rgba(0,0,0,0.32)");
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.32)');
       ctx.globalAlpha = 1;
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
@@ -355,7 +355,7 @@ export default class TVStaticLoading {
     this._drawStatic(colorStatic);
     this.withContext(ctx, () => {
       ctx.globalAlpha = 0.7;
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, this.config.bufferW, this.config.bufferH);
     });
   }
@@ -376,7 +376,7 @@ export default class TVStaticLoading {
     this.watermark.clickCount++;
     this.watermark.fade = Math.min(
       1,
-      this.watermark.fade + this.watermark.step,
+      this.watermark.fade + this.watermark.step
     );
   };
 
@@ -391,11 +391,11 @@ export default class TVStaticLoading {
     if (this.watermark.fade > 0) {
       this.watermark.fade = Math.max(
         0,
-        this.watermark.fade - this.config.fadeSpeed,
+        this.watermark.fade - this.config.fadeSpeed
       );
       if (this.watermark.fade === 0) {
         this.watermark.clickCount = 0;
-        this.watermark.currentWord = "";
+        this.watermark.currentWord = '';
       }
     }
     const ctx = this._bufferCtx;
@@ -405,9 +405,9 @@ export default class TVStaticLoading {
       this._effectProgress++;
       this.effectHandlers[this._effect]();
       if (
-        (this._effect === "scramble" &&
+        (this._effect === 'scramble' &&
           this._effectProgress > 8 + Math.random() * 6) ||
-        (this._effect !== "scramble" &&
+        (this._effect !== 'scramble' &&
           this._effectProgress > 10 + Math.random() * 10)
       ) {
         this._effect = null;
@@ -423,7 +423,7 @@ export default class TVStaticLoading {
             this._effectProgress = 0;
             this._effectTimer = null;
           },
-          1000 + Math.random() * 1000,
+          1000 + Math.random() * 1000
         );
       }
     }
@@ -431,7 +431,7 @@ export default class TVStaticLoading {
     this._drawVignette();
     this._drawBackgroundVirusText();
     // Draw buffer to main canvas, scaled up
-    const mainCtx = this.canvas.getContext("2d")!;
+    const mainCtx = this.canvas.getContext('2d')!;
     mainCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     mainCtx.imageSmoothingEnabled = false;
     mainCtx.drawImage(
@@ -439,7 +439,7 @@ export default class TVStaticLoading {
       0,
       0,
       this.canvas.width,
-      this.canvas.height,
+      this.canvas.height
     );
     this._animationFrame = requestAnimationFrame(this._animate);
   };
@@ -449,18 +449,18 @@ export default class TVStaticLoading {
     this._isShown = true;
     document.body.appendChild(this.canvas);
     this._resize();
-    window.addEventListener("resize", this._resizeHandler);
-    this.canvas.addEventListener("click", this._onUserReveal);
-    this.canvas.addEventListener("touchstart", this._onUserReveal);
+    window.addEventListener('resize', this._resizeHandler);
+    this.canvas.addEventListener('click', this._onUserReveal);
+    this.canvas.addEventListener('touchstart', this._onUserReveal);
     this._animate();
   }
 
   public hide() {
     if (!this._isShown) return;
     this._isShown = false;
-    window.removeEventListener("resize", this._resizeHandler);
-    this.canvas.removeEventListener("click", this._onUserReveal);
-    this.canvas.removeEventListener("touchstart", this._onUserReveal);
+    window.removeEventListener('resize', this._resizeHandler);
+    this.canvas.removeEventListener('click', this._onUserReveal);
+    this.canvas.removeEventListener('touchstart', this._onUserReveal);
     if (this._animationFrame) cancelAnimationFrame(this._animationFrame);
     if (this._effectTimer) clearTimeout(this._effectTimer);
     this._effect = null;

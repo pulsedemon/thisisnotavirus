@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import { isMobile } from "../../utils/misc";
-import "./shitstorm.scss";
+import * as THREE from 'three';
+import { isMobile } from '../../utils/misc';
+import './shitstorm.scss';
 
 interface ParticleUserData {
   positions: Float32Array;
@@ -51,21 +51,21 @@ class ShitstormVirus {
       isMobile() ? 120 : 75,
       aspect,
       0.1,
-      1000,
+      1000
     );
     this.camera.position.set(0, 2, isMobile() ? 80 : 5);
     this.camera.lookAt(0, 0, 0);
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
-      powerPreference: "high-performance",
+      powerPreference: 'high-performance',
     });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    const container = document.getElementById("container");
+    const container = document.getElementById('container');
     if (container) {
       container.appendChild(this.renderer.domElement);
     }
@@ -88,7 +88,7 @@ class ShitstormVirus {
     pointLight2.position.set(-3, 3, -3);
     this.scene.add(pointLight2);
 
-    window.addEventListener("resize", () => this.onWindowResize());
+    window.addEventListener('resize', () => this.onWindowResize());
   }
 
   private createToiletBowl() {
@@ -161,12 +161,12 @@ class ShitstormVirus {
       mesh.position.set(
         (Math.random() - 0.5) * 10,
         (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10,
+        (Math.random() - 0.5) * 10
       );
       mesh.rotation.set(
         Math.random() * Math.PI,
         Math.random() * Math.PI,
-        Math.random() * Math.PI,
+        Math.random() * Math.PI
       );
 
       const group = new THREE.Group();
@@ -209,10 +209,10 @@ class ShitstormVirus {
     }
 
     geometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(newPositions, 3),
+      'position',
+      new THREE.BufferAttribute(newPositions, 3)
     );
-    geometry.setAttribute("normal", new THREE.BufferAttribute(newNormals, 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(newNormals, 3));
 
     geometry.scale(1, 1.5, 1);
 
@@ -244,7 +244,7 @@ class ShitstormVirus {
     this.particles = new THREE.InstancedMesh(
       poopGeometry,
       poopMaterial,
-      particleCount,
+      particleCount
     );
     this.scene.add(this.particles);
 
@@ -276,7 +276,7 @@ class ShitstormVirus {
 
       const matrix = new THREE.Matrix4();
       matrix.makeRotationFromEuler(
-        new THREE.Euler(rotations[i3], rotations[i3 + 1], rotations[i3 + 2]),
+        new THREE.Euler(rotations[i3], rotations[i3 + 1], rotations[i3 + 2])
       );
       matrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
       matrix.scale(new THREE.Vector3(scales[i], scales[i], scales[i]));
@@ -332,7 +332,7 @@ class ShitstormVirus {
       (this.waterSurface.material as THREE.MeshPhongMaterial).color.setHSL(
         0.6 + hue * 0.2,
         0.8,
-        0.4,
+        0.4
       );
     }
   }
@@ -379,7 +379,7 @@ class ShitstormVirus {
       matrix.compose(
         position,
         new THREE.Quaternion().setFromEuler(rotation),
-        scale,
+        scale
       );
       this.particles.setMatrixAt(i, matrix);
     }
@@ -390,7 +390,7 @@ class ShitstormVirus {
   private updateSoundWaves() {
     const time = Date.now() * 0.001;
 
-    this.soundWaves.children.forEach((wave) => {
+    this.soundWaves.children.forEach(wave => {
       const mesh = wave as THREE.Mesh;
       const userData = mesh.userData as SoundWaveUserData;
 
@@ -406,7 +406,7 @@ class ShitstormVirus {
   }
 
   private updateChaosElements() {
-    this.chaosElements.forEach((element) => {
+    this.chaosElements.forEach(element => {
       const { rotationSpeed, movementSpeed } =
         element.userData as ChaosElementUserData;
 
@@ -471,6 +471,6 @@ class ShitstormVirus {
 
 new ShitstormVirus();
 
-window.addEventListener("beforeunload", () => {
+window.addEventListener('beforeunload', () => {
   new ShitstormVirus().destroy();
 });

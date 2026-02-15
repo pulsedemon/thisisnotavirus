@@ -1,5 +1,5 @@
-import TVStaticLoading from "../../components/TVStaticLoading";
-import "./static.scss";
+import TVStaticLoading from '../../components/TVStaticLoading';
+import './static.scss';
 
 const tvStatic = new TVStaticLoading();
 tvStatic.show();

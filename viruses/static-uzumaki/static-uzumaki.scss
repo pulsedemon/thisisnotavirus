@@ -1,4 +1,4 @@
-@import "../../sass/main.scss";
+@import '../../sass/main.scss';
 
 .tv-static {
   position: fixed;
@@ -16,7 +16,7 @@
   }
 
   &::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;

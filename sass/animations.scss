@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 @keyframes shrink {
   from {
     transform: scale(1);
@@ -189,8 +191,8 @@
 $steps: 100;
 @keyframes glitch-effect {
   @for $i from 0 through $steps {
-    #{percentage($i*(calc(1/$steps)))} {
-      clip: rect(random(100) + px, 9999px, random(100) + px, 0);
+    #{math.percentage($i*(calc(1/$steps)))} {
+      clip: rect(math.random(100) + px, 9999px, math.random(100) + px, 0);
     }
   }
 }
@@ -198,20 +200,23 @@ $steps: 100;
 $steps: 20;
 @keyframes shaky {
   @for $i from 0 through $steps {
-    #{percentage($i*(calc(1/$steps)))} {
-      transform: translate(random(100) - 50 + px, random(100) - 50 + px);
+    #{math.percentage($i*(calc(1/$steps)))} {
+      transform: translate(
+        math.random(100) - 50 + px,
+        math.random(100) - 50 + px
+      );
     }
   }
 }
 
 @mixin random-text-color() {
-  color: rgb(random(255), random(255), random(255));
+  color: rgb(math.random(255), math.random(255), math.random(255));
 }
 
 $steps: 20;
 @keyframes text-blink {
   @for $i from 0 through $steps {
-    #{percentage($i*(calc(1/$steps)))} {
+    #{math.percentage($i*(calc(1/$steps)))} {
       @include random-text-color();
     }
   }

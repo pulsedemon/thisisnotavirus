@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import { GAME_CONFIG } from "./config";
+import * as THREE from 'three';
+import { GAME_CONFIG } from './config';
 
 export class CraneRope {
   segments: THREE.Mesh[] = [];
@@ -43,7 +43,7 @@ export class CraneRope {
     this.sharedGeometry = new THREE.CylinderGeometry(
       GAME_CONFIG.animation.ropeGeometry.radius,
       GAME_CONFIG.animation.ropeGeometry.radius,
-      this.segmentLength,
+      this.segmentLength
     );
     this.sharedMaterial = new THREE.MeshStandardMaterial({
       color: GAME_CONFIG.animation.ropeGeometry.color,
@@ -134,7 +134,7 @@ export class CraneRope {
   private constrainDistance(
     index1: number,
     index2: number,
-    targetDistance: number,
+    targetDistance: number
   ): number {
     const joint1 = this.joints[index1];
     const joint2 = this.joints[index2];
@@ -172,7 +172,7 @@ export class CraneRope {
   dispose() {
     this.sharedGeometry.dispose();
     this.sharedMaterial.dispose();
-    this.segments.forEach((segment) => {
+    this.segments.forEach(segment => {
       segment.geometry.dispose();
       if (segment.material instanceof THREE.Material) {
         segment.material.dispose();

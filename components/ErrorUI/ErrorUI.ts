@@ -1,9 +1,9 @@
-import "./error-ui.scss";
-import { randomIntBetween, randomInt } from "../../utils/random";
+import './error-ui.scss';
+import { randomIntBetween, randomInt } from '../../utils/random';
 
 export default class ErrorUI {
   el;
-  text = "ERROR";
+  text = 'ERROR';
   numEls = 700;
   width = window.innerWidth;
   height = window.innerHeight;
@@ -17,19 +17,19 @@ export default class ErrorUI {
   }
 
   start() {
-    this.el.classList.add("disable-overflow");
+    this.el.classList.add('disable-overflow');
     this.fillScreen();
   }
 
   stop() {
     clearTimeout(this.fillScreenTimeout);
-    this.el.classList.remove("disable-overflow");
+    this.el.classList.remove('disable-overflow');
     this.clearScreen();
   }
 
   clearScreen() {
-    const errors = this.el.querySelectorAll(".error");
-    errors.forEach((e) => {
+    const errors = this.el.querySelectorAll('.error');
+    errors.forEach(e => {
       this.el.removeChild(e);
     });
   }
@@ -49,18 +49,18 @@ export default class ErrorUI {
   }
 
   appendError() {
-    const errorDiv = document.createElement("div");
+    const errorDiv = document.createElement('div');
     const coords = this.getRandomCoords();
 
     errorDiv.innerText = this.text;
-    errorDiv.classList.add("error");
+    errorDiv.classList.add('error');
     errorDiv.style.top = `${coords.y}px`;
     errorDiv.style.left = `${coords.x}px`;
     errorDiv.style.fontSize = this.randomFontSize();
 
     const randomBool = Math.random() < 0.5;
     if (randomBool) {
-      errorDiv.classList.add("vary");
+      errorDiv.classList.add('vary');
     }
 
     this.el.append(errorDiv);

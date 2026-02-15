@@ -1,7 +1,7 @@
-import * as THREE from "three";
-import type RAPIER from "@dimforge/rapier3d-compat";
-import type { PhysicsManager } from "./PhysicsManager";
-import { GAME_CONFIG } from "./config";
+import * as THREE from 'three';
+import type RAPIER from '@dimforge/rapier3d-compat';
+import type { PhysicsManager } from './PhysicsManager';
+import { GAME_CONFIG } from './config';
 
 export class ClawPhysics {
   rigidBody: RAPIER.RigidBody; // Public so game can sync position during special movements
@@ -31,7 +31,7 @@ export class ClawPhysics {
   constructor(
     physicsManager: PhysicsManager,
     RapierModule: typeof RAPIER,
-    startPosition: THREE.Vector3,
+    startPosition: THREE.Vector3
   ) {
     this.physicsManager = physicsManager;
     this.RAPIER = RapierModule;
@@ -42,7 +42,7 @@ export class ClawPhysics {
       RapierModule.RigidBodyDesc.kinematicVelocityBased().setTranslation(
         startPosition.x,
         startPosition.y,
-        startPosition.z,
+        startPosition.z
       );
 
     this.rigidBody = physicsManager.world.createRigidBody(rigidBodyDesc);
@@ -60,16 +60,16 @@ export class ClawPhysics {
     const moveVector = new THREE.Vector3();
 
     // Gather input (keys are stored as lowercase, except arrow keys)
-    if (keys["ArrowLeft"] || keys["a"]) {
+    if (keys['ArrowLeft'] || keys['a']) {
       moveVector.x -= this.moveSpeed;
     }
-    if (keys["ArrowRight"] || keys["d"]) {
+    if (keys['ArrowRight'] || keys['d']) {
       moveVector.x += this.moveSpeed;
     }
-    if (keys["ArrowUp"] || keys["w"]) {
+    if (keys['ArrowUp'] || keys['w']) {
       moveVector.z -= this.moveSpeed;
     }
-    if (keys["ArrowDown"] || keys["s"]) {
+    if (keys['ArrowDown'] || keys['s']) {
       moveVector.z += this.moveSpeed;
     }
 
@@ -78,7 +78,7 @@ export class ClawPhysics {
     const velocity = new THREE.Vector3(
       currentVel.x,
       currentVel.y,
-      currentVel.z,
+      currentVel.z
     );
 
     if (moveVector.length() > 0) {
@@ -88,7 +88,7 @@ export class ClawPhysics {
 
       // Calculate swing based on velocity
       const speed = Math.sqrt(
-        velocity.x * velocity.x + velocity.z * velocity.z,
+        velocity.x * velocity.x + velocity.z * velocity.z
       );
       this.swingRotation =
         Math.sin(Date.now() * 0.01) * speed * this.swingIntensity;
@@ -109,7 +109,7 @@ export class ClawPhysics {
     // Update the rigid body's position
     this.rigidBody.setTranslation(
       { x: this.position.x, y: this.position.y, z: this.position.z },
-      true,
+      true
     );
 
     // Also set velocity for consistency
@@ -127,10 +127,10 @@ export class ClawPhysics {
    * Check and apply boundary constraint for a single axis
    */
   private applyAxisBoundary(
-    axis: "x" | "z",
+    axis: 'x' | 'z',
     min: number,
     max: number,
-    velocity: THREE.Vector3,
+    velocity: THREE.Vector3
   ): boolean {
     if (this.position[axis] < min) {
       this.position[axis] = min;
@@ -149,23 +149,23 @@ export class ClawPhysics {
    */
   private applyBoundaries(velocity: THREE.Vector3): void {
     const xBounced = this.applyAxisBoundary(
-      "x",
+      'x',
       this.minX,
       this.maxX,
-      velocity,
+      velocity
     );
     const zBounced = this.applyAxisBoundary(
-      "z",
+      'z',
       this.minZ,
       this.maxZ,
-      velocity,
+      velocity
     );
 
     // Update physics body if we bounced
     if (xBounced || zBounced) {
       this.rigidBody.setTranslation(
         { x: this.position.x, y: this.position.y, z: this.position.z },
-        true,
+        true
       );
       this.rigidBody.setLinvel({ x: velocity.x, y: 0, z: velocity.z }, true);
     }
@@ -178,7 +178,7 @@ export class ClawPhysics {
     this.position.y = y;
     this.rigidBody.setTranslation(
       { x: this.position.x, y: this.position.y, z: this.position.z },
-      true,
+      true
     );
   }
 

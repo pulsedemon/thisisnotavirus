@@ -9,7 +9,8 @@ frontend:
         - yarn install
     build:
       commands:
-        - echo "process.env.API_BASE_URL=$API_BASE_URL" > .env
+        - echo "API_BASE_URL=$API_BASE_URL" > .env
+        - echo "VITE_SENTRY_DSN=$VITE_SENTRY_DSN" >> .env
         - yarn run build:prod
 
   artifacts:

@@ -1,6 +1,6 @@
-import "./void.scss";
-import * as THREE from "three";
-import { randomIntBetween, randomBool } from "../../utils/random";
+import './void.scss';
+import * as THREE from 'three';
+import { randomIntBetween, randomBool } from '../../utils/random';
 
 const CONSTANTS = {
   CORE_RADIUS: 35,
@@ -119,39 +119,39 @@ class Void {
       this.createEvilEyes();
       this.setupResponsiveUserInteraction();
 
-      const container = document.getElementById("container");
+      const container = document.getElementById('container');
       if (!container) {
-        throw new Error("Container element not found");
+        throw new Error('Container element not found');
       }
       container.appendChild(this.renderer.domElement);
 
-      window.addEventListener("resize", () => this.setRenderOptions(), false);
-      window.addEventListener("beforeunload", () => this.dispose());
+      window.addEventListener('resize', () => this.setRenderOptions(), false);
+      window.addEventListener('beforeunload', () => this.dispose());
 
       this.render();
     } catch (error) {
-      console.error("Failed to initialize Void:", error);
+      console.error('Failed to initialize Void:', error);
       throw error;
     }
   }
 
   dispose() {
-    this.scene.traverse((object) => {
+    this.scene.traverse(object => {
       if (object instanceof THREE.Mesh) {
-        if (object.geometry && "dispose" in object.geometry) {
+        if (object.geometry && 'dispose' in object.geometry) {
           (object.geometry as THREE.BufferGeometry).dispose();
         }
         if (Array.isArray(object.material)) {
           object.material.forEach((material: THREE.Material) => {
             if (
               material &&
-              "dispose" in material &&
-              typeof material.dispose === "function"
+              'dispose' in material &&
+              typeof material.dispose === 'function'
             ) {
               material.dispose();
             }
           });
-        } else if (object.material && "dispose" in object.material) {
+        } else if (object.material && 'dispose' in object.material) {
           (object.material as THREE.Material).dispose();
         }
       }
@@ -169,19 +169,19 @@ class Void {
         this.renderer = new THREE.WebGLRenderer({
           antialias: true,
           alpha: true,
-          powerPreference: "high-performance",
+          powerPreference: 'high-performance',
         });
 
         const gl = this.renderer.getContext();
         if (!gl) {
-          throw new Error("WebGL context not available");
+          throw new Error('WebGL context not available');
         }
 
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setClearColor(0x000000, 1);
       } catch (error) {
-        console.error("Failed to initialize WebGL renderer:", error);
-        throw new Error("WebGL not supported or failed to initialize");
+        console.error('Failed to initialize WebGL renderer:', error);
+        throw new Error('WebGL not supported or failed to initialize');
       }
     }
 
@@ -203,7 +203,7 @@ class Void {
   createMalevolentPulsatingCore() {
     const coreGeometry = new THREE.IcosahedronGeometry(
       CONSTANTS.CORE_RADIUS,
-      CONSTANTS.CORE_DETAIL_LEVEL,
+      CONSTANTS.CORE_DETAIL_LEVEL
     );
     const coreMaterial = new THREE.MeshStandardMaterial({
       color: CONSTANTS.DEEP_RED_EVIL_ENERGY,
@@ -217,7 +217,7 @@ class Void {
     const innerCoreGeometry = new THREE.SphereGeometry(
       CONSTANTS.INNER_CORE_RADIUS,
       CONSTANTS.INNER_CORE_DETAIL,
-      CONSTANTS.INNER_CORE_DETAIL,
+      CONSTANTS.INNER_CORE_DETAIL
     );
     const innerCoreMaterial = new THREE.MeshBasicMaterial({
       color: CONSTANTS.DARK_CRIMSON,
@@ -230,7 +230,7 @@ class Void {
 
     const energyShellGeometry = new THREE.IcosahedronGeometry(
       CONSTANTS.ENERGY_SHELL_RADIUS,
-      CONSTANTS.ENERGY_SHELL_DETAIL,
+      CONSTANTS.ENERGY_SHELL_DETAIL
     );
     const energyShellMaterial = new THREE.MeshBasicMaterial({
       color: CONSTANTS.BRIGHT_EVIL_RED,
@@ -241,7 +241,7 @@ class Void {
     });
     const cracklingEnergyShell = new THREE.Mesh(
       energyShellGeometry,
-      energyShellMaterial,
+      energyShellMaterial
     );
     this.flowingSphere.add(cracklingEnergyShell);
 
@@ -255,16 +255,16 @@ class Void {
 
     const particleGeometry = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(
-      CONSTANTS.CHAOTIC_PARTICLE_COUNT * 3,
+      CONSTANTS.CHAOTIC_PARTICLE_COUNT * 3
     );
     const particleColors = new Float32Array(
-      CONSTANTS.CHAOTIC_PARTICLE_COUNT * 3,
+      CONSTANTS.CHAOTIC_PARTICLE_COUNT * 3
     );
 
     for (let i = 0; i < CONSTANTS.CHAOTIC_PARTICLE_COUNT; i++) {
       const spawnRadius = randomIntBetween(
         CONSTANTS.SPAWN_RADIUS_MIN,
-        CONSTANTS.SPAWN_RADIUS_MAX,
+        CONSTANTS.SPAWN_RADIUS_MAX
       );
       const sphericalTheta = randomIntBetween(0, Math.PI * 2);
       const sphericalPhi = randomIntBetween(0, Math.PI);
@@ -293,12 +293,12 @@ class Void {
     }
 
     particleGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(particlePositions, 3),
+      'position',
+      new THREE.BufferAttribute(particlePositions, 3)
     );
     particleGeometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(particleColors, 3),
+      'color',
+      new THREE.BufferAttribute(particleColors, 3)
     );
 
     const particleMaterial = new THREE.PointsMaterial({
@@ -321,7 +321,7 @@ class Void {
       const ringGeometry = new THREE.RingGeometry(
         70 + i * 25,
         75 + i * 25,
-        6 + i * 2,
+        6 + i * 2
       );
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: i % 2 === 0 ? 0xff0000 : 0x880022,
@@ -388,8 +388,8 @@ class Void {
           new THREE.Vector3(
             Math.cos(spiralAngle) * radius + totalWobble,
             Math.sin(spiralAngle) * radius + totalWobble,
-            Math.sin(t * Math.PI * 3) * 30 + Math.cos(t * Math.PI * 5 + i) * 15,
-          ),
+            Math.sin(t * Math.PI * 3) * 30 + Math.cos(t * Math.PI * 5 + i) * 15
+          )
         );
       }
 
@@ -398,7 +398,7 @@ class Void {
         segments,
         randomIntBetween(1, 4),
         randomIntBetween(6, 12),
-        false,
+        false
       );
 
       const material = new THREE.MeshBasicMaterial({
@@ -415,7 +415,7 @@ class Void {
         corruptionLevel: 0,
         chaosPhase: randomIntBetween(0, Math.PI * 2),
         thrashIntensity: randomIntBetween(0.5, 2.0),
-        originalPoints: points.map((p) => p.clone()),
+        originalPoints: points.map(p => p.clone()),
       } as TentacleUserData;
 
       this.corruptionTentacles.push(tentacle);
@@ -455,7 +455,7 @@ class Void {
   }
 
   setupResponsiveUserInteraction() {
-    document.addEventListener("mousemove", (event) => {
+    document.addEventListener('mousemove', event => {
       const currentMousePos = new THREE.Vector2(event.clientX, event.clientY);
       this.mouseVelocity.subVectors(currentMousePos, this.lastMousePos);
       this.lastMousePos.copy(currentMousePos);
@@ -476,7 +476,7 @@ class Void {
       this.createRipple(event.clientX, event.clientY);
     });
 
-    document.addEventListener("mousedown", () => {
+    document.addEventListener('mousedown', () => {
       this.mousePressed = true;
       this.lastInteractionTime = this.currentTime;
       this.idleTime = 0;
@@ -484,18 +484,18 @@ class Void {
       this.provideCalmingAttention();
     });
 
-    document.addEventListener("mouseup", () => {
+    document.addEventListener('mouseup', () => {
       this.mousePressed = false;
     });
 
-    document.addEventListener("click", (event) => {
+    document.addEventListener('click', event => {
       this.lastClickTime = this.currentTime;
       this.createClickBurst(event.clientX, event.clientY);
       this.createGravityWell(event.clientX, event.clientY);
       this.provideCalmingAttention();
     });
 
-    document.addEventListener("dblclick", (event) => {
+    document.addEventListener('dblclick', event => {
       const positions = this.particles.geometry.attributes.position
         .array as Float32Array;
       for (let i = 0; i < positions.length / 3; i++) {
@@ -510,7 +510,7 @@ class Void {
       this.createClickBurst(event.clientX, event.clientY);
     });
 
-    document.addEventListener("touchstart", (event) => {
+    document.addEventListener('touchstart', event => {
       event.preventDefault();
       const touch = event.touches[0];
       this.mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
@@ -519,7 +519,7 @@ class Void {
       this.createExplosion();
     });
 
-    document.addEventListener("touchmove", (event) => {
+    document.addEventListener('touchmove', event => {
       event.preventDefault();
       const touch = event.touches[0];
       this.mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
@@ -527,11 +527,11 @@ class Void {
       this.createRipple(touch.clientX, touch.clientY);
     });
 
-    document.addEventListener("touchend", () => {
+    document.addEventListener('touchend', () => {
       this.mousePressed = false;
     });
 
-    document.addEventListener("wheel", (event) => {
+    document.addEventListener('wheel', event => {
       event.preventDefault();
       this.timeWarp += event.deltaY * 0.001;
       this.timeWarp = Math.max(0.1, Math.min(5.0, this.timeWarp));
@@ -542,7 +542,7 @@ class Void {
     const worldPos = new THREE.Vector3(
       (x / window.innerWidth) * 2 - 1,
       -(y / window.innerHeight) * 2 + 1,
-      0,
+      0
     );
     worldPos.unproject(this.camera);
 
@@ -580,12 +580,12 @@ class Void {
       }
 
       trailPoints.geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(positions, 3),
+        'position',
+        new THREE.BufferAttribute(positions, 3)
       );
       trailPoints.geometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(colors, 3),
+        'color',
+        new THREE.BufferAttribute(colors, 3)
       );
       this.scene.add(trailPoints);
       this.trailParticles.push(trailPoints);
@@ -604,7 +604,7 @@ class Void {
     const worldPos = new THREE.Vector3(
       (x / window.innerWidth) * 2 - 1,
       -(y / window.innerHeight) * 2 + 1,
-      0,
+      0
     );
     worldPos.unproject(this.camera);
 
@@ -639,7 +639,7 @@ class Void {
     const mouseWorld = new THREE.Vector3(
       (x / window.innerWidth) * 2 - 1,
       -(y / window.innerHeight) * 2 + 1,
-      0,
+      0
     );
     mouseWorld.unproject(this.camera);
 
@@ -647,7 +647,7 @@ class Void {
       const particlePos = new THREE.Vector3(
         positions[i],
         positions[i + 1],
-        positions[i + 2],
+        positions[i + 2]
       );
       const distance = particlePos.distanceTo(mouseWorld);
 
@@ -671,7 +671,7 @@ class Void {
       const direction = new THREE.Vector3(
         randomIntBetween(-1, 1),
         randomIntBetween(-1, 1),
-        randomIntBetween(-1, 1),
+        randomIntBetween(-1, 1)
       ).normalize();
 
       positions[i] += direction.x * force;
@@ -683,11 +683,11 @@ class Void {
     this.screechLevel = 1.0;
     this.lastScreechTime = this.currentTime;
 
-    this.evilEyes.forEach((eye) => {
+    this.evilEyes.forEach(eye => {
       eye.userData.watchIntensity = 1.0;
     });
 
-    this.corruptionTentacles.forEach((tentacle) => {
+    this.corruptionTentacles.forEach(tentacle => {
       tentacle.userData.corruptionLevel = 1.0;
     });
   }
@@ -700,19 +700,19 @@ class Void {
 
     if (this.isHavingTantrum) {
       this.isHavingTantrum = false;
-      this.autonomousEvents.forEach((eventId) => clearTimeout(eventId));
+      this.autonomousEvents.forEach(eventId => clearTimeout(eventId));
       this.autonomousEvents = [];
     }
 
     this.contentmentLevel = Math.min(this.contentmentLevel + 0.3, 1.0);
 
-    this.evilEyes.forEach((eye) => {
+    this.evilEyes.forEach(eye => {
       const userData = eye.userData as EyeUserData;
       userData.watchIntensity *= 0.2;
       userData.lastBlink = this.currentTime;
     });
 
-    this.corruptionTentacles.forEach((tentacle) => {
+    this.corruptionTentacles.forEach(tentacle => {
       const userData = tentacle.userData as TentacleUserData;
       userData.writheSpeed *= 0.5;
       userData.thrashIntensity *= 0.4;
@@ -729,7 +729,7 @@ class Void {
     const clickWorld = new THREE.Vector3(
       (x / window.innerWidth) * 2 - 1,
       -(y / window.innerHeight) * 2 + 1,
-      0,
+      0
     );
     clickWorld.unproject(this.camera);
 
@@ -747,12 +747,12 @@ class Void {
     }
 
     burstGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(burstPositions, 3),
+      'position',
+      new THREE.BufferAttribute(burstPositions, 3)
     );
     burstGeometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(burstColors, 3),
+      'color',
+      new THREE.BufferAttribute(burstColors, 3)
     );
 
     const burstMaterial = new THREE.PointsMaterial({
@@ -783,7 +783,7 @@ class Void {
 
   handleKeyPress(key: string) {
     switch (key.toLowerCase()) {
-      case " ": {
+      case ' ': {
         const positions = this.particles.geometry.attributes.position
           .array as Float32Array;
         for (let i = 0; i < positions.length / 3; i++) {
@@ -797,7 +797,7 @@ class Void {
         this.flowingSphere.scale.setScalar(1);
         break;
       }
-      case "r": {
+      case 'r': {
         const colors = this.particles.geometry.attributes.color
           .array as Float32Array;
         for (let i = 0; i < colors.length; i += 3) {
@@ -808,12 +808,12 @@ class Void {
         this.particles.geometry.attributes.color.needsUpdate = true;
         break;
       }
-      case "w": {
+      case 'w': {
         const material = this.flowingSphere.material as THREE.MeshBasicMaterial;
         material.wireframe = !material.wireframe;
         break;
       }
-      case "f":
+      case 'f':
         this.currentTime += 100;
         break;
     }
@@ -833,7 +833,7 @@ class Void {
 
       const mouseDistance = Math.sqrt(
         Math.pow(x - this.targetX * 100, 2) +
-          Math.pow(y - this.targetY * 100, 2),
+          Math.pow(y - this.targetY * 100, 2)
       );
 
       if (mouseDistance < 150) {
@@ -845,11 +845,11 @@ class Void {
         }
       }
 
-      this.gravityWells.forEach((well) => {
+      this.gravityWells.forEach(well => {
         const wellDistance = Math.sqrt(
           Math.pow(x - well.x, 2) +
             Math.pow(y - well.y, 2) +
-            Math.pow(z - well.z, 2),
+            Math.pow(z - well.z, 2)
         );
 
         if (wellDistance < 100) {
@@ -882,7 +882,7 @@ class Void {
       this.rageBuildupLevel = Math.min(
         (this.idleTime - CONSTANTS.INTERACTION_TIMEOUT) /
           CONSTANTS.RAGE_BUILDUP_DURATION,
-        1.0,
+        1.0
       );
     } else {
       this.rageBuildupLevel *= Math.pow(0.98, timeMultiplier);
@@ -916,11 +916,11 @@ class Void {
         this.isHavingTantrum = true;
         this.screechLevel = 2.0;
 
-        this.evilEyes.forEach((eye) => {
+        this.evilEyes.forEach(eye => {
           eye.userData.watchIntensity = 2.0;
         });
 
-        this.corruptionTentacles.forEach((tentacle) => {
+        this.corruptionTentacles.forEach(tentacle => {
           tentacle.userData.corruptionLevel = 2.0;
         });
 
@@ -1024,12 +1024,12 @@ class Void {
 
     const finalGreen = Math.max(
       0,
-      0.05 + calmEffect * 0.6 + contentEffect * 0.2,
+      0.05 + calmEffect * 0.6 + contentEffect * 0.2
     );
 
     const finalBlue = Math.max(
       0,
-      0.05 + calmEffect * 0.8 + contentEffect * 0.4,
+      0.05 + calmEffect * 0.8 + contentEffect * 0.4
     );
 
     coreMaterial.color.set(finalRed, finalGreen, finalBlue);
@@ -1042,24 +1042,24 @@ class Void {
 
       const emissiveGreen = Math.max(
         0,
-        this.calmLevel * 0.3 + this.contentmentLevel * 0.2,
+        this.calmLevel * 0.3 + this.contentmentLevel * 0.2
       );
 
       const emissiveBlue = Math.max(
         0,
-        this.calmLevel * 0.5 + this.contentmentLevel * 0.4,
+        this.calmLevel * 0.5 + this.contentmentLevel * 0.4
       );
 
       coreMaterial.emissive = new THREE.Color(
         emissiveRed,
         emissiveGreen,
-        emissiveBlue,
+        emissiveBlue
       );
       const calmEmissiveIntensity =
         this.calmLevel * 0.5 + this.contentmentLevel * 0.3;
       coreMaterial.emissiveIntensity = Math.max(
         baseEmissiveIntensity * (1 - this.calmLevel * 0.8),
-        calmEmissiveIntensity,
+        calmEmissiveIntensity
       );
     } else {
       coreMaterial.emissiveIntensity = 0;
@@ -1123,7 +1123,7 @@ class Void {
       }
     });
 
-    this.scene.children.forEach((child) => {
+    this.scene.children.forEach(child => {
       if (
         child.userData &&
         (child.userData as QuantumFieldUserData).energyResponse
@@ -1219,19 +1219,19 @@ class Void {
       if (corruption > 0.6) {
         tentacle.position.x =
           Math.sin(
-            this.currentTime * userData.writheSpeed + userData.chaosPhase,
+            this.currentTime * userData.writheSpeed + userData.chaosPhase
           ) *
           corruption *
           20;
         tentacle.position.y =
           Math.cos(
-            this.currentTime * userData.writheSpeed * 1.3 + userData.chaosPhase,
+            this.currentTime * userData.writheSpeed * 1.3 + userData.chaosPhase
           ) *
           corruption *
           20;
         tentacle.position.z =
           Math.sin(
-            this.currentTime * userData.writheSpeed * 0.7 + userData.chaosPhase,
+            this.currentTime * userData.writheSpeed * 0.7 + userData.chaosPhase
           ) *
           corruption *
           15;
@@ -1245,22 +1245,22 @@ class Void {
         const reachDirection = new THREE.Vector3(
           this.targetX * 100,
           this.targetY * 100,
-          0,
+          0
         );
         reachDirection.normalize();
         tentacle.position.add(
-          reachDirection.multiplyScalar(this.rageBuildupLevel * 10),
+          reachDirection.multiplyScalar(this.rageBuildupLevel * 10)
         );
       }
     });
 
-    this.evilEyes.forEach((eye) => {
+    this.evilEyes.forEach(eye => {
       const userData = eye.userData as EyeUserData;
 
       const lookDirection = new THREE.Vector3(
         this.targetX * 100,
         this.targetY * 100,
-        0,
+        0
       );
       eye.lookAt(lookDirection);
 
@@ -1289,7 +1289,7 @@ class Void {
       }
     });
 
-    this.bloodVeins = this.bloodVeins.filter((vein) => {
+    this.bloodVeins = this.bloodVeins.filter(vein => {
       vein.userData.life--;
       const lifeRatio = vein.userData.life / vein.userData.maxLife;
 
@@ -1306,7 +1306,7 @@ class Void {
 
     if (this.bloodVeins.length > CONSTANTS.MAX_BLOOD_VEINS) {
       const toRemove = this.bloodVeins.splice(0, 10);
-      toRemove.forEach((vein) => {
+      toRemove.forEach(vein => {
         this.scene.remove(vein);
         vein.geometry.dispose();
         (vein.material as THREE.Material).dispose();
@@ -1323,7 +1323,7 @@ class Void {
     const lookAtTarget = new THREE.Vector3(
       this.targetX * 50,
       this.targetY * 50,
-      0,
+      0
     );
     this.camera.lookAt(lookAtTarget);
 

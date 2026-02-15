@@ -1,4 +1,4 @@
-@use "../../sass/animations";
+@use '../../sass/animations';
 
 body {
   background-color: aqua;
@@ -41,19 +41,19 @@ body {
       background-size: contain;
 
       &.x {
-        background-image: url("/viruses/faces/images/eye-x.webp");
+        background-image: url('/viruses/faces/images/eye-x.webp');
       }
 
       &.pupil {
-        background-image: url("/viruses/faces/images/eye-pupil.webp");
+        background-image: url('/viruses/faces/images/eye-pupil.webp');
       }
 
       &.closed {
-        background-image: url("/viruses/faces/images/eye-blink.webp");
+        background-image: url('/viruses/faces/images/eye-blink.webp');
       }
 
       &.blink {
-        background-image: url("/viruses/faces/images/eye-blink.webp");
+        background-image: url('/viruses/faces/images/eye-blink.webp');
       }
     }
   }
@@ -68,7 +68,7 @@ body {
     top: -50px;
 
     &.smile {
-      background-image: url("/viruses/faces/images/mouth-smile.webp");
+      background-image: url('/viruses/faces/images/mouth-smile.webp');
 
       @media (min-width: 320px) and (max-width: 480px) {
         height: 150px;
@@ -77,7 +77,7 @@ body {
 
     &.monster {
       background-size: contain;
-      background-image: url("/viruses/faces/images/mouth-monster.webp");
+      background-image: url('/viruses/faces/images/mouth-monster.webp');
 
       @media (min-width: 320px) and (max-width: 480px) {
         top: -30px;
@@ -87,7 +87,7 @@ body {
 
     &.bear {
       background-size: contain;
-      background-image: url("/viruses/faces/images/mouth-bear.webp");
+      background-image: url('/viruses/faces/images/mouth-bear.webp');
 
       @media (min-width: 320px) and (max-width: 480px) {
         top: -40px;
@@ -118,7 +118,7 @@ body {
   &:after {
     display: block;
     pointer-events: none;
-    content: "";
+    content: '';
     position: absolute;
   }
 

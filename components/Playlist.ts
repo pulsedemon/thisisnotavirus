@@ -1,4 +1,4 @@
-import { shuffle } from "../utils/misc";
+import { shuffle } from '../utils/misc';
 
 interface VirusMix {
   primary: string;
@@ -10,19 +10,19 @@ interface VirusMix {
 
 export default class Playlist {
   viruses = [
-    "random-shapes",
-    "sphere",
-    "uzumaki",
-    "random-characters",
-    "buttons",
-    "faces",
-    "doors",
-    "emoji",
-    "cubes",
-    "static",
-    "shitstorm",
-    "void",
-    "crane-game",
+    'random-shapes',
+    'sphere',
+    'uzumaki',
+    'random-characters',
+    'buttons',
+    'faces',
+    'doors',
+    'emoji',
+    'cubes',
+    'static',
+    'shitstorm',
+    'void',
+    'crane-game',
   ];
 
   playlist: string[] = [];
@@ -35,11 +35,11 @@ export default class Playlist {
   }
 
   loadSavedMixes() {
-    const savedMixesStr = localStorage.getItem("savedVirusMixes");
+    const savedMixesStr = localStorage.getItem('savedVirusMixes');
     try {
-      this.savedMixes = JSON.parse(savedMixesStr || "[]") as VirusMix[];
+      this.savedMixes = JSON.parse(savedMixesStr || '[]') as VirusMix[];
     } catch (e) {
-      console.error("Error parsing saved mixes:", e);
+      console.error('Error parsing saved mixes:', e);
       this.savedMixes = [];
     }
     // Regenerate playlist when saved mixes change
@@ -53,9 +53,9 @@ export default class Playlist {
     // Add saved mixes to the available items
     if (this.savedMixes.length > 0) {
       const mixIds = this.savedMixes
-        .map((mix) => {
+        .map(mix => {
           if (!mix.id) {
-            console.error("Mix missing ID:", mix);
+            console.error('Mix missing ID:', mix);
             return null;
           }
           return `mixed:${mix.id}`;
@@ -81,7 +81,7 @@ export default class Playlist {
     if (this.playlist.length === 0) {
       this.generatePlaylist();
     }
-    if (typeof this.playlist[this.currentIndex] === "undefined") {
+    if (typeof this.playlist[this.currentIndex] === 'undefined') {
       this.currentIndex = 0;
     }
     const current = this.playlist[this.currentIndex];
@@ -114,13 +114,13 @@ export default class Playlist {
   }
 
   isMixedVirus(virus: string): boolean {
-    const isMixed = virus.startsWith("mixed:");
+    const isMixed = virus.startsWith('mixed:');
     return isMixed;
   }
 
   getMixById(id: string): VirusMix | undefined {
-    const mixId = parseInt(id.replace("mixed:", ""));
-    const mix = this.savedMixes.find((mix) => mix.id === mixId);
+    const mixId = parseInt(id.replace('mixed:', ''));
+    const mix = this.savedMixes.find(mix => mix.id === mixId);
     return mix;
   }
 

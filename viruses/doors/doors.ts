@@ -1,5 +1,5 @@
-import "./doors.scss";
-import { randomBool, randomItem, randomIntBetween } from "../../utils/random";
+import './doors.scss';
+import { randomBool, randomItem, randomIntBetween } from '../../utils/random';
 
 interface DoorConfig {
   y: number;
@@ -30,13 +30,13 @@ class Doors {
     opacity: number,
     xPos: number
   ) {
-    const container = document.getElementById("container")!;
+    const container = document.getElementById('container')!;
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
-    this.canvas = document.createElement("canvas");
+    this.canvas = document.createElement('canvas');
     this.canvas.width = containerWidth;
     this.canvas.height = containerHeight;
-    document.getElementById("container")?.appendChild(this.canvas);
+    document.getElementById('container')?.appendChild(this.canvas);
     this.opacity = opacity;
     this.doorHeight = this.canvas.height / 2;
     this.doorWidth = width;
@@ -46,7 +46,7 @@ class Doors {
         {
           y: 0,
           x: xPos,
-          direction: "up",
+          direction: 'up',
           color: color,
           speed: speed,
         },
@@ -55,14 +55,14 @@ class Doors {
         {
           y: this.doorHeight,
           x: xPos,
-          direction: "down",
+          direction: 'down',
           color: color,
           speed: speed,
         },
       ],
     };
 
-    this.ctx = this.canvas.getContext("2d")!;
+    this.ctx = this.canvas.getContext('2d')!;
     this.ctx.globalAlpha = this.opacity;
 
     this.addDoors(xPos, color, speed);
@@ -74,7 +74,7 @@ class Doors {
     this.doors.top.push({
       y: 0,
       x: xPos,
-      direction: "up",
+      direction: 'up',
       color: color,
       speed: speed,
     });
@@ -82,7 +82,7 @@ class Doors {
     this.doors.bottom.push({
       y: this.doorHeight,
       x: xPos,
-      direction: "down",
+      direction: 'down',
       color: color,
       speed: speed,
     });
@@ -90,11 +90,11 @@ class Doors {
 
   updateDoors() {
     requestAnimationFrame(() => {
-      this.doors.top.forEach((door) => {
+      this.doors.top.forEach(door => {
         this.updateTopDoor(door);
       });
 
-      this.doors.bottom.forEach((door) => {
+      this.doors.bottom.forEach(door => {
         this.updateBottomDoor(door);
       });
 
@@ -103,16 +103,16 @@ class Doors {
   }
 
   updateTopDoor(door: DoorConfig) {
-    if (door.direction === "up" && door.y <= -this.doorHeight) {
-      door.direction = "down";
+    if (door.direction === 'up' && door.y <= -this.doorHeight) {
+      door.direction = 'down';
     }
-    if (door.direction === "down" && door.y >= 0) {
-      door.direction = "up";
+    if (door.direction === 'down' && door.y >= 0) {
+      door.direction = 'up';
     }
 
-    if (door.direction === "up") {
+    if (door.direction === 'up') {
       door.y -= door.speed;
-    } else if (door.direction === "down") {
+    } else if (door.direction === 'down') {
       door.y += door.speed;
     }
 
@@ -122,16 +122,16 @@ class Doors {
   }
 
   updateBottomDoor(door: DoorConfig) {
-    if (door.direction === "up" && door.y <= this.doorHeight) {
-      door.direction = "down";
+    if (door.direction === 'up' && door.y <= this.doorHeight) {
+      door.direction = 'down';
     }
-    if (door.direction === "down" && door.y >= this.doorHeight * 2) {
-      door.direction = "up";
+    if (door.direction === 'down' && door.y >= this.doorHeight * 2) {
+      door.direction = 'up';
     }
 
-    if (door.direction === "up") {
+    if (door.direction === 'up') {
       door.y -= door.speed;
-    } else if (door.direction === "down") {
+    } else if (door.direction === 'down') {
       door.y += door.speed;
     }
 
@@ -146,7 +146,7 @@ class Doors {
   }
 }
 
-const container = document.getElementById("container")!;
+const container = document.getElementById('container')!;
 const width = container.clientWidth;
 
 export interface colorPaletteType {
@@ -156,20 +156,20 @@ export interface colorPaletteType {
 
 const colorPalettes: colorPaletteType[] = [
   {
-    bg: "#00ffff",
-    primary: ["#79FDF8", "#01EDF3", "#04CDFE", "#2367FB", "#5B32FC"],
+    bg: '#00ffff',
+    primary: ['#79FDF8', '#01EDF3', '#04CDFE', '#2367FB', '#5B32FC'],
   },
   {
-    bg: "#FF0000",
-    primary: ["#482082", "#214EE9", "#7984FF", "#EA00A2", "#FF0053"],
+    bg: '#FF0000',
+    primary: ['#482082', '#214EE9', '#7984FF', '#EA00A2', '#FF0053'],
   },
   {
-    bg: "#300831",
-    primary: ["#440c46", "#3a093c", "#2f0631", "#250327", "#1a001c"],
+    bg: '#300831',
+    primary: ['#440c46', '#3a093c', '#2f0631', '#250327', '#1a001c'],
   },
   {
-    bg: "#000000",
-    primary: ["#111111", "#1d1d1d", "#1a1a1a", "#222222", "#2d2d2d"],
+    bg: '#000000',
+    primary: ['#111111', '#1d1d1d', '#1a1a1a', '#222222', '#2d2d2d'],
   },
 ];
 const colorPalette = randomItem(colorPalettes);

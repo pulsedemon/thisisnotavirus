@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default [
   {
-    ignores: ["**/.eslintrc.cjs", "build/**", "node_modules/**", "**/*.js"],
+    ignores: ["build/**", "node_modules/**", "**/*.js"],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -36,7 +36,7 @@ export default [
       ...tseslint.configs["recommended-requiring-type-checking"].rules,
       ...tseslint.configs.stylistic.rules,
       "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-unsafe-member-access": "error",
       "@typescript-eslint/no-unsafe-call": "error",

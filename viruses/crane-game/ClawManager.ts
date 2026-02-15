@@ -1,10 +1,10 @@
-import * as THREE from "three";
-import { PhysicsManager } from "./PhysicsManager";
-import { CraneRope } from "./CraneRope";
-import { ClawPhysics } from "./ClawPhysics";
-import { AudioManager } from "./AudioManager";
-import { GAME_CONFIG } from "./config";
-import { Prize } from "./types";
+import * as THREE from 'three';
+import { PhysicsManager } from './PhysicsManager';
+import { CraneRope } from './CraneRope';
+import { ClawPhysics } from './ClawPhysics';
+import { AudioManager } from './AudioManager';
+import { GAME_CONFIG } from './config';
+import { Prize } from './types';
 
 export class ClawManager {
   // Public interface for CraneGame
@@ -19,7 +19,7 @@ export class ClawManager {
   clawPosition: THREE.Vector3 = new THREE.Vector3(
     0,
     GAME_CONFIG.claw.restingHeight,
-    0,
+    0
   );
   targetPosition: THREE.Vector2 = new THREE.Vector2(0, 0);
   isDescending = false;
@@ -54,7 +54,7 @@ export class ClawManager {
     scene: THREE.Scene,
     physicsManager: PhysicsManager,
     binPosition: THREE.Vector3,
-    prizeSize: number,
+    prizeSize: number
   ) {
     this.scene = scene;
     this.physicsManager = physicsManager;
@@ -76,7 +76,7 @@ export class ClawManager {
       onPrizeDropped: (prize: Prize) => void;
       onPrizeWon: (prize: Prize) => void;
       onLose: () => void;
-    },
+    }
   ) {
     this.clawPhysics = clawPhysics;
     this.keys = keys;
@@ -97,7 +97,7 @@ export class ClawManager {
           y: this.clawPosition.y,
           z: this.clawPosition.z,
         },
-        true,
+        true
       );
     }
   }
@@ -131,7 +131,7 @@ export class ClawManager {
     this.isDescending = true;
     this.isGrabbing = false;
     this.grabbedPrizes = [];
-    this.audioManager?.playSound("clawDescend", 0.7, 0.9);
+    this.audioManager?.playSound('clawDescend', 0.7, 0.9);
     return true; // Success - drop initiated
   }
 
@@ -150,7 +150,7 @@ export class ClawManager {
         y: this.clawPosition.y,
         z: this.clawPosition.z,
       },
-      true,
+      true
     );
     this.clawPhysics.stop();
   }
@@ -163,7 +163,7 @@ export class ClawManager {
     this.craneRope = new CraneRope(topPosition, this.clawPosition);
 
     // Add rope segments to scene
-    this.craneRope.segments.forEach((segment) => {
+    this.craneRope.segments.forEach(segment => {
       this.scene.add(segment);
     });
 
@@ -273,7 +273,7 @@ export class ClawManager {
       (Math.abs(this.clawPhysics.position.x) >= 7.9 && Math.abs(oldX) < 7.9) ||
       (Math.abs(this.clawPhysics.position.z) >= 7.9 && Math.abs(oldZ) < 7.9)
     ) {
-      this.audioManager?.playSound("clawBounce", 0.6, 1.0); // Boundary collision sound
+      this.audioManager?.playSound('clawBounce', 0.6, 1.0); // Boundary collision sound
     }
   }
 
@@ -326,7 +326,7 @@ export class ClawManager {
 
       const distanceToBin = Math.sqrt(
         Math.pow(this.binPosition.x - this.clawPosition.x, 2) +
-          Math.pow(this.binPosition.z - this.clawPosition.z, 2),
+          Math.pow(this.binPosition.z - this.clawPosition.z, 2)
       );
 
       if (distanceToBin < 0.05) {
@@ -353,7 +353,7 @@ export class ClawManager {
       const distanceToCenter = Math.sqrt(
         this.clawPosition.x * this.clawPosition.x +
           this.clawPosition.z * this.clawPosition.z +
-          Math.pow(this.clawPosition.y - this.clawRestingHeight, 2),
+          Math.pow(this.clawPosition.y - this.clawRestingHeight, 2)
       );
 
       // Use faster interpolation when far, slower when close
@@ -439,7 +439,7 @@ export class ClawManager {
     // Find all prizes within grab range and calculate distances
     const prizesInRange: { prize: Prize; distance: number }[] = [];
 
-    this.prizes.forEach((prize) => {
+    this.prizes.forEach(prize => {
       if (prize.grabbed) return;
 
       // Check distance from claw to prize
@@ -474,17 +474,17 @@ export class ClawManager {
 
         prize.gripStrength = Math.max(
           0.5,
-          baseGrip - distancePenalty - weightPenalty + deformabilityBonus,
+          baseGrip - distancePenalty - weightPenalty + deformabilityBonus
         );
         prize.dropChance = (1 - prize.gripStrength) * 0.008; // Much lower base drop chance
 
         this.grabbedPrizes.push(prize);
 
         // Unsettle nearby prizes for realistic disturbance
-        this.prizes.forEach((otherPrize) => {
+        this.prizes.forEach(otherPrize => {
           if (otherPrize === prize || otherPrize.grabbed) return;
           const distToOther = prize.mesh.position.distanceTo(
-            otherPrize.mesh.position,
+            otherPrize.mesh.position
           );
           if (distToOther < 2) {
             otherPrize.settled = false;
@@ -495,7 +495,7 @@ export class ClawManager {
               .multiplyScalar(0.03);
             otherPrize.rigidBody.applyImpulse(
               { x: pushDir.x, y: pushDir.y, z: pushDir.z },
-              true,
+              true
             );
           }
         });
@@ -517,12 +517,12 @@ export class ClawManager {
       this.grabbedPrizes = [];
 
       // Validate and release prizes
-      const validPrizesToRelease = prizesToRelease.filter((prize) => {
+      const validPrizesToRelease = prizesToRelease.filter(prize => {
         return prize && prize.mesh && prize.grabbed;
       });
 
       // Release prizes and let them fall with Rapier physics
-      validPrizesToRelease.forEach((prize) => {
+      validPrizesToRelease.forEach(prize => {
         prize.grabbed = false;
         prize.settled = false; // Mark as unsettled so it can fall
 
@@ -532,7 +532,7 @@ export class ClawManager {
         // Reset visual effects when prize is released
         // Handle both single mesh and group (plushie model)
         if (prize.mesh instanceof THREE.Group) {
-          prize.mesh.traverse((child) => {
+          prize.mesh.traverse(child => {
             if (child instanceof THREE.Mesh) {
               const material = child.material as THREE.MeshStandardMaterial;
               material.emissiveIntensity =
@@ -548,7 +548,7 @@ export class ClawManager {
             (material.userData?.originalEmissiveIntensity as number) || 0.05;
           material.emissive =
             (material.userData?.originalEmissiveColor as THREE.Color) ||
-            new THREE.Color("#222222");
+            new THREE.Color('#222222');
         }
 
         // Don't add to wonPrizes here - let the bin detection handle it
@@ -556,7 +556,7 @@ export class ClawManager {
 
       // Remove won prizes from scene after they've fallen and settled
       setTimeout(() => {
-        validPrizesToRelease.forEach((prize) => {
+        validPrizesToRelease.forEach(prize => {
           // Remove from Three.js scene
           this.scene.remove(prize.mesh);
 
@@ -611,7 +611,7 @@ export class ClawManager {
             y: -Math.random() * 0.05 - 0.02,
             z: (Math.random() - 0.5) * 0.1 * deformabilityFactor,
           },
-          true,
+          true
         );
 
         // Show drop effect
@@ -631,24 +631,24 @@ export class ClawManager {
     for (let i = 0; i < particleCount; i++) {
       setTimeout(() => {
         // Create a temporary visual indicator
-        const indicator = document.createElement("div");
-        indicator.style.position = "absolute";
+        const indicator = document.createElement('div');
+        indicator.style.position = 'absolute';
         indicator.style.left = `${Math.random() * 20 + position.x * 10}px`;
         indicator.style.top = `${Math.random() * 20 + (15 - position.y) * 10}px`;
-        indicator.style.width = "4px";
-        indicator.style.height = "4px";
-        indicator.style.backgroundColor = "#ffff00";
-        indicator.style.borderRadius = "50%";
-        indicator.style.opacity = "0.8";
-        indicator.style.pointerEvents = "none";
-        indicator.style.zIndex = "1000";
+        indicator.style.width = '4px';
+        indicator.style.height = '4px';
+        indicator.style.backgroundColor = '#ffff00';
+        indicator.style.borderRadius = '50%';
+        indicator.style.opacity = '0.8';
+        indicator.style.pointerEvents = 'none';
+        indicator.style.zIndex = '1000';
 
         document.body.appendChild(indicator);
 
         // Animate and remove
         setTimeout(() => {
-          indicator.style.transform = "scale(0)";
-          indicator.style.opacity = "0";
+          indicator.style.transform = 'scale(0)';
+          indicator.style.opacity = '0';
           setTimeout(() => indicator.remove(), 300);
         }, 100);
       }, i * 50);

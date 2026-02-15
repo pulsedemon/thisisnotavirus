@@ -12,11 +12,11 @@ export function randomFloat(min: number, max: number): number {
 
 export function randomRgbColor(): string {
   return (
-    "" +
+    '' +
     (Math.round(Math.random() * 256) +
-      "," +
+      ',' +
       Math.round(Math.random() * 256) +
-      "," +
+      ',' +
       Math.round(Math.random() * 256))
   );
 }

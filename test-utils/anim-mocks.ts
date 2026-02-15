@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from 'vitest';
 
 // Type for requestAnimationFrame callback
 type FrameRequestCallback = (time: number) => void;
