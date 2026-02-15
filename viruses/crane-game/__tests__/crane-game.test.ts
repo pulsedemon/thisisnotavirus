@@ -123,23 +123,6 @@ vi.mock('@dimforge/rapier3d-compat', () => ({
 // Setup animation frame mocks
 setupAnimationFrameMocks();
 
-// Scoped suppression of unhandled rejections from async CraneGame.init()
-// that may fire after test cleanup clears mocks (e.g., getElementById returns undefined).
-// Only suppress TypeErrors from post-cleanup mock teardown; re-throw everything else.
-let unhandledRejectionHandler: (reason: unknown) => void;
-
-beforeEach(() => {
-  unhandledRejectionHandler = (reason: unknown) => {
-    if (reason instanceof TypeError) return; // mock teardown artifact
-    throw reason;
-  };
-  process.on('unhandledRejection', unhandledRejectionHandler);
-});
-
-afterEach(() => {
-  process.removeListener('unhandledRejection', unhandledRejectionHandler);
-});
-
 // Mock fetch globally
 global.fetch = vi.fn().mockResolvedValue({
   ok: true,
