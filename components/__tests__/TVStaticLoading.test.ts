@@ -19,7 +19,7 @@ describe('TVStaticLoading', () => {
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
       createImageData: vi.fn(() => ({ data: new Uint8ClampedArray(0) })),
       putImageData: vi.fn(),
-    } as unknown as CanvasRenderingContext2D);
+    } as unknown as ReturnType<HTMLCanvasElement['getContext']>);
 
     // Mock performance.now for throttle logic
     vi.spyOn(performance, 'now').mockReturnValue(0);
