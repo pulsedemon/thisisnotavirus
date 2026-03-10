@@ -169,8 +169,8 @@ class VirusLoader {
     try {
       if (playlist.isMixedVirus(name)) {
         let mix: ReturnType<typeof playlist.getMixById>;
-        if (name.startsWith('defaultMix:')) {
-          mix = playlist.getDefaultMixByName(name);
+        if (name.startsWith('premix:')) {
+          mix = playlist.getPremixByName(name);
         } else {
           playlist.loadSavedMixes();
           mix = playlist.getMixById(name);

@@ -35,8 +35,8 @@ export function showVirusThumbnailOverlay({
   }));
 
   // Get premixed viruses (default mixes)
-  const premixedViruses = playlist.defaultMixes.map(mix => ({
-    value: `defaultMix:${mix.name}`,
+  const premixedViruses = playlist.premixes.map(mix => ({
+    value: `premix:${mix.name}`,
     label: `${formatVirusName(mix.primary)} / ${formatVirusName(
       mix.secondary
     )} (${Math.round(mix.mixRatio * 100)}%)`,
@@ -216,9 +216,9 @@ export function showVirusThumbnailOverlay({
       const virus = htmlItem.getAttribute('data-virus')!;
       let matches = false;
 
-      if (virus.startsWith('mixed:') || virus.startsWith('defaultMix:')) {
+      if (virus.startsWith('mixed:') || virus.startsWith('premix:')) {
         // For mix viruses (custom or official), search in the label and component virus names
-        const mixEntry = virus.startsWith('defaultMix:')
+        const mixEntry = virus.startsWith('premix:')
           ? premixedViruses.find(om => om.value === virus)
           : customViruses.find(cv => cv.value === virus);
         if (mixEntry) {

@@ -135,7 +135,7 @@ describe('Playlist', () => {
 
     it('should return true for default mix identifiers', () => {
       const playlist = new Playlist();
-      expect(playlist.isMixedVirus('defaultMix:sphere-uzumaki')).toBe(true);
+      expect(playlist.isMixedVirus('premix:sphere-uzumaki')).toBe(true);
     });
 
     it('should return false for a regular virus name', () => {
@@ -182,15 +182,15 @@ describe('Playlist', () => {
     });
   });
 
-  describe('defaultMixes', () => {
+  describe('premixes', () => {
     it('should include default mixes in the generated playlist', () => {
       const playlist = new Playlist();
-      expect(playlist.playlist).toContain('defaultMix:sphere-uzumaki');
+      expect(playlist.playlist).toContain('premix:sphere-uzumaki');
     });
 
     it('should have the uzumaki-sphere default mix', () => {
       const playlist = new Playlist();
-      expect(playlist.defaultMixes).toContainEqual({
+      expect(playlist.premixes).toContainEqual({
         primary: 'sphere',
         secondary: 'uzumaki',
         mixRatio: 0.5,
@@ -199,10 +199,10 @@ describe('Playlist', () => {
     });
   });
 
-  describe('getDefaultMixByName', () => {
+  describe('getPremixByName', () => {
     it('should return the default mix for a valid name', () => {
       const playlist = new Playlist();
-      const mix = playlist.getDefaultMixByName('defaultMix:sphere-uzumaki');
+      const mix = playlist.getPremixByName('premix:sphere-uzumaki');
       expect(mix).toEqual({
         primary: 'sphere',
         secondary: 'uzumaki',
@@ -213,7 +213,7 @@ describe('Playlist', () => {
 
     it('should return undefined for a non-existent name', () => {
       const playlist = new Playlist();
-      const mix = playlist.getDefaultMixByName('defaultMix:nonexistent');
+      const mix = playlist.getPremixByName('premix:nonexistent');
       expect(mix).toBeUndefined();
     });
   });
