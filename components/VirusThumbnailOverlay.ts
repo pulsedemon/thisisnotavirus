@@ -34,6 +34,19 @@ export function showVirusThumbnailOverlay({
     type: 'builtin',
   }));
 
+  // Get premixed viruses (default mixes)
+  const premixedViruses = playlist.defaultMixes.map(mix => ({
+    value: `defaultMix:${mix.name}`,
+    label: `${formatVirusName(mix.primary)} / ${formatVirusName(
+      mix.secondary
+    )} (${Math.round(mix.mixRatio * 100)}%)`,
+    type: 'premixed',
+    mix: {
+      ...mix,
+      mixRatioPercent: Math.round(mix.mixRatio * 100),
+    },
+  }));
+
   // Get custom viruses (saved mixes)
   const customViruses = playlist.savedMixes.map(mix => ({
     value: `mixed:${mix.id}`,
@@ -106,6 +119,42 @@ export function showVirusThumbnailOverlay({
         </div>
 
         ${
+          premixedViruses.length > 0
+            ? `
+        <div class="virus-section premixed-viruses">
+          <h3 class="virus-section-title">Premixed</h3>
+          <div class="virus-thumbnail-grid ${isMobile() ? 'mobile' : ''}">
+            ${premixedViruses
+              .map(
+                virus => `
+              <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} premixed virus">
+                <div class="virus-thumbnail-preview custom-preview">
+                  <div class="custom-virus-display">
+                    <div class="custom-virus-info">
+                      <div class="custom-virus-components">
+                        <span class="primary-virus">${virus.mix.primary}</span>
+                        <span class="mix-symbol">⚡</span>
+                        <span class="secondary-virus">${virus.mix.secondary}</span>
+                      </div>
+                      <div class="mix-ratio">${virus.mix.mixRatioPercent}%</div>
+                    </div>
+                  </div>
+                  <div class="virus-thumbnail-overlay-hover">
+                    <span class="play-icon">▶</span>
+                  </div>
+                </div>
+                <div class="virus-label custom-label">${virus.label}</div>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+        `
+            : ''
+        }
+
+        ${
           customViruses.length > 0
             ? `
         <div class="virus-section custom-viruses">
@@ -167,24 +216,26 @@ export function showVirusThumbnailOverlay({
       const virus = htmlItem.getAttribute('data-virus')!;
       let matches = false;
 
-      if (virus.startsWith('mixed:')) {
-        // For custom viruses, search in the label and component virus names
-        const customVirus = customViruses.find(cv => cv.value === virus);
-        if (customVirus) {
-          const label = customVirus.label.toLowerCase();
+      if (virus.startsWith('mixed:') || virus.startsWith('defaultMix:')) {
+        // For mix viruses (custom or official), search in the label and component virus names
+        const mixEntry = virus.startsWith('defaultMix:')
+          ? premixedViruses.find(om => om.value === virus)
+          : customViruses.find(cv => cv.value === virus);
+        if (mixEntry) {
+          const label = mixEntry.label.toLowerCase();
           const primaryVirus = formatVirusName(
-            customVirus.mix.primary
+            mixEntry.mix.primary
           ).toLowerCase();
           const secondaryVirus = formatVirusName(
-            customVirus.mix.secondary
+            mixEntry.mix.secondary
           ).toLowerCase();
 
           matches =
             label.includes(term) ||
             primaryVirus.includes(term) ||
             secondaryVirus.includes(term) ||
-            customVirus.mix.primary.toLowerCase().includes(term) ||
-            customVirus.mix.secondary.toLowerCase().includes(term);
+            mixEntry.mix.primary.toLowerCase().includes(term) ||
+            mixEntry.mix.secondary.toLowerCase().includes(term);
         }
       } else {
         // For built-in viruses, search in formatted name and virus name

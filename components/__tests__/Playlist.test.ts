@@ -133,6 +133,11 @@ describe('Playlist', () => {
       expect(playlist.isMixedVirus('mixed:0')).toBe(true);
     });
 
+    it('should return true for default mix identifiers', () => {
+      const playlist = new Playlist();
+      expect(playlist.isMixedVirus('defaultMix:sphere-uzumaki')).toBe(true);
+    });
+
     it('should return false for a regular virus name', () => {
       const playlist = new Playlist();
       expect(playlist.isMixedVirus('sphere')).toBe(false);
@@ -174,6 +179,42 @@ describe('Playlist', () => {
       const mix = playlist.getMixById('mixed:7');
       expect(mix).toBeDefined();
       expect(mix!.id).toBe(7);
+    });
+  });
+
+  describe('defaultMixes', () => {
+    it('should include default mixes in the generated playlist', () => {
+      const playlist = new Playlist();
+      expect(playlist.playlist).toContain('defaultMix:sphere-uzumaki');
+    });
+
+    it('should have the uzumaki-sphere default mix', () => {
+      const playlist = new Playlist();
+      expect(playlist.defaultMixes).toContainEqual({
+        primary: 'sphere',
+        secondary: 'uzumaki',
+        mixRatio: 0.5,
+        name: 'sphere-uzumaki',
+      });
+    });
+  });
+
+  describe('getDefaultMixByName', () => {
+    it('should return the default mix for a valid name', () => {
+      const playlist = new Playlist();
+      const mix = playlist.getDefaultMixByName('defaultMix:sphere-uzumaki');
+      expect(mix).toEqual({
+        primary: 'sphere',
+        secondary: 'uzumaki',
+        mixRatio: 0.5,
+        name: 'sphere-uzumaki',
+      });
+    });
+
+    it('should return undefined for a non-existent name', () => {
+      const playlist = new Playlist();
+      const mix = playlist.getDefaultMixByName('defaultMix:nonexistent');
+      expect(mix).toBeUndefined();
     });
   });
 

@@ -121,10 +121,14 @@ class VirusLoader {
 
   private showSourceCodeLink() {
     this.sourceCodeLink?.classList.remove('hide');
+    const sourceCodeEl = document.getElementById('source-code');
+    if (sourceCodeEl) sourceCodeEl.style.display = '';
   }
 
   private hideSourceCodeLink() {
     this.sourceCodeLink?.classList.add('hide');
+    const sourceCodeEl = document.getElementById('source-code');
+    if (sourceCodeEl) sourceCodeEl.style.display = 'none';
   }
 
   private removeMixContainer() {
@@ -164,8 +168,13 @@ class VirusLoader {
 
     try {
       if (playlist.isMixedVirus(name)) {
-        playlist.loadSavedMixes();
-        const mix = playlist.getMixById(name);
+        let mix: ReturnType<typeof playlist.getMixById>;
+        if (name.startsWith('defaultMix:')) {
+          mix = playlist.getDefaultMixByName(name);
+        } else {
+          playlist.loadSavedMixes();
+          mix = playlist.getMixById(name);
+        }
         if (mix) {
           this.iframe.style.display = 'none';
           this.hideSourceCodeLink();

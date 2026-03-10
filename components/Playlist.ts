@@ -25,6 +25,15 @@ export default class Playlist {
     'crane-game',
   ];
 
+  defaultMixes: VirusMix[] = [
+    {
+      primary: 'sphere',
+      secondary: 'uzumaki',
+      mixRatio: 0.5,
+      name: 'sphere-uzumaki',
+    },
+  ];
+
   playlist: string[] = [];
   currentIndex = 0;
   savedMixes: VirusMix[] = [];
@@ -49,6 +58,12 @@ export default class Playlist {
   generatePlaylist() {
     // Create a list of all available items (viruses + mixes)
     const allItems: string[] = [...this.viruses];
+
+    // Add default mixes to the available items
+    const defaultMixIds = this.defaultMixes
+      .map(mix => (mix.name ? `defaultMix:${mix.name}` : null))
+      .filter((id): id is string => id !== null);
+    allItems.push(...defaultMixIds);
 
     // Add saved mixes to the available items
     if (this.savedMixes.length > 0) {
@@ -114,14 +129,18 @@ export default class Playlist {
   }
 
   isMixedVirus(virus: string): boolean {
-    const isMixed = virus.startsWith('mixed:');
-    return isMixed;
+    return virus.startsWith('mixed:') || virus.startsWith('defaultMix:');
   }
 
   getMixById(id: string): VirusMix | undefined {
     const mixId = parseInt(id.replace('mixed:', ''));
     const mix = this.savedMixes.find(mix => mix.id === mixId);
     return mix;
+  }
+
+  getDefaultMixByName(name: string): VirusMix | undefined {
+    const mixName = name.replace('defaultMix:', '');
+    return this.defaultMixes.find(mix => mix.name === mixName);
   }
 
   /**
