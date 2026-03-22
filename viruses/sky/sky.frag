@@ -71,7 +71,7 @@ vec4 clouds(vec2 uv, float time, float cloudiness) {
   float heightMask = smoothstep(0.02, 0.08, uv.y) * smoothstep(0.98, 0.92, uv.y);
   cloud *= heightMask;
 
-  // Neon-tinted clouds
+  // Cloud base color: neon cyan, fading toward near-black at high cloudiness
   vec3 cloudColor = vec3(0.0, 0.7, 0.9);
   cloudColor = mix(cloudColor, vec3(0.05), smoothstep(0.5, 1.0, cloudiness));
 
@@ -87,7 +87,6 @@ vec4 clouds(vec2 uv, float time, float cloudiness) {
 void main() {
   vec2 uv = vUv;
 
-  // Pixelate
   float pixelRes = 128.0;
   float aspect = u_resolution.x / u_resolution.y;
   vec2 grid = vec2(pixelRes * aspect, pixelRes);
