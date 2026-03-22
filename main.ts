@@ -82,6 +82,7 @@ class VirusLoader {
     document.querySelector('#source-code a');
   virusLab: VirusLab | null = null;
   isNavigating = false;
+  private _loadGeneration = 0;
 
   constructor() {
     this.iframe = document.getElementById('container') as HTMLIFrameElement;
@@ -136,6 +137,7 @@ class VirusLoader {
   }
 
   loadVirus(name: string) {
+    const generation = ++this._loadGeneration;
     virusHasKeyboardControl = false;
 
     // Randomly choose the loading animation for each load
@@ -163,6 +165,7 @@ class VirusLoader {
     this.removeMixContainer();
 
     const safetyTimeout = setTimeout(() => {
+      if (generation !== this._loadGeneration) return;
       const msg = `Safety timeout: forcing loading animation to stop for virus: ${name}`;
       console.warn(msg);
       Sentry.captureMessage(msg, 'warning');
@@ -198,6 +201,7 @@ class VirusLoader {
           mixFrame.addEventListener(
             'load',
             () => {
+              if (generation !== this._loadGeneration) return;
               clearTimeout(safetyTimeout);
               this._delayedIframeLoaded();
             },
@@ -207,6 +211,7 @@ class VirusLoader {
           mixFrame.addEventListener(
             'error',
             () => {
+              if (generation !== this._loadGeneration) return;
               const errorMsg = `Failed to load mixed virus iframe: ${name}`;
               console.error(errorMsg);
               Sentry.captureMessage(errorMsg, 'error');
@@ -223,11 +228,25 @@ class VirusLoader {
             this.sourceCodeLink.href = this.sourceCodeUrl(name);
         } else {
           console.error('Mix not found for ID:', name);
+          Sentry.captureMessage(`Mix not found for ID: ${name}`, 'error');
           this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
           this.iframe.style.display = 'block';
           this.iframe.addEventListener(
             'load',
             () => {
+              if (generation !== this._loadGeneration) return;
+              clearTimeout(safetyTimeout);
+              this._delayedIframeLoaded();
+            },
+            { once: true }
+          );
+          this.iframe.addEventListener(
+            'error',
+            () => {
+              if (generation !== this._loadGeneration) return;
+              const errorMsg = `Failed to load virus iframe: ${name}`;
+              console.error(errorMsg);
+              Sentry.captureMessage(errorMsg, 'error');
               clearTimeout(safetyTimeout);
               this._delayedIframeLoaded();
             },
@@ -240,6 +259,19 @@ class VirusLoader {
         this.iframe.addEventListener(
           'load',
           () => {
+            if (generation !== this._loadGeneration) return;
+            clearTimeout(safetyTimeout);
+            this._delayedIframeLoaded();
+          },
+          { once: true }
+        );
+        this.iframe.addEventListener(
+          'error',
+          () => {
+            if (generation !== this._loadGeneration) return;
+            const errorMsg = `Failed to load virus iframe: ${name}`;
+            console.error(errorMsg);
+            Sentry.captureMessage(errorMsg, 'error');
             clearTimeout(safetyTimeout);
             this._delayedIframeLoaded();
           },
@@ -254,6 +286,19 @@ class VirusLoader {
       this.iframe.addEventListener(
         'load',
         () => {
+          if (generation !== this._loadGeneration) return;
+          clearTimeout(safetyTimeout);
+          this._delayedIframeLoaded();
+        },
+        { once: true }
+      );
+      this.iframe.addEventListener(
+        'error',
+        () => {
+          if (generation !== this._loadGeneration) return;
+          const errorMsg = `Failed to load fallback virus iframe: ${playlist.viruses[0]}`;
+          console.error(errorMsg);
+          Sentry.captureMessage(errorMsg, 'error');
           clearTimeout(safetyTimeout);
           this._delayedIframeLoaded();
         },
