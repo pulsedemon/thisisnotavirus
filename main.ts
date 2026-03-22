@@ -32,12 +32,18 @@ if (import.meta.env.PROD) {
     profilesSampleRate: 1.0,
   });
 
-  if (window.__iconFontFailed) {
-    Sentry.captureMessage(
-      'Material Symbols icon font failed to load',
-      'warning'
-    );
-  }
+  // Defer the check: the icon font preload script in index.html may set
+  // __iconFontFailed after this module initializes (e.g. on timeout or
+  // fonts.load() rejection). Checking on 'load' guarantees the font script
+  // has resolved.
+  window.addEventListener('load', () => {
+    if (window.__iconFontFailed) {
+      Sentry.captureMessage(
+        'Material Symbols icon font failed to load',
+        'warning'
+      );
+    }
+  });
 }
 
 console.log(
@@ -241,12 +247,13 @@ class VirusLoader {
         } else {
           console.error('Mix not found for ID:', name);
           Sentry.captureMessage(`Mix not found for ID: ${name}`, 'error');
-          this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
+          const fallbackVirus = playlist.viruses[0] ?? 'random-shapes';
+          this.iframe.src = `/viruses/${fallbackVirus}/`;
           this.iframe.style.display = 'block';
           this._attachIframeListeners(
             this.iframe,
             generation,
-            `fallback virus iframe (${playlist.viruses[0]}) after mix not found: ${name}`
+            `fallback virus iframe (${fallbackVirus}) after mix not found: ${name}`
           );
         }
       } else {
@@ -261,12 +268,13 @@ class VirusLoader {
     } catch (error) {
       console.error('Error loading virus:', error);
       Sentry.captureException(error);
-      this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
+      const fallbackVirus = playlist.viruses[0] ?? 'random-shapes';
+      this.iframe.src = `/viruses/${fallbackVirus}/`;
       this.iframe.style.display = 'block';
       this._attachIframeListeners(
         this.iframe,
         generation,
-        `fallback virus iframe: ${playlist.viruses[0]}`
+        `fallback virus iframe: ${fallbackVirus}`
       );
     }
   }
@@ -290,10 +298,10 @@ class VirusLoader {
     );
     frame.addEventListener(
       'error',
-      () => {
+      (event: Event) => {
         if (generation !== this._loadGeneration) return;
         const errorMsg = `Failed to load ${errorLabel}`;
-        console.error(errorMsg);
+        console.error(errorMsg, event);
         Sentry.captureMessage(errorMsg, 'error');
         if (this._safetyTimeout !== null) {
           clearTimeout(this._safetyTimeout);
@@ -327,7 +335,7 @@ class VirusLoader {
     } catch (error) {
       console.error('Failed to stop loading animation:', error);
       Sentry.captureException(error);
-      this.loadingAnimEl.style.display = 'none';
+      if (this.loadingAnimEl) this.loadingAnimEl.style.display = 'none';
     }
     document.querySelectorAll('.tv-static-canvas').forEach(el => {
       (el as HTMLElement).style.pointerEvents = 'none';
