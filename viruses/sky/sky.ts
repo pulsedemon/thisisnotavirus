@@ -35,6 +35,16 @@ class Sky {
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
+    const pixelRes = Math.round(randomFloat(128, 320));
+    const cloudScaleX = randomFloat(8, 18);
+    const cloudScaleY = randomFloat(4, 9);
+    const cloudSpeed = randomFloat(0.03, 0.15);
+    const cloudOpacity = randomFloat(0.6, 0.95);
+    const posterLevels = Math.round(randomFloat(4, 10));
+    const edgeOffset = randomFloat(0.02, 0.1);
+    const hueShift = Math.random();
+    const cloudHueShift = Math.random();
+
     this.material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -48,6 +58,14 @@ class Sky {
         },
         u_timeOfDay: { value: 0.5 },
         u_cloudiness: { value: 0.3 },
+        u_pixelRes: { value: pixelRes },
+        u_cloudScale: { value: new THREE.Vector2(cloudScaleX, cloudScaleY) },
+        u_cloudSpeed: { value: cloudSpeed },
+        u_cloudOpacity: { value: cloudOpacity },
+        u_posterLevels: { value: posterLevels },
+        u_edgeOffset: { value: edgeOffset },
+        u_hueShift: { value: hueShift },
+        u_cloudHueShift: { value: cloudHueShift },
       },
     });
 
@@ -82,7 +100,7 @@ class Sky {
     // Random jumps
     if (elapsed > this.nextJump) {
       this.targetTod = Math.random();
-      this.targetCloudiness = Math.random();
+      this.targetCloudiness = randomFloat(0.3, 1);
       this.nextJump = elapsed + randomFloat(2, 5);
     }
 

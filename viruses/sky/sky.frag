@@ -4,6 +4,14 @@ uniform float u_time;
 uniform vec2 u_resolution;
 uniform float u_timeOfDay;
 uniform float u_cloudiness;
+uniform float u_pixelRes;
+uniform vec2  u_cloudScale;
+uniform float u_cloudSpeed;
+uniform float u_cloudOpacity;
+uniform float u_posterLevels;
+uniform float u_edgeOffset;
+uniform float u_hueShift;
+uniform float u_cloudHueShift;
 
 varying vec2 vUv;
 
@@ -26,6 +34,26 @@ float noise2d(vec2 p) {
 
 float fbm2(vec2 p) {
   return (noise2d(p) + noise2d(p * 2.0) * 0.5) / 1.5;
+}
+
+vec3 rgb2hsv(vec3 c) {
+  vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+  vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+  float d = q.x - min(q.w, q.y);
+  float e = 1.0e-10;
+  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv2rgb(vec3 c) {
+  vec3 p = abs(fract(c.xxx + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+  return c.z * mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), c.y);
+}
+
+vec3 hueShift(vec3 col, float shift) {
+  vec3 hsv = rgb2hsv(col);
+  hsv.x = fract(hsv.x + shift);
+  return hsv2rgb(hsv);
 }
 
 vec3 skyGradient(vec2 uv, float tod) {
@@ -61,33 +89,30 @@ vec3 skyGradient(vec2 uv, float tod) {
 }
 
 vec4 clouds(vec2 uv, float time, float cloudiness) {
-  vec2 cloudUv = uv * vec2(6.0, 3.0) + vec2(time * 0.08, 0.0);
+  vec2 cloudUv = uv * u_cloudScale + vec2(time * u_cloudSpeed, 0.0);
 
   float cloud = fbm2(cloudUv);
 
   float threshold = mix(0.65, 0.2, cloudiness);
   cloud = step(threshold, cloud);
 
-  float heightMask = smoothstep(0.02, 0.08, uv.y) * smoothstep(0.98, 0.92, uv.y);
-  cloud *= heightMask;
-
   // Cloud base color: neon cyan, fading toward near-black at high cloudiness
-  vec3 cloudColor = vec3(0.0, 0.7, 0.9);
+  vec3 cloudColor = hueShift(vec3(0.0, 0.7, 0.9), u_cloudHueShift);
   cloudColor = mix(cloudColor, vec3(0.05), smoothstep(0.5, 1.0, cloudiness));
 
   // Edge detect via offset sample comparison
-  float cloudEdge = fbm2(cloudUv + 0.05);
+  float cloudEdge = fbm2(cloudUv + u_edgeOffset);
   cloudEdge = step(threshold, cloudEdge);
   float edge = abs(cloud - cloudEdge);
-  cloudColor = mix(cloudColor, vec3(1.0, 0.0, 0.5), edge * 0.9);
+  cloudColor = mix(cloudColor, hueShift(vec3(1.0, 0.0, 0.5), u_cloudHueShift), edge * 0.9);
 
-  return vec4(cloudColor, cloud * 0.85);
+  return vec4(cloudColor, cloud * u_cloudOpacity);
 }
 
 void main() {
   vec2 uv = vUv;
 
-  float pixelRes = 128.0;
+  float pixelRes = u_pixelRes;
   float aspect = u_resolution.x / u_resolution.y;
   vec2 grid = vec2(pixelRes * aspect, pixelRes);
   uv = floor(uv * grid) / grid;
@@ -97,8 +122,10 @@ void main() {
   vec4 c = clouds(uv, u_time, u_cloudiness);
   col = mix(col, c.rgb, c.a);
 
-  // 7 levels per channel (posterize)
-  col = floor(col * 6.0 + 0.5) / 6.0;
+  // Posterize
+  col = floor(col * u_posterLevels + 0.5) / u_posterLevels;
+
+  col = hueShift(col, u_hueShift);
 
   gl_FragColor = vec4(col, 1.0);
 }
