@@ -83,6 +83,7 @@ class VirusLoader {
   virusLab: VirusLab | null = null;
   isNavigating = false;
   private _loadGeneration = 0;
+  private _pendingRevealTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.iframe = document.getElementById('container') as HTMLIFrameElement;
@@ -138,6 +139,12 @@ class VirusLoader {
 
   loadVirus(name: string) {
     const generation = ++this._loadGeneration;
+
+    if (this._pendingRevealTimeout !== null) {
+      clearTimeout(this._pendingRevealTimeout);
+      this._pendingRevealTimeout = null;
+    }
+
     virusHasKeyboardControl = false;
 
     // Randomly choose the loading animation for each load
@@ -169,7 +176,7 @@ class VirusLoader {
       const msg = `Safety timeout: forcing loading animation to stop for virus: ${name}`;
       console.warn(msg);
       Sentry.captureMessage(msg, 'warning');
-      this._delayedIframeLoaded();
+      this._delayedIframeLoaded(generation);
     }, 5000);
 
     try {
@@ -203,7 +210,7 @@ class VirusLoader {
             () => {
               if (generation !== this._loadGeneration) return;
               clearTimeout(safetyTimeout);
-              this._delayedIframeLoaded();
+              this._delayedIframeLoaded(generation);
             },
             { once: true }
           );
@@ -216,7 +223,7 @@ class VirusLoader {
               console.error(errorMsg);
               Sentry.captureMessage(errorMsg, 'error');
               clearTimeout(safetyTimeout);
-              this._delayedIframeLoaded();
+              this._delayedIframeLoaded(generation);
             },
             { once: true }
           );
@@ -236,7 +243,7 @@ class VirusLoader {
             () => {
               if (generation !== this._loadGeneration) return;
               clearTimeout(safetyTimeout);
-              this._delayedIframeLoaded();
+              this._delayedIframeLoaded(generation);
             },
             { once: true }
           );
@@ -248,7 +255,7 @@ class VirusLoader {
               console.error(errorMsg);
               Sentry.captureMessage(errorMsg, 'error');
               clearTimeout(safetyTimeout);
-              this._delayedIframeLoaded();
+              this._delayedIframeLoaded(generation);
             },
             { once: true }
           );
@@ -261,7 +268,7 @@ class VirusLoader {
           () => {
             if (generation !== this._loadGeneration) return;
             clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
+            this._delayedIframeLoaded(generation);
           },
           { once: true }
         );
@@ -273,7 +280,7 @@ class VirusLoader {
             console.error(errorMsg);
             Sentry.captureMessage(errorMsg, 'error');
             clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
+            this._delayedIframeLoaded(generation);
           },
           { once: true }
         );
@@ -288,7 +295,7 @@ class VirusLoader {
         () => {
           if (generation !== this._loadGeneration) return;
           clearTimeout(safetyTimeout);
-          this._delayedIframeLoaded();
+          this._delayedIframeLoaded(generation);
         },
         { once: true }
       );
@@ -300,20 +307,25 @@ class VirusLoader {
           console.error(errorMsg);
           Sentry.captureMessage(errorMsg, 'error');
           clearTimeout(safetyTimeout);
-          this._delayedIframeLoaded();
+          this._delayedIframeLoaded(generation);
         },
         { once: true }
       );
     }
   }
 
-  _delayedIframeLoaded() {
+  _delayedIframeLoaded(generation: number) {
     const minDuration = 500;
     const elapsed = Date.now() - this.loadingAnimStartTime;
     if (elapsed >= minDuration) {
+      if (generation !== this._loadGeneration) return;
       this.iframeLoaded();
     } else {
-      setTimeout(() => this.iframeLoaded(), minDuration - elapsed);
+      this._pendingRevealTimeout = setTimeout(() => {
+        this._pendingRevealTimeout = null;
+        if (generation !== this._loadGeneration) return;
+        this.iframeLoaded();
+      }, minDuration - elapsed);
     }
   }
 

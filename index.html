@@ -50,11 +50,26 @@
 
     <link
       rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap"
       as="style"
-      onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('icons-loaded')"
+      id="icon-font-link"
       onerror="console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
     />
+    <script>
+      (function() {
+        var link = document.getElementById('icon-font-link');
+        link.onload = function() {
+          link.onload = null;
+          link.rel = 'stylesheet';
+          var fontsReady = document.fonts
+            ? document.fonts.load('1em "Material Symbols Outlined"')
+            : Promise.resolve();
+          Promise.race([fontsReady, new Promise(function(r) { setTimeout(r, 3000); })])
+            .then(function() { document.documentElement.classList.add('icons-loaded'); })
+            .catch(function() { document.documentElement.classList.add('icons-loaded'); });
+        };
+      })();
+    </script>
 
     <link
       rel="stylesheet"
@@ -95,6 +110,9 @@
       /* Hide icon font text until Material Symbols loads */
       .material-symbols-outlined {
         visibility: hidden;
+        display: inline-block;
+        width: 1em;
+        overflow: hidden;
       }
       .icons-loaded .material-symbols-outlined {
         visibility: visible;
