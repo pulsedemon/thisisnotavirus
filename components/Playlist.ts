@@ -23,6 +23,7 @@ export default class Playlist {
     'shitstorm',
     'void',
     'crane-game',
+    'sky',
   ];
 
   premixes: VirusMix[] = [

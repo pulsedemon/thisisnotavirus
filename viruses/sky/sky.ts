@@ -1,0 +1,219 @@
+import './sky.scss';
+import * as THREE from 'three';
+import { randomFloat } from '../../utils/random';
+
+const vertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 1.0);
+}
+`;
+
+const fragmentShader = `
+precision highp float;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform float u_timeOfDay;
+uniform float u_cloudiness;
+
+varying vec2 vUv;
+
+float hash21(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+float noise2d(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+vec3 skyGradient(vec2 uv, float tod) {
+  float band = floor(clamp(uv.y * 8.0, 0.0, 7.0));
+
+  vec3 dawnCol, dayCol, sunCol, nitCol;
+
+  if (band < 1.0) {
+    dawnCol = vec3(0.15, 0.0, 0.2); dayCol = vec3(0.0, 0.0, 0.2); sunCol = vec3(0.1, 0.0, 0.15); nitCol = vec3(0.0, 0.0, 0.1);
+  } else if (band < 2.0) {
+    dawnCol = vec3(0.3, 0.0, 0.3); dayCol = vec3(0.0, 0.05, 0.3); sunCol = vec3(0.2, 0.0, 0.4); nitCol = vec3(0.02, 0.0, 0.12);
+  } else if (band < 3.0) {
+    dawnCol = vec3(1.0, 0.0, 0.3); dayCol = vec3(0.0, 0.1, 0.5); sunCol = vec3(0.5, 0.0, 0.5); nitCol = vec3(0.04, 0.0, 0.15);
+  } else if (band < 4.0) {
+    dawnCol = vec3(1.0, 0.2, 0.0); dayCol = vec3(0.0, 0.3, 1.0); sunCol = vec3(1.0, 0.0, 0.4); nitCol = vec3(0.03, 0.0, 0.08);
+  } else if (band < 5.0) {
+    dawnCol = vec3(1.0, 0.6, 0.0); dayCol = vec3(0.0, 0.6, 1.0); sunCol = vec3(1.0, 0.0, 0.1); nitCol = vec3(0.04, 0.0, 0.1);
+  } else if (band < 6.0) {
+    dawnCol = vec3(1.0, 1.0, 0.0); dayCol = vec3(0.0, 1.0, 1.0); sunCol = vec3(1.0, 0.3, 0.0); nitCol = vec3(0.03, 0.0, 0.08);
+  } else if (band < 7.0) {
+    dawnCol = vec3(0.0, 1.0, 0.7); dayCol = vec3(0.0, 1.0, 0.6); sunCol = vec3(1.0, 0.7, 0.0); nitCol = vec3(0.02, 0.0, 0.04);
+  } else {
+    dawnCol = vec3(0.0, 0.8, 1.0); dayCol = vec3(0.2, 1.0, 0.8); sunCol = vec3(1.0, 1.0, 0.0); nitCol = vec3(0.01, 0.0, 0.02);
+  }
+
+  float dawnW = smoothstep(0.1, 0.2, tod) * smoothstep(0.4, 0.3, tod);
+  float dayW = smoothstep(0.25, 0.35, tod) * smoothstep(0.65, 0.55, tod);
+  float sunW = smoothstep(0.55, 0.65, tod) * smoothstep(0.9, 0.8, tod);
+  float nitW = clamp(1.0 - smoothstep(0.05, 0.15, tod) + smoothstep(0.85, 0.95, tod), 0.0, 1.0);
+  float total = dawnW + dayW + sunW + nitW + 0.001;
+
+  return (nitCol * nitW + dawnCol * dawnW + dayCol * dayW + sunCol * sunW) / total;
+}
+
+vec4 clouds(vec2 uv, float time, float cloudiness) {
+  vec2 cloudUv = uv * vec2(6.0, 3.0) + vec2(time * 0.08, 0.0);
+
+  float cloud = noise2d(cloudUv) + noise2d(cloudUv * 2.0) * 0.5;
+  cloud /= 1.5;
+
+  float threshold = mix(0.65, 0.2, cloudiness);
+  cloud = step(threshold, cloud);
+
+  float heightMask = smoothstep(0.02, 0.08, uv.y) * smoothstep(0.98, 0.92, uv.y);
+  cloud *= heightMask;
+
+  // Neon-tinted clouds
+  vec3 cloudColor = vec3(0.0, 0.7, 0.9);
+  cloudColor = mix(cloudColor, vec3(0.05), smoothstep(0.5, 1.0, cloudiness));
+
+  // Neon edge detect
+  float cloudEdge = noise2d(cloudUv + 0.05) + noise2d((cloudUv + 0.05) * 2.0) * 0.5;
+  cloudEdge /= 1.5;
+  cloudEdge = step(threshold, cloudEdge);
+  float edge = abs(cloud - cloudEdge);
+  cloudColor = mix(cloudColor, vec3(1.0, 0.0, 0.5), edge * 0.9);
+
+  return vec4(cloudColor, cloud * 0.85);
+}
+
+void main() {
+  vec2 uv = vUv;
+
+  // Pixelate
+  float pixelRes = 128.0;
+  float aspect = u_resolution.x / u_resolution.y;
+  vec2 grid = vec2(pixelRes * aspect, pixelRes);
+  uv = floor(uv * grid) / grid;
+
+  vec3 col = skyGradient(uv, u_timeOfDay);
+
+  vec4 c = clouds(uv, u_time, u_cloudiness);
+  col = mix(col, c.rgb, c.a);
+
+  // 6 colors per channel
+  col = floor(col * 6.0 + 0.5) / 6.0;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+class Sky {
+  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
+  camera: THREE.OrthographicCamera;
+  material: THREE.ShaderMaterial;
+  clock: THREE.Clock;
+
+  timeOfDay = 0.5;
+  targetTod = 0.5;
+  cloudiness = 0.3;
+  targetCloudiness = 0.3;
+  nextJump = 0;
+
+  container: HTMLElement;
+
+  constructor() {
+    this.container = document.getElementById('container')!;
+    this.clock = new THREE.Clock();
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: document.createElement('canvas'),
+    });
+    this.container.appendChild(this.renderer.domElement);
+    this.renderer.setSize(
+      this.container.clientWidth,
+      this.container.clientHeight
+    );
+
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    this.material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        u_time: { value: 0 },
+        u_resolution: {
+          value: new THREE.Vector2(
+            this.container.clientWidth,
+            this.container.clientHeight
+          ),
+        },
+        u_timeOfDay: { value: 0.5 },
+        u_cloudiness: { value: 0.3 },
+      },
+    });
+
+    this.scene.add(
+      new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.material)
+    );
+    this.nextJump = randomFloat(2, 5);
+
+    window.addEventListener('resize', () => {
+      this.renderer.setSize(
+        this.container.clientWidth,
+        this.container.clientHeight
+      );
+      (this.material.uniforms.u_resolution.value as THREE.Vector2).set(
+        this.container.clientWidth,
+        this.container.clientHeight
+      );
+    });
+
+    this.render();
+  }
+
+  render() {
+    const dt = this.clock.getDelta();
+    const elapsed = this.clock.getElapsedTime();
+
+    // Keep canvas matched to container
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    if (
+      this.renderer.domElement.width !== w ||
+      this.renderer.domElement.height !== h
+    ) {
+      this.renderer.setSize(w, h);
+      (this.material.uniforms.u_resolution.value as THREE.Vector2).set(w, h);
+    }
+
+    // Lerp toward targets
+    this.timeOfDay += (this.targetTod - this.timeOfDay) * dt * 1.5;
+    this.cloudiness += (this.targetCloudiness - this.cloudiness) * dt * 1.5;
+
+    // Random jumps
+    if (elapsed > this.nextJump) {
+      this.targetTod = Math.random();
+      this.targetCloudiness = Math.random();
+      this.nextJump = elapsed + randomFloat(2, 5);
+    }
+
+    this.material.uniforms.u_time.value = elapsed;
+    this.material.uniforms.u_timeOfDay.value = this.timeOfDay;
+    this.material.uniforms.u_cloudiness.value = this.cloudiness;
+
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.render());
+  }
+}
+
+new Sky();
