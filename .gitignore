@@ -9,3 +9,5 @@ dist
 .cursor/plans
 coverage
 CLAUDE.md
+.superpowers/
+docs/
