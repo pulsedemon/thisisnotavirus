@@ -130,6 +130,7 @@ class Sky {
   cloudiness = 0.3;
   targetCloudiness = 0.3;
   nextJump = 0;
+  animationId = 0;
 
   container: HTMLElement;
 
@@ -169,6 +170,7 @@ class Sky {
     );
     this.nextJump = randomFloat(2, 5);
 
+    window.addEventListener('beforeunload', () => this.dispose());
     this.render();
   }
 
@@ -203,7 +205,34 @@ class Sky {
     this.material.uniforms.u_cloudiness.value = this.cloudiness;
 
     this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.render());
+    this.animationId = requestAnimationFrame(() => this.render());
+  }
+
+  dispose() {
+    cancelAnimationFrame(this.animationId);
+
+    this.scene.traverse(object => {
+      if (object instanceof THREE.Mesh) {
+        if (object.geometry && 'dispose' in object.geometry) {
+          (object.geometry as THREE.BufferGeometry).dispose();
+        }
+        if (Array.isArray(object.material)) {
+          object.material.forEach((material: THREE.Material) => {
+            if (
+              material &&
+              'dispose' in material &&
+              typeof material.dispose === 'function'
+            ) {
+              material.dispose();
+            }
+          });
+        } else if (object.material && 'dispose' in object.material) {
+          (object.material as THREE.Material).dispose();
+        }
+      }
+    });
+
+    this.renderer.dispose();
   }
 }
 
