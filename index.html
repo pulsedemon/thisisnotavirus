@@ -49,10 +49,11 @@
     />
 
     <link
-      rel="preload"
+      rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap"
-      as="style"
+      media="print"
       id="icon-font-link"
+      onload="this.media='all'"
       onerror="window.__iconFontFailed=true;console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
     />
     <script>
@@ -62,9 +63,10 @@
           document.documentElement.classList.add('icons-loaded');
           return;
         }
+        var origOnload = link.onload;
         link.onload = function() {
+          if (origOnload) origOnload.call(this);
           link.onload = null;
-          link.rel = 'stylesheet';
           var fontsReady = document.fonts
             ? document.fonts.load('1em "Material Symbols Outlined"')
             : Promise.resolve();
