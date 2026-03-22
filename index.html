@@ -54,7 +54,7 @@
       media="print"
       id="icon-font-link"
       onload="this.media='all'"
-      onerror="window.__iconFontFailed=true;console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
+      onerror="window.__iconFontFailed=true;window.dispatchEvent(new Event('icon-font-failed'));console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
     />
     <script>
       (function() {
@@ -63,17 +63,43 @@
           document.documentElement.classList.add('icons-loaded');
           return;
         }
+        var timeoutId;
+        function waitForFont() {
+          var fontsReady = document.fonts
+            ? document.fonts.load('1em "Material Symbols Outlined"')
+            : Promise.resolve();
+          timeoutId = setTimeout(function() {
+            timeoutId = null;
+            window.__iconFontFailed = true;
+            window.dispatchEvent(new Event('icon-font-failed'));
+            console.warn('Icon font load timed out after 3s');
+          }, 3000);
+          fontsReady
+            .then(function() {
+              if (timeoutId != null) { clearTimeout(timeoutId); timeoutId = null; }
+            })
+            .catch(function(err) {
+              if (timeoutId != null) { clearTimeout(timeoutId); timeoutId = null; }
+              window.__iconFontFailed = true;
+              window.dispatchEvent(new Event('icon-font-failed'));
+              console.warn('Icon font loading issue:', err);
+            })
+            .finally(function() {
+              document.documentElement.classList.add('icons-loaded');
+            });
+        }
         var origOnload = link.onload;
         link.onload = function() {
           if (origOnload) origOnload.call(this);
           link.onload = null;
-          var fontsReady = document.fonts
-            ? document.fonts.load('1em "Material Symbols Outlined"')
-            : Promise.resolve();
-          Promise.race([fontsReady, new Promise(function(r) { setTimeout(function() { window.__iconFontFailed = true; console.warn('Icon font load timed out after 3s'); r(); }, 3000); })])
-            .catch(function(err) { window.__iconFontFailed = true; console.warn('Icon font loading issue:', err); })
-            .finally(function() { document.documentElement.classList.add('icons-loaded'); });
+          waitForFont();
         };
+        // If stylesheet already loaded (warm cache), onload already fired
+        // and media was swapped to 'all'. Run font detection directly.
+        if (link.media === 'all') {
+          link.onload = null;
+          waitForFont();
+        }
       })();
     </script>
 

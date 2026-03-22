@@ -32,18 +32,27 @@ if (import.meta.env.PROD) {
     profilesSampleRate: 1.0,
   });
 
-  // Defer the check: the icon font preload script in index.html may set
-  // __iconFontFailed after this module initializes (e.g. on timeout or
-  // fonts.load() rejection). Checking on 'load' guarantees the font script
-  // has resolved.
-  window.addEventListener('load', () => {
-    if (window.__iconFontFailed) {
-      Sentry.captureMessage(
-        'Material Symbols icon font failed to load',
-        'warning'
-      );
-    }
-  });
+  // Report icon font failures to Sentry. The inline script in index.html
+  // sets __iconFontFailed and dispatches 'icon-font-failed' on failure.
+  // Hybrid check: the flag handles failures before this listener registers;
+  // the event handles failures that occur later (e.g. 3s timeout).
+  if (window.__iconFontFailed) {
+    Sentry.captureMessage(
+      'Material Symbols icon font failed to load',
+      'warning'
+    );
+  } else {
+    window.addEventListener(
+      'icon-font-failed',
+      () => {
+        Sentry.captureMessage(
+          'Material Symbols icon font failed to load',
+          'warning'
+        );
+      },
+      { once: true }
+    );
+  }
 }
 
 console.log(
