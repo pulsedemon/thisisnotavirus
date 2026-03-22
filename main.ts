@@ -189,6 +189,7 @@ class VirusLoader {
           mixContainer.style.zIndex = '1';
 
           const mixFrame = createStyledIframe();
+          mixFrame.style.visibility = 'hidden';
           mixFrame.src = `/viruses/lab/?primary=${mix.primary}&secondary=${mix.secondary}&ratio=${mix.mixRatio}`;
 
           mixFrame.addEventListener('load', () => {
@@ -211,6 +212,7 @@ class VirusLoader {
           console.error('Mix not found for ID:', name);
           this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
           this.iframe.style.display = 'block';
+          this.iframe.style.visibility = 'hidden';
           this.iframe.addEventListener(
             'load',
             () => {
@@ -223,6 +225,7 @@ class VirusLoader {
       } else {
         this.iframe.src = `/viruses/${name}/`;
         this.iframe.style.display = 'block';
+        this.iframe.style.visibility = 'hidden';
         this.iframe.addEventListener(
           'load',
           () => {
@@ -237,6 +240,7 @@ class VirusLoader {
       Sentry.captureException(error);
       this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
       this.iframe.style.display = 'block';
+      this.iframe.style.visibility = 'hidden';
       this.iframe.addEventListener(
         'load',
         () => {
@@ -264,6 +268,13 @@ class VirusLoader {
       (el as HTMLElement).style.pointerEvents = 'none';
       el.parentNode?.removeChild(el);
     });
+
+    // Reveal iframes now that loading is complete
+    this.iframe.style.visibility = 'visible';
+    document.querySelectorAll('.mixed-virus-container iframe').forEach(el => {
+      (el as HTMLElement).style.visibility = 'visible';
+    });
+
     if (!playlist.isMixedVirus(playlist.current())) {
       this.showSourceCodeLink();
     }
