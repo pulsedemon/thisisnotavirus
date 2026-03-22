@@ -68,12 +68,10 @@
           var fontsReady = document.fonts
             ? document.fonts.load('1em "Material Symbols Outlined"')
             : Promise.resolve();
-          Promise.race([fontsReady, new Promise(function(r) { setTimeout(function() { console.warn('Icon font load timed out after 3s'); r(); }, 3000); })])
+          Promise.race([fontsReady, new Promise(function(r) { setTimeout(function() { window.__iconFontFailed = true; console.warn('Icon font load timed out after 3s'); r(); }, 3000); })])
             .catch(function(err) { window.__iconFontFailed = true; console.warn('Icon font loading issue:', err); })
             .finally(function() { document.documentElement.classList.add('icons-loaded'); });
         };
-        // Handle already-loaded case (cached or fast network)
-        if (link.sheet) { link.onload(); }
       })();
     </script>
 
