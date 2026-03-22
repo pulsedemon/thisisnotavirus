@@ -53,6 +53,7 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block"
       as="style"
       onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('icons-loaded')"
+      onerror="document.documentElement.classList.add('icons-loaded')"
     />
 
     <link
@@ -94,10 +95,6 @@
       /* Hide icon font text until Material Symbols loads */
       .material-symbols-outlined {
         visibility: hidden;
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        overflow: hidden;
       }
       .icons-loaded .material-symbols-outlined {
         visibility: visible;

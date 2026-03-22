@@ -163,7 +163,9 @@ class VirusLoader {
     this.removeMixContainer();
 
     const safetyTimeout = setTimeout(() => {
-      console.warn('Safety timeout: forcing loading animation to stop');
+      const msg = `Safety timeout: forcing loading animation to stop for virus: ${name}`;
+      console.warn(msg);
+      Sentry.captureMessage(msg, 'warning');
       this._delayedIframeLoaded();
     }, 5000);
 
@@ -272,31 +274,34 @@ class VirusLoader {
 
   iframeLoaded() {
     try {
-      this.loadingAnim.stop();
+      try {
+        this.loadingAnim.stop();
+      } catch (error) {
+        console.error('Failed to stop loading animation:', error);
+        Sentry.captureException(error);
+      }
+      document.querySelectorAll('.tv-static-canvas').forEach(el => {
+        (el as HTMLElement).style.pointerEvents = 'none';
+        el.parentNode?.removeChild(el);
+      });
+
+      if (!playlist.isMixedVirus(playlist.current())) {
+        this.showSourceCodeLink();
+      }
+      if (this.sourceCodeLink)
+        this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
     } catch (error) {
-      console.error('Failed to stop loading animation:', error);
+      console.error('Error in iframeLoaded:', error);
       Sentry.captureException(error);
+    } finally {
+      this.iframe.style.visibility = 'visible';
+      document.querySelectorAll('.mixed-virus-container iframe').forEach(el => {
+        (el as HTMLElement).style.visibility = 'visible';
+      });
+      this.loadingRing.classList.remove('loading');
+      const reloadBtn = document.getElementById('reload');
+      if (reloadBtn) reloadBtn.classList.remove('spinning');
     }
-    document.querySelectorAll('.tv-static-canvas').forEach(el => {
-      (el as HTMLElement).style.pointerEvents = 'none';
-      el.parentNode?.removeChild(el);
-    });
-
-    // Reveal iframes now that loading is complete
-    this.iframe.style.visibility = 'visible';
-    document.querySelectorAll('.mixed-virus-container iframe').forEach(el => {
-      (el as HTMLElement).style.visibility = 'visible';
-    });
-
-    if (!playlist.isMixedVirus(playlist.current())) {
-      this.showSourceCodeLink();
-    }
-    if (this.sourceCodeLink)
-      this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
-    this.loadingRing.classList.remove('loading');
-
-    const reloadBtn = document.getElementById('reload');
-    if (reloadBtn) reloadBtn.classList.remove('spinning');
   }
 
   sourceCodeUrl(virus: string) {
