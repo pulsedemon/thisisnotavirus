@@ -16,6 +16,7 @@ import { toggleInfo, hideInfo, teleportMenu, shuffleTitle } from './ui/menu';
 declare global {
   interface Window {
     TVStaticLoading?: typeof TVStaticLoading;
+    __iconFontFailed?: boolean;
   }
 }
 
@@ -30,6 +31,28 @@ if (import.meta.env.PROD) {
     tracesSampleRate: 1.0,
     profilesSampleRate: 1.0,
   });
+
+  // Report icon font failures to Sentry. The inline script in index.html
+  // sets __iconFontFailed and dispatches 'icon-font-failed' on failure.
+  // Hybrid check: the flag handles failures before this listener registers;
+  // the event handles failures that occur later (e.g. 3s timeout).
+  if (window.__iconFontFailed) {
+    Sentry.captureMessage(
+      'Material Symbols icon font failed to load',
+      'warning'
+    );
+  } else {
+    window.addEventListener(
+      'icon-font-failed',
+      () => {
+        Sentry.captureMessage(
+          'Material Symbols icon font failed to load',
+          'warning'
+        );
+      },
+      { once: true }
+    );
+  }
 }
 
 console.log(
@@ -82,6 +105,17 @@ class VirusLoader {
     document.querySelector('#source-code a');
   virusLab: VirusLab | null = null;
   isNavigating = false;
+  /**
+   * Generation counter for cancelling stale iframe loads.
+   * Each loadVirus() call increments this and captures the value locally.
+   * All async callbacks (load, error, safety timeout, reveal delay) compare
+   * their captured generation against the current value and bail out if a
+   * newer load has superseded them.
+   */
+  private _loadGeneration = 0;
+  /** Pending setTimeout ID for the minimum-animation-duration delay before revealing the iframe. */
+  private _pendingRevealTimeout: ReturnType<typeof setTimeout> | null = null;
+  private _safetyTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.iframe = document.getElementById('container') as HTMLIFrameElement;
@@ -136,6 +170,18 @@ class VirusLoader {
   }
 
   loadVirus(name: string) {
+    const generation = ++this._loadGeneration;
+
+    if (this._pendingRevealTimeout !== null) {
+      clearTimeout(this._pendingRevealTimeout);
+      this._pendingRevealTimeout = null;
+    }
+
+    if (this._safetyTimeout !== null) {
+      clearTimeout(this._safetyTimeout);
+      this._safetyTimeout = null;
+    }
+
     virusHasKeyboardControl = false;
 
     // Randomly choose the loading animation for each load
@@ -154,6 +200,7 @@ class VirusLoader {
     this.loadingAnimStartTime = Date.now();
     this.hideSourceCodeLink();
     this.loadingRing.classList.add('loading');
+    this.iframe.style.visibility = 'hidden';
 
     const reloadBtn = document.getElementById('reload');
     if (reloadBtn) reloadBtn.classList.add('spinning');
@@ -161,9 +208,13 @@ class VirusLoader {
     // Clean up any existing mixed virus
     this.removeMixContainer();
 
-    const safetyTimeout = setTimeout(() => {
-      console.warn('Safety timeout: forcing loading animation to stop');
-      this._delayedIframeLoaded();
+    this._safetyTimeout = setTimeout(() => {
+      if (generation !== this._loadGeneration) return;
+      this._safetyTimeout = null;
+      const msg = `Safety timeout: forcing loading animation to stop for virus: ${name}`;
+      console.warn(msg);
+      Sentry.captureMessage(msg, 'warning');
+      this._delayedIframeLoaded(generation);
     }, 5000);
 
     try {
@@ -189,18 +240,14 @@ class VirusLoader {
           mixContainer.style.zIndex = '1';
 
           const mixFrame = createStyledIframe();
+          mixFrame.style.visibility = 'hidden';
           mixFrame.src = `/viruses/lab/?primary=${mix.primary}&secondary=${mix.secondary}&ratio=${mix.mixRatio}`;
 
-          mixFrame.addEventListener('load', () => {
-            clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
-          });
-
-          mixFrame.addEventListener('error', () => {
-            console.error('Failed to load mixed virus iframe:', name);
-            clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
-          });
+          this._attachIframeListeners(
+            mixFrame,
+            generation,
+            `mixed virus iframe: ${name}`
+          );
 
           mixContainer.appendChild(mixFrame);
           document.body.appendChild(mixContainer);
@@ -209,70 +256,126 @@ class VirusLoader {
             this.sourceCodeLink.href = this.sourceCodeUrl(name);
         } else {
           console.error('Mix not found for ID:', name);
-          this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
+          Sentry.captureMessage(`Mix not found for ID: ${name}`, 'error');
+          const fallbackVirus = playlist.viruses[0] ?? 'random-shapes';
+          this.iframe.src = `/viruses/${fallbackVirus}/`;
           this.iframe.style.display = 'block';
-          this.iframe.addEventListener(
-            'load',
-            () => {
-              clearTimeout(safetyTimeout);
-              this._delayedIframeLoaded();
-            },
-            { once: true }
+          this._attachIframeListeners(
+            this.iframe,
+            generation,
+            `fallback virus iframe (${fallbackVirus}) after mix not found: ${name}`
           );
         }
       } else {
         this.iframe.src = `/viruses/${name}/`;
         this.iframe.style.display = 'block';
-        this.iframe.addEventListener(
-          'load',
-          () => {
-            clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
-          },
-          { once: true }
+        this._attachIframeListeners(
+          this.iframe,
+          generation,
+          `virus iframe: ${name}`
         );
       }
     } catch (error) {
       console.error('Error loading virus:', error);
       Sentry.captureException(error);
-      this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
+      const fallbackVirus = playlist.viruses[0] ?? 'random-shapes';
+      this.iframe.src = `/viruses/${fallbackVirus}/`;
       this.iframe.style.display = 'block';
-      this.iframe.addEventListener(
-        'load',
-        () => {
-          clearTimeout(safetyTimeout);
-          this._delayedIframeLoaded();
-        },
-        { once: true }
+      this._attachIframeListeners(
+        this.iframe,
+        generation,
+        `fallback virus iframe: ${fallbackVirus}`
       );
     }
   }
 
-  _delayedIframeLoaded() {
+  private _attachIframeListeners(
+    frame: HTMLIFrameElement,
+    generation: number,
+    errorLabel: string
+  ): void {
+    frame.addEventListener(
+      'load',
+      () => {
+        if (generation !== this._loadGeneration) return;
+        if (this._safetyTimeout !== null) {
+          clearTimeout(this._safetyTimeout);
+          this._safetyTimeout = null;
+        }
+        this._delayedIframeLoaded(generation);
+      },
+      { once: true }
+    );
+    frame.addEventListener(
+      'error',
+      (event: Event) => {
+        if (generation !== this._loadGeneration) return;
+        const errorMsg = `Failed to load ${errorLabel}`;
+        console.error(errorMsg, event);
+        Sentry.captureMessage(errorMsg, 'error');
+        if (this._safetyTimeout !== null) {
+          clearTimeout(this._safetyTimeout);
+          this._safetyTimeout = null;
+        }
+        this._delayedIframeLoaded(generation);
+      },
+      { once: true }
+    );
+  }
+
+  private _delayedIframeLoaded(generation: number) {
+    if (generation !== this._loadGeneration) return;
+
     const minDuration = 500;
     const elapsed = Date.now() - this.loadingAnimStartTime;
     if (elapsed >= minDuration) {
-      this.iframeLoaded();
+      this._iframeLoaded();
     } else {
-      setTimeout(() => this.iframeLoaded(), minDuration - elapsed);
+      this._pendingRevealTimeout = setTimeout(() => {
+        this._pendingRevealTimeout = null;
+        if (generation !== this._loadGeneration) return;
+        this._iframeLoaded();
+      }, minDuration - elapsed);
     }
   }
 
-  iframeLoaded() {
-    this.loadingAnim.stop();
+  private _stopLoadingAnim(): void {
+    try {
+      this.loadingAnim.stop();
+    } catch (error) {
+      console.error('Failed to stop loading animation:', error);
+      Sentry.captureException(error);
+      if (this.loadingAnimEl) this.loadingAnimEl.style.display = 'none';
+    }
     document.querySelectorAll('.tv-static-canvas').forEach(el => {
       (el as HTMLElement).style.pointerEvents = 'none';
       el.parentNode?.removeChild(el);
     });
-    if (!playlist.isMixedVirus(playlist.current())) {
-      this.showSourceCodeLink();
-    }
-    if (this.sourceCodeLink)
-      this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
-    this.loadingRing.classList.remove('loading');
+  }
 
-    const reloadBtn = document.getElementById('reload');
-    if (reloadBtn) reloadBtn.classList.remove('spinning');
+  private _iframeLoaded() {
+    try {
+      this._stopLoadingAnim();
+
+      if (!playlist.isMixedVirus(playlist.current())) {
+        this.showSourceCodeLink();
+      }
+      if (this.sourceCodeLink)
+        this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
+    } catch (error) {
+      console.error('Error in iframeLoaded:', error);
+      Sentry.captureException(error);
+    } finally {
+      if (this.iframe.style.display !== 'none') {
+        this.iframe.style.visibility = 'visible';
+      }
+      document.querySelectorAll('.mixed-virus-container iframe').forEach(el => {
+        (el as HTMLElement).style.visibility = 'visible';
+      });
+      this.loadingRing.classList.remove('loading');
+      const reloadBtn = document.getElementById('reload');
+      if (reloadBtn) reloadBtn.classList.remove('spinning');
+    }
   }
 
   sourceCodeUrl(virus: string) {
