@@ -12,7 +12,7 @@ export function toggleInfo(): void {
   }
 }
 
-export function displayInfo(): void {
+function displayInfo(): void {
   document.querySelector('.modal.info-modal')?.classList.add('show');
   const infoBtn = document.getElementById('info-btn');
   if (infoBtn) infoBtn.innerText = 'close';

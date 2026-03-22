@@ -1,12 +1,6 @@
+import { VirusMix } from '../types/VirusMix';
 import { shuffle } from '../utils/misc';
-
-interface VirusMix {
-  primary: string;
-  secondary: string;
-  mixRatio: number;
-  id?: number;
-  name?: string;
-}
+import { loadSavedMixes as loadSavedMixesFromStorage } from '../utils/savedMixes';
 
 export default class Playlist {
   viruses = [
@@ -41,17 +35,10 @@ export default class Playlist {
 
   constructor() {
     this.loadSavedMixes();
-    this.generatePlaylist();
   }
 
   loadSavedMixes() {
-    const savedMixesStr = localStorage.getItem('savedVirusMixes');
-    try {
-      this.savedMixes = JSON.parse(savedMixesStr || '[]') as VirusMix[];
-    } catch (e) {
-      console.error('Error parsing saved mixes:', e);
-      this.savedMixes = [];
-    }
+    this.savedMixes = loadSavedMixesFromStorage();
     // Regenerate playlist when saved mixes change
     this.generatePlaylist();
   }

@@ -1,6 +1,25 @@
 @use './animations.scss';
 @use './_virus-lab.scss';
 
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #000;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 0;
+
+    &:hover {
+      background: #fff;
+    }
+  }
+}
+
 :root {
   --color-primary: #00ffff;
   --color-primary-dark: #00cccc;
@@ -579,22 +598,7 @@ iframe[id*='secondary'] {
   width: 100%;
   box-sizing: border-box;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #000;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 0;
-
-    &:hover {
-      background: #fff;
-    }
-  }
+  @include custom-scrollbar;
 
   &.mobile {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -1061,23 +1065,7 @@ iframe[id*='secondary'] {
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary) var(--color-bg);
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #000;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 0;
-
-    &:hover {
-      background: #fff;
-    }
-  }
+  @include custom-scrollbar;
 }
 
 .virus-section {
