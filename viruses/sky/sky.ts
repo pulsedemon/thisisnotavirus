@@ -37,6 +37,10 @@ float noise2d(vec2 p) {
   return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
+float fbm2(vec2 p) {
+  return (noise2d(p) + noise2d(p * 2.0) * 0.5) / 1.5;
+}
+
 vec3 skyGradient(vec2 uv, float tod) {
   float band = floor(clamp(uv.y * 8.0, 0.0, 7.0));
 
@@ -72,8 +76,7 @@ vec3 skyGradient(vec2 uv, float tod) {
 vec4 clouds(vec2 uv, float time, float cloudiness) {
   vec2 cloudUv = uv * vec2(6.0, 3.0) + vec2(time * 0.08, 0.0);
 
-  float cloud = noise2d(cloudUv) + noise2d(cloudUv * 2.0) * 0.5;
-  cloud /= 1.5;
+  float cloud = fbm2(cloudUv);
 
   float threshold = mix(0.65, 0.2, cloudiness);
   cloud = step(threshold, cloud);
@@ -85,9 +88,8 @@ vec4 clouds(vec2 uv, float time, float cloudiness) {
   vec3 cloudColor = vec3(0.0, 0.7, 0.9);
   cloudColor = mix(cloudColor, vec3(0.05), smoothstep(0.5, 1.0, cloudiness));
 
-  // Neon edge detect
-  float cloudEdge = noise2d(cloudUv + 0.05) + noise2d((cloudUv + 0.05) * 2.0) * 0.5;
-  cloudEdge /= 1.5;
+  // Edge detect via offset sample comparison
+  float cloudEdge = fbm2(cloudUv + 0.05);
   cloudEdge = step(threshold, cloudEdge);
   float edge = abs(cloud - cloudEdge);
   cloudColor = mix(cloudColor, vec3(1.0, 0.0, 0.5), edge * 0.9);
@@ -109,7 +111,7 @@ void main() {
   vec4 c = clouds(uv, u_time, u_cloudiness);
   col = mix(col, c.rgb, c.a);
 
-  // 6 colors per channel
+  // 7 levels per channel (posterize)
   col = floor(col * 6.0 + 0.5) / 6.0;
 
   gl_FragColor = vec4(col, 1.0);
@@ -166,17 +168,6 @@ class Sky {
       new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.material)
     );
     this.nextJump = randomFloat(2, 5);
-
-    window.addEventListener('resize', () => {
-      this.renderer.setSize(
-        this.container.clientWidth,
-        this.container.clientHeight
-      );
-      (this.material.uniforms.u_resolution.value as THREE.Vector2).set(
-        this.container.clientWidth,
-        this.container.clientHeight
-      );
-    });
 
     this.render();
   }
