@@ -53,11 +53,15 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap"
       as="style"
       id="icon-font-link"
-      onerror="console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
+      onerror="window.__iconFontFailed=true;console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
     />
     <script>
       (function() {
         var link = document.getElementById('icon-font-link');
+        if (!link) {
+          document.documentElement.classList.add('icons-loaded');
+          return;
+        }
         link.onload = function() {
           link.onload = null;
           link.rel = 'stylesheet';
@@ -65,8 +69,8 @@
             ? document.fonts.load('1em "Material Symbols Outlined"')
             : Promise.resolve();
           Promise.race([fontsReady, new Promise(function(r) { setTimeout(r, 3000); })])
-            .then(function() { document.documentElement.classList.add('icons-loaded'); })
-            .catch(function() { document.documentElement.classList.add('icons-loaded'); });
+            .catch(function(err) { console.warn('Icon font loading issue:', err); })
+            .finally(function() { document.documentElement.classList.add('icons-loaded'); });
         };
       })();
     </script>
