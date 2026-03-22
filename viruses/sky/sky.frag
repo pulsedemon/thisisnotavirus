@@ -122,7 +122,7 @@ void main() {
   vec4 c = clouds(uv, u_time, u_cloudiness);
   col = mix(col, c.rgb, c.a);
 
-  // 7 levels per channel (posterize)
+  // Posterize
   col = floor(col * u_posterLevels + 0.5) / u_posterLevels;
 
   col = hueShift(col, u_hueShift);

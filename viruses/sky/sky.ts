@@ -35,12 +35,12 @@ class Sky {
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    const pixelRes = randomFloat(128, 320);
+    const pixelRes = Math.round(randomFloat(128, 320));
     const cloudScaleX = randomFloat(8, 18);
     const cloudScaleY = randomFloat(4, 9);
     const cloudSpeed = randomFloat(0.03, 0.15);
     const cloudOpacity = randomFloat(0.6, 0.95);
-    const posterLevels = randomFloat(4, 10);
+    const posterLevels = Math.round(randomFloat(4, 10));
     const edgeOffset = randomFloat(0.02, 0.1);
     const hueShift = Math.random();
     const cloudHueShift = Math.random();
