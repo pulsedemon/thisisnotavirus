@@ -210,6 +210,7 @@ class VirusLoader {
 
     this._safetyTimeout = setTimeout(() => {
       if (generation !== this._loadGeneration) return;
+      this._safetyTimeout = null;
       const msg = `Safety timeout: forcing loading animation to stop for virus: ${name}`;
       console.warn(msg);
       Sentry.captureMessage(msg, 'warning');
