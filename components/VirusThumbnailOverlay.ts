@@ -1,4 +1,5 @@
 import { VirusMix } from '../types/VirusMix';
+import { escapeHtml } from '../utils/escapeHtml';
 import { formatVirusName, isMobile } from '../utils/misc';
 import { safeGtag } from '../utils/gtag';
 import Playlist from './Playlist';
@@ -10,11 +11,17 @@ interface VirusLoader {
 
 function formatMixEntry(mix: VirusMix, type: string, prefix: string) {
   const mixRatioPercent = Math.round(mix.mixRatio * 100);
+  const label = `${formatVirusName(mix.primary)} / ${formatVirusName(mix.secondary)} (${mixRatioPercent}%)`;
   return {
-    value: `${prefix}:${type === 'premixed' ? mix.name : mix.id}`,
-    label: `${formatVirusName(mix.primary)} / ${formatVirusName(mix.secondary)} (${mixRatioPercent}%)`,
+    value: escapeHtml(`${prefix}:${type === 'premixed' ? mix.name : mix.id}`),
+    label: escapeHtml(label),
     type,
-    mix: { ...mix, mixRatioPercent },
+    mix: {
+      ...mix,
+      primary: escapeHtml(mix.primary),
+      secondary: escapeHtml(mix.secondary),
+      mixRatioPercent,
+    },
   };
 }
 
@@ -100,15 +107,15 @@ export function showVirusThumbnailOverlay({
     type: 'builtin',
   }));
 
-  // Get premixed viruses (default mixes)
-  const premixedViruses = playlist.premixes.map(mix =>
-    formatMixEntry(mix, 'premixed', 'premix')
-  );
+  // Get premixed viruses (default mixes), filtering out any without a name
+  const premixedViruses = playlist.premixes
+    .filter(mix => mix.name)
+    .map(mix => formatMixEntry(mix, 'premixed', 'premix'));
 
-  // Get custom viruses (saved mixes)
-  const customViruses = playlist.savedMixes.map(mix =>
-    formatMixEntry(mix, 'custom', 'mixed')
-  );
+  // Get custom viruses (saved mixes), filtering out any without an id
+  const customViruses = playlist.savedMixes
+    .filter(mix => mix.id)
+    .map(mix => formatMixEntry(mix, 'custom', 'mixed'));
 
   // Create overlay HTML directly
   const overlay = document.createElement('div');
