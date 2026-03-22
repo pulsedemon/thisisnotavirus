@@ -28,9 +28,10 @@
   --color-surface: #2a2a2a;
   --z-base: 0;
   --z-overlay: 100;
-  --z-controls: 1000;
   --z-floating-btn: 2000;
   --z-modal: 9999;
+  // Controls sit above modal intentionally — menu/source-code remain accessible over modals
+  --z-controls: 10000;
 }
 
 // Global hide class

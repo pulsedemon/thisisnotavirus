@@ -97,7 +97,7 @@ describe('TVStaticLoading', () => {
       expect(canvas.style.position).toBe('fixed');
       expect(canvas.style.top).toBe('0px');
       expect(canvas.style.left).toBe('0px');
-      expect(canvas.style.zIndex).toBe('9999');
+      expect(canvas.style.zIndex).toBe('100');
 
       tvStatic.hide();
     });

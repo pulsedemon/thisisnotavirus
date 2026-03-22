@@ -69,7 +69,7 @@ export default class TVStaticLoading {
     this.canvas.style.left = '0';
     this.canvas.style.width = '100vw';
     this.canvas.style.height = '100vh';
-    this.canvas.style.zIndex = '9999';
+    this.canvas.style.zIndex = '100';
     this.canvas.style.pointerEvents = 'auto';
     this.canvas.style.background = 'black';
     this._resizeHandler = this._resize.bind(this);
