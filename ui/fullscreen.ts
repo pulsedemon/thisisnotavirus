@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/browser';
 import { isMobile } from '../utils/misc';
 import { safeGtag } from '../utils/gtag';
 
-export const FULLSCREEN = {
+const FULLSCREEN = {
   isActive: (): boolean => {
     const doc = document as Document & {
       fullscreenElement?: Element;

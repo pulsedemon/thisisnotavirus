@@ -1,15 +1,12 @@
+import { VirusMix } from '../types/VirusMix';
 import { createStyledIframe } from '../utils/iframe';
 import { formatVirusName } from '../utils/misc';
+import {
+  loadSavedMixes as loadSavedMixesFromStorage,
+  saveMixes,
+} from '../utils/savedMixes';
 import Playlist from './Playlist';
 import controlsTemplate from './templates/virus-lab-controls.hbs';
-
-interface VirusMix {
-  primary: string;
-  secondary: string;
-  mixRatio: number;
-  id?: number;
-  name?: string;
-}
 
 export default class VirusLab {
   private container: HTMLElement;
@@ -92,19 +89,8 @@ export default class VirusLab {
     this.container.innerHTML = '';
   }
 
-  private loadSavedMixesFromStorage(): VirusMix[] {
-    try {
-      return JSON.parse(
-        localStorage.getItem('savedVirusMixes') || '[]'
-      ) as VirusMix[];
-    } catch (error) {
-      console.error('Failed to load saved virus mixes:', error);
-      return [];
-    }
-  }
-
   private loadSavedMixes() {
-    this.savedMixes = this.loadSavedMixesFromStorage();
+    this.savedMixes = loadSavedMixesFromStorage();
   }
 
   private initializeUI() {
@@ -203,7 +189,7 @@ export default class VirusLab {
   }
 
   private saveMix() {
-    const savedMixes = this.loadSavedMixesFromStorage();
+    const savedMixes = loadSavedMixesFromStorage();
 
     // Check for duplicates
     const isDuplicate = savedMixes.some(
@@ -232,7 +218,14 @@ export default class VirusLab {
     };
 
     savedMixes.push(newMix);
-    localStorage.setItem('savedVirusMixes', JSON.stringify(savedMixes));
+    if (!saveMixes(savedMixes)) {
+      const message = document.createElement('div');
+      message.className = 'save-message error';
+      message.textContent = 'Failed to save mix. Storage may be full.';
+      this.container.appendChild(message);
+      setTimeout(() => message.remove(), 2000);
+      return;
+    }
     this.savedMixes = savedMixes;
     this.updateSavedMixesList();
     this.playlist.loadSavedMixes();
@@ -302,7 +295,14 @@ export default class VirusLab {
 
   private deleteMix(mixId: number) {
     const savedMixes = this.savedMixes.filter(mix => mix.id !== mixId);
-    localStorage.setItem('savedVirusMixes', JSON.stringify(savedMixes));
+    if (!saveMixes(savedMixes)) {
+      const message = document.createElement('div');
+      message.className = 'save-message error';
+      message.textContent = 'Failed to delete mix.';
+      this.container.appendChild(message);
+      setTimeout(() => message.remove(), 2000);
+      return;
+    }
     this.savedMixes = savedMixes;
     this.updateSavedMixesList();
     this.playlist.loadSavedMixes();

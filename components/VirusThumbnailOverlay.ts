@@ -1,3 +1,4 @@
+import { VirusMix } from '../types/VirusMix';
 import { formatVirusName, isMobile } from '../utils/misc';
 import { safeGtag } from '../utils/gtag';
 import Playlist from './Playlist';
@@ -5,6 +6,71 @@ import Playlist from './Playlist';
 interface VirusLoader {
   virusLab: unknown;
   toggleLab(): void;
+}
+
+function formatMixEntry(mix: VirusMix, type: string, prefix: string) {
+  const mixRatioPercent = Math.round(mix.mixRatio * 100);
+  return {
+    value: `${prefix}:${type === 'premixed' ? mix.name : mix.id}`,
+    label: `${formatVirusName(mix.primary)} / ${formatVirusName(mix.secondary)} (${mixRatioPercent}%)`,
+    type,
+    mix: { ...mix, mixRatioPercent },
+  };
+}
+
+function renderMixSection(
+  title: string,
+  cssClass: string,
+  typeLabel: string,
+  items: ReturnType<typeof formatMixEntry>[]
+) {
+  if (items.length === 0) return '';
+  return `
+        <div class="virus-section ${cssClass}">
+          <h3 class="virus-section-title">${title}</h3>
+          <div class="virus-thumbnail-grid ${isMobile() ? 'mobile' : ''}">
+            ${items
+              .map(
+                virus => `
+              <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} ${typeLabel} virus">
+                <div class="virus-thumbnail-preview custom-preview">
+                  <div class="custom-virus-display">
+                    <div class="custom-virus-info">
+                      <div class="custom-virus-components">
+                        <span class="primary-virus">${virus.mix.primary}</span>
+                        <span class="mix-symbol">\u26A1</span>
+                        <span class="secondary-virus">${virus.mix.secondary}</span>
+                      </div>
+                      <div class="mix-ratio">${virus.mix.mixRatioPercent}%</div>
+                    </div>
+                  </div>
+                  <div class="virus-thumbnail-overlay-hover">
+                    <span class="play-icon">\u25B6</span>
+                  </div>
+                </div>
+                <div class="virus-label custom-label">${virus.label}</div>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+        `;
+}
+
+function trackVirusSelect(label: string, virus: string) {
+  safeGtag('event', 'virus_select', {
+    event_category: 'engagement',
+    event_label: label,
+    animation_name: virus,
+  });
+}
+
+function trackOverlayClose(label: string) {
+  safeGtag('event', 'virus_overlay_close', {
+    event_category: 'engagement',
+    event_label: label,
+  });
 }
 
 export function showVirusThumbnailOverlay({
@@ -35,30 +101,14 @@ export function showVirusThumbnailOverlay({
   }));
 
   // Get premixed viruses (default mixes)
-  const premixedViruses = playlist.premixes.map(mix => ({
-    value: `premix:${mix.name}`,
-    label: `${formatVirusName(mix.primary)} / ${formatVirusName(
-      mix.secondary
-    )} (${Math.round(mix.mixRatio * 100)}%)`,
-    type: 'premixed',
-    mix: {
-      ...mix,
-      mixRatioPercent: Math.round(mix.mixRatio * 100),
-    },
-  }));
+  const premixedViruses = playlist.premixes.map(mix =>
+    formatMixEntry(mix, 'premixed', 'premix')
+  );
 
   // Get custom viruses (saved mixes)
-  const customViruses = playlist.savedMixes.map(mix => ({
-    value: `mixed:${mix.id}`,
-    label: `${formatVirusName(mix.primary)} / ${formatVirusName(
-      mix.secondary
-    )} (${Math.round(mix.mixRatio * 100)}%)`,
-    type: 'custom',
-    mix: {
-      ...mix,
-      mixRatioPercent: Math.round(mix.mixRatio * 100),
-    },
-  }));
+  const customViruses = playlist.savedMixes.map(mix =>
+    formatMixEntry(mix, 'custom', 'mixed')
+  );
 
   // Create overlay HTML directly
   const overlay = document.createElement('div');
@@ -118,77 +168,9 @@ export function showVirusThumbnailOverlay({
           </div>
         </div>
 
-        ${
-          premixedViruses.length > 0
-            ? `
-        <div class="virus-section premixed-viruses">
-          <h3 class="virus-section-title">Premixed</h3>
-          <div class="virus-thumbnail-grid ${isMobile() ? 'mobile' : ''}">
-            ${premixedViruses
-              .map(
-                virus => `
-              <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} premixed virus">
-                <div class="virus-thumbnail-preview custom-preview">
-                  <div class="custom-virus-display">
-                    <div class="custom-virus-info">
-                      <div class="custom-virus-components">
-                        <span class="primary-virus">${virus.mix.primary}</span>
-                        <span class="mix-symbol">⚡</span>
-                        <span class="secondary-virus">${virus.mix.secondary}</span>
-                      </div>
-                      <div class="mix-ratio">${virus.mix.mixRatioPercent}%</div>
-                    </div>
-                  </div>
-                  <div class="virus-thumbnail-overlay-hover">
-                    <span class="play-icon">▶</span>
-                  </div>
-                </div>
-                <div class="virus-label custom-label">${virus.label}</div>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-        </div>
-        `
-            : ''
-        }
+        ${renderMixSection('Premixed', 'premixed-viruses', 'premixed', premixedViruses)}
 
-        ${
-          customViruses.length > 0
-            ? `
-        <div class="virus-section custom-viruses">
-          <h3 class="virus-section-title">Mixes</h3>
-          <div class="virus-thumbnail-grid ${isMobile() ? 'mobile' : ''}">
-            ${customViruses
-              .map(
-                virus => `
-              <div class="virus-thumbnail-item custom-virus" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} custom virus">
-                <div class="virus-thumbnail-preview custom-preview">
-                  <div class="custom-virus-display">
-                    <div class="custom-virus-info">
-                      <div class="custom-virus-components">
-                        <span class="primary-virus">${virus.mix.primary}</span>
-                        <span class="mix-symbol">⚡</span>
-                        <span class="secondary-virus">${virus.mix.secondary}</span>
-                      </div>
-                      <div class="mix-ratio">${virus.mix.mixRatioPercent}%</div>
-                    </div>
-                  </div>
-                  <div class="virus-thumbnail-overlay-hover">
-                    <span class="play-icon">▶</span>
-                  </div>
-                </div>
-                <div class="virus-label custom-label">${virus.label}</div>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-        </div>
-        `
-            : ''
-        }
+        ${renderMixSection('Mixes', 'custom-viruses', 'custom', customViruses)}
       </div>
     </div>
   `;
@@ -284,12 +266,7 @@ export function showVirusThumbnailOverlay({
         virusLoader.toggleLab();
       }
 
-      // Track touch selection
-      safeGtag('event', 'virus_select', {
-        event_category: 'engagement',
-        event_label: 'touch_select',
-        animation_name: virus,
-      });
+      trackVirusSelect('touch_select', virus);
 
       onSelect(virus);
     }
@@ -338,12 +315,7 @@ export function showVirusThumbnailOverlay({
             filteredItems[currentFocusIndex].getAttribute('data-virus')!;
           cleanup();
 
-          // Track keyboard Enter selection
-          safeGtag('event', 'virus_select', {
-            event_category: 'engagement',
-            event_label: 'keyboard_enter',
-            animation_name: virus,
-          });
+          trackVirusSelect('keyboard_enter', virus);
 
           onSelect(virus);
         }
@@ -351,11 +323,7 @@ export function showVirusThumbnailOverlay({
       case 'Escape':
         cleanup();
 
-        // Track Escape key close
-        safeGtag('event', 'virus_overlay_close', {
-          event_category: 'engagement',
-          event_label: 'escape_key',
-        });
+        trackOverlayClose('escape_key');
 
         onClose();
         break;
@@ -372,11 +340,7 @@ export function showVirusThumbnailOverlay({
     e.stopPropagation();
     cleanup();
 
-    // Track close button click
-    safeGtag('event', 'virus_overlay_close', {
-      event_category: 'engagement',
-      event_label: 'close_button',
-    });
+    trackOverlayClose('close_button');
 
     onClose();
   };
@@ -385,11 +349,7 @@ export function showVirusThumbnailOverlay({
     if (e.target === overlay) {
       cleanup();
 
-      // Track background click close
-      safeGtag('event', 'virus_overlay_close', {
-        event_category: 'engagement',
-        event_label: 'background_click',
-      });
+      trackOverlayClose('background_click');
 
       onClose();
     }
@@ -405,12 +365,7 @@ export function showVirusThumbnailOverlay({
       virusLoader.toggleLab();
     }
 
-    // Track virus selection
-    safeGtag('event', 'virus_select', {
-      event_category: 'engagement',
-      event_label: 'thumbnail_click',
-      animation_name: virus,
-    });
+    trackVirusSelect('thumbnail_click', virus);
 
     onSelect(virus);
   };
@@ -429,12 +384,7 @@ export function showVirusThumbnailOverlay({
         virusLoader.toggleLab();
       }
 
-      // Track keyboard virus selection
-      safeGtag('event', 'virus_select', {
-        event_category: 'engagement',
-        event_label: 'keyboard_select',
-        animation_name: virus,
-      });
+      trackVirusSelect('keyboard_select', virus);
 
       onSelect(virus);
     }

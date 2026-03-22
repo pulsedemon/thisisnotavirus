@@ -153,16 +153,14 @@ class VirusLoader {
     createThumbnailButton(this, playlist);
   }
 
-  private showSourceCodeLink() {
-    this.sourceCodeLink?.classList.remove('hide');
+  private setSourceCodeLinkVisible(visible: boolean) {
+    if (visible) {
+      this.sourceCodeLink?.classList.remove('hide');
+    } else {
+      this.sourceCodeLink?.classList.add('hide');
+    }
     const sourceCodeEl = document.getElementById('source-code');
-    if (sourceCodeEl) sourceCodeEl.style.display = '';
-  }
-
-  private hideSourceCodeLink() {
-    this.sourceCodeLink?.classList.add('hide');
-    const sourceCodeEl = document.getElementById('source-code');
-    if (sourceCodeEl) sourceCodeEl.style.display = 'none';
+    if (sourceCodeEl) sourceCodeEl.style.display = visible ? '' : 'none';
   }
 
   private removeMixContainer() {
@@ -198,7 +196,7 @@ class VirusLoader {
     console.log('Loading virus:', name);
     this.loadingAnim.start();
     this.loadingAnimStartTime = Date.now();
-    this.hideSourceCodeLink();
+    this.setSourceCodeLinkVisible(false);
     this.loadingRing.classList.add('loading');
     this.iframe.style.visibility = 'hidden';
 
@@ -228,7 +226,7 @@ class VirusLoader {
         }
         if (mix) {
           this.iframe.style.display = 'none';
-          this.hideSourceCodeLink();
+          this.setSourceCodeLinkVisible(false);
 
           const mixContainer = document.createElement('div');
           mixContainer.className = 'mixed-virus-container';
@@ -358,7 +356,7 @@ class VirusLoader {
       this._stopLoadingAnim();
 
       if (!playlist.isMixedVirus(playlist.current())) {
-        this.showSourceCodeLink();
+        this.setSourceCodeLinkVisible(true);
       }
       if (this.sourceCodeLink)
         this.sourceCodeLink.href = this.sourceCodeUrl(playlist.current());
