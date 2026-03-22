@@ -154,6 +154,7 @@ class VirusLoader {
     this.loadingAnimStartTime = Date.now();
     this.hideSourceCodeLink();
     this.loadingRing.classList.add('loading');
+    this.iframe.style.visibility = 'hidden';
 
     const reloadBtn = document.getElementById('reload');
     if (reloadBtn) reloadBtn.classList.add('spinning');
@@ -192,16 +193,26 @@ class VirusLoader {
           mixFrame.style.visibility = 'hidden';
           mixFrame.src = `/viruses/lab/?primary=${mix.primary}&secondary=${mix.secondary}&ratio=${mix.mixRatio}`;
 
-          mixFrame.addEventListener('load', () => {
-            clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
-          });
+          mixFrame.addEventListener(
+            'load',
+            () => {
+              clearTimeout(safetyTimeout);
+              this._delayedIframeLoaded();
+            },
+            { once: true }
+          );
 
-          mixFrame.addEventListener('error', () => {
-            console.error('Failed to load mixed virus iframe:', name);
-            clearTimeout(safetyTimeout);
-            this._delayedIframeLoaded();
-          });
+          mixFrame.addEventListener(
+            'error',
+            () => {
+              const errorMsg = `Failed to load mixed virus iframe: ${name}`;
+              console.error(errorMsg);
+              Sentry.captureMessage(errorMsg, 'error');
+              clearTimeout(safetyTimeout);
+              this._delayedIframeLoaded();
+            },
+            { once: true }
+          );
 
           mixContainer.appendChild(mixFrame);
           document.body.appendChild(mixContainer);
@@ -212,7 +223,6 @@ class VirusLoader {
           console.error('Mix not found for ID:', name);
           this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
           this.iframe.style.display = 'block';
-          this.iframe.style.visibility = 'hidden';
           this.iframe.addEventListener(
             'load',
             () => {
@@ -225,7 +235,6 @@ class VirusLoader {
       } else {
         this.iframe.src = `/viruses/${name}/`;
         this.iframe.style.display = 'block';
-        this.iframe.style.visibility = 'hidden';
         this.iframe.addEventListener(
           'load',
           () => {
@@ -240,7 +249,6 @@ class VirusLoader {
       Sentry.captureException(error);
       this.iframe.src = `/viruses/${playlist.viruses[0]}/`;
       this.iframe.style.display = 'block';
-      this.iframe.style.visibility = 'hidden';
       this.iframe.addEventListener(
         'load',
         () => {
@@ -263,7 +271,12 @@ class VirusLoader {
   }
 
   iframeLoaded() {
-    this.loadingAnim.stop();
+    try {
+      this.loadingAnim.stop();
+    } catch (error) {
+      console.error('Failed to stop loading animation:', error);
+      Sentry.captureException(error);
+    }
     document.querySelectorAll('.tv-static-canvas').forEach(el => {
       (el as HTMLElement).style.pointerEvents = 'none';
       el.parentNode?.removeChild(el);
