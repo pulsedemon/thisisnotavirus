@@ -25,6 +25,6 @@ export function randomBool(): boolean {
   return Math.random() < 0.5;
 }
 
-export function randomItem<T>(array: T[]): T {
+export function randomItem<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
