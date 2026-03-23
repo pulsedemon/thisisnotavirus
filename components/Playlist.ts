@@ -68,6 +68,8 @@ export default class Playlist {
   }
 
   private appendBatch() {
+    const lastPlayed = this.playlist[this.playlist.length - 1];
+
     // Trim played items to prevent unbounded growth
     if (this.currentIndex > 0) {
       this.playlist = this.playlist.slice(this.currentIndex);
@@ -75,8 +77,7 @@ export default class Playlist {
     }
 
     const shuffledItems = shuffle([...this.getAllItems()]);
-    const lastItemInPlaylist = this.playlist[this.playlist.length - 1];
-    if (lastItemInPlaylist === shuffledItems[0]) {
+    if (lastPlayed === shuffledItems[0]) {
       const firstItem = shuffledItems.shift();
       shuffledItems.push(firstItem!);
     }

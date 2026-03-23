@@ -1,6 +1,7 @@
 import type { MockInstance } from 'vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Playlist from '../Playlist';
+import { shuffle } from '../../utils/misc';
 
 // Mock the shuffle function to return a predictable order
 vi.mock('../../utils/misc', () => ({
@@ -105,6 +106,26 @@ describe('Playlist', () => {
       }
       // Playlist should stay bounded, not grow to 3x+ batch size
       expect(playlist.playlist.length).toBeLessThanOrEqual(batchSize * 2);
+    });
+
+    it('should not repeat the last virus across batch boundaries', () => {
+      const playlist = new Playlist();
+      const batchSize = playlist.playlist.length;
+      const lastItem = playlist.playlist[batchSize - 1];
+
+      // Mock shuffle to return the last item first, creating a would-be duplicate
+      vi.mocked(shuffle).mockImplementationOnce((arr: string[]) => {
+        const idx = arr.indexOf(lastItem);
+        if (idx > 0) {
+          [arr[0], arr[idx]] = [arr[idx], arr[0]];
+        }
+        return arr;
+      });
+
+      // Advance to end of batch
+      playlist.currentIndex = batchSize - 1;
+      const next = playlist.next();
+      expect(next).not.toBe(lastItem);
     });
 
     it('should return a string', () => {
