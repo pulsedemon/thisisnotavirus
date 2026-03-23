@@ -314,6 +314,7 @@ export class VirusThumbnailOverlay {
         (e: KeyboardEvent) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            e.stopPropagation();
             const virus = htmlWrapper.getAttribute('data-virus');
             if (!virus) return;
             this.handleVirusSelect(virus, 'keyboard_select');
@@ -440,8 +441,8 @@ export class VirusThumbnailOverlay {
         if (document.activeElement === this.searchInput) return;
         e.preventDefault();
         const nextIndex = Math.min(
-          this.currentFocusIndex + Math.floor(this.filteredItems.length / 4) ||
-            1,
+          this.currentFocusIndex +
+            (Math.floor(this.filteredItems.length / 4) || 1),
           this.filteredItems.length - 1
         );
         this.updateFocus(nextIndex);
@@ -451,8 +452,8 @@ export class VirusThumbnailOverlay {
         if (document.activeElement === this.searchInput) return;
         e.preventDefault();
         const prevIndex = Math.max(
-          this.currentFocusIndex - Math.floor(this.filteredItems.length / 4) ||
-            1,
+          this.currentFocusIndex -
+            (Math.floor(this.filteredItems.length / 4) || 1),
           0
         );
         this.updateFocus(prevIndex);
