@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [
     {
       name: 'handlebars-loader',
-      transform(code: string, id: string) {
+      transform(_code: string, id: string) {
         if (id.endsWith('.hbs')) {
           const template = readFileSync(id, 'utf-8');
           return {

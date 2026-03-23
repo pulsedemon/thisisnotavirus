@@ -26,17 +26,17 @@
   }
 
   .virus-lab-controls {
-    position: absolute !important;
-    bottom: 90px !important;
-    right: 20px !important;
+    position: absolute;
+    bottom: 90px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.8);
     padding: 20px;
     border-radius: 8px;
     width: 300px;
-    z-index: 1000 !important;
+    z-index: 1000;
     border: 1px solid #00ffff;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-    pointer-events: auto !important;
+    pointer-events: auto;
 
     .control-group {
       margin-bottom: 15px;

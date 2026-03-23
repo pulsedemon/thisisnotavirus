@@ -407,12 +407,6 @@ body {
   }
 }
 
-#secondary-virus,
-iframe.secondary-virus,
-iframe[id*='secondary'] {
-  mix-blend-mode: screen !important;
-}
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
