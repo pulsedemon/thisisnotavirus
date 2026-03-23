@@ -158,7 +158,7 @@ describe('Keyboard Control', () => {
       cleanup();
     });
 
-    it('should dispatch keyboard events from same origin', () => {
+    it('should ignore messages from non-parent source', () => {
       const cleanup = setupKeyboardControl();
       const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
 
@@ -174,6 +174,36 @@ describe('Keyboard Control', () => {
           metaKey: false,
         },
         origin: window.location.origin,
+        source: window as unknown as MessageEventSource,
+      });
+      window.dispatchEvent(messageEvent);
+
+      const keyboardDispatches = dispatchSpy.mock.calls.filter(
+        call => call[0] instanceof KeyboardEvent
+      );
+      expect(keyboardDispatches).toHaveLength(0);
+
+      dispatchSpy.mockRestore();
+      cleanup();
+    });
+
+    it('should dispatch keyboard events from same origin and parent source', () => {
+      const cleanup = setupKeyboardControl();
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          type: 'keyboardEvent',
+          eventType: 'keydown',
+          key: 'a',
+          code: 'KeyA',
+          shiftKey: false,
+          ctrlKey: false,
+          altKey: false,
+          metaKey: false,
+        },
+        origin: window.location.origin,
+        source: window.parent as unknown as MessageEventSource,
       });
       window.dispatchEvent(messageEvent);
 

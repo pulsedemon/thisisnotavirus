@@ -64,6 +64,7 @@ export function draggable(el: HTMLElement): () => void {
   function downHandler(e: MouseEvent | TouchEvent) {
     if (!isMobile()) e.preventDefault();
     if (!e.target) return;
+    if (currentReset) currentReset();
     const target = e.target as HTMLElement;
     const clientY =
       e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;

@@ -56,6 +56,7 @@ export function setupKeyboardControl(): () => void {
 
   const messageHandler = (event: MessageEvent) => {
     if (event.origin !== window.location.origin) return;
+    if (event.source !== window.parent) return;
     if (isKeyboardEventMessage(event.data)) {
       const { eventType, key, code, shiftKey, ctrlKey, altKey, metaKey } =
         event.data;
