@@ -1,13 +1,9 @@
 import { VirusMix } from '../types/VirusMix';
+import { VirusLoaderInterface } from '../types/VirusLoaderInterface';
 import { escapeHtml } from '../utils/escapeHtml';
 import { formatVirusName, isMobile } from '../utils/misc';
 import { safeGtag } from '../utils/gtag';
 import Playlist from './Playlist';
-
-interface VirusLoader {
-  virusLab: unknown;
-  toggleLab(): void;
-}
 
 function formatMixEntry(mix: VirusMix, type: string, prefix: string) {
   const mixRatioPercent = Math.round(mix.mixRatio * 100);
@@ -80,71 +76,136 @@ function trackOverlayClose(label: string) {
   });
 }
 
-export function showVirusThumbnailOverlay({
-  onSelect,
-  onClose,
-  virusLoader,
-}: {
+interface VirusThumbnailOverlayOptions {
   onSelect: (virus: string) => void;
   onClose: () => void;
-  virusLoader?: VirusLoader; // VirusLoader instance to close lab if open
-}) {
-  // Track overlay open event
-  safeGtag('event', 'virus_overlay_open', {
-    event_category: 'engagement',
-    event_label: 'virus_thumbnail_overlay',
-  });
+  virusLoader?: VirusLoaderInterface;
+}
 
-  // Remove any existing overlay
-  const existing = document.getElementById('virus-thumbnail-overlay');
-  if (existing) existing.remove();
+export class VirusThumbnailOverlay {
+  private overlay: HTMLDivElement;
+  private searchInput: HTMLInputElement;
+  private filteredItems: HTMLElement[];
+  private currentFocusIndex = -1;
+  private abortController: AbortController;
+  private observer: MutationObserver;
+  private onSelect: (virus: string) => void;
+  private onClose: () => void;
+  private virusLoader?: VirusLoaderInterface;
+  private touchStartY = 0;
+  private isScrolling = false;
+  private _destroyed = false;
 
-  // Get virus list
-  const playlist = new Playlist();
-  const viruses = playlist.viruses.map(virus => ({
-    value: virus,
-    label: formatVirusName(virus),
-    type: 'builtin',
-  }));
+  private premixedViruses: ReturnType<typeof formatMixEntry>[];
+  private customViruses: ReturnType<typeof formatMixEntry>[];
 
-  // Get premixed viruses (default mixes), filtering out any without a name
-  const premixedViruses = playlist.premixes
-    .filter(mix => mix.name)
-    .map(mix => formatMixEntry(mix, 'premixed', 'premix'));
+  constructor(options: VirusThumbnailOverlayOptions) {
+    this.onSelect = options.onSelect;
+    this.onClose = options.onClose;
+    this.virusLoader = options.virusLoader;
+    this.abortController = new AbortController();
 
-  // Get custom viruses (saved mixes), filtering out any without an id
-  const customViruses = playlist.savedMixes
-    .filter(mix => mix.id)
-    .map(mix => formatMixEntry(mix, 'custom', 'mixed'));
+    // Track overlay open event
+    safeGtag('event', 'virus_overlay_open', {
+      event_category: 'engagement',
+      event_label: 'virus_thumbnail_overlay',
+    });
 
-  // Create overlay HTML directly
-  const overlay = document.createElement('div');
-  overlay.id = 'virus-thumbnail-overlay';
-  overlay.className = 'virus-overlay';
+    // Remove any existing overlay
+    const existing = document.getElementById('virus-thumbnail-overlay');
+    if (existing) existing.remove();
 
-  overlay.innerHTML = `
+    // Get virus list
+    const playlist = new Playlist();
+    const viruses = playlist.viruses.map(virus => ({
+      value: virus,
+      label: formatVirusName(virus),
+      type: 'builtin',
+    }));
+
+    // Get premixed viruses (default mixes), filtering out any without a name
+    this.premixedViruses = playlist.premixes
+      .filter(mix => mix.name)
+      .map(mix => formatMixEntry(mix, 'premixed', 'premix'));
+
+    // Get custom viruses (saved mixes), filtering out any without an id
+    this.customViruses = playlist.savedMixes
+      .filter(mix => mix.id)
+      .map(mix => formatMixEntry(mix, 'custom', 'mixed'));
+
+    // Create overlay
+    this.overlay = document.createElement('div');
+    this.overlay.id = 'virus-thumbnail-overlay';
+    this.overlay.className = 'virus-overlay';
+    this.overlay.innerHTML = this.buildOverlayHTML(viruses);
+
+    // Get references to key elements
+    const searchInput = this.overlay.querySelector('.virus-search');
+    if (!(searchInput instanceof HTMLInputElement)) {
+      throw new Error(
+        'VirusThumbnailOverlay: .virus-search input not found in overlay'
+      );
+    }
+    this.searchInput = searchInput;
+
+    const thumbnailItems = this.overlay.querySelectorAll(
+      '.virus-thumbnail-item'
+    );
+    this.filteredItems = Array.from(thumbnailItems) as HTMLElement[];
+
+    // Set up all event listeners
+    this.setupEventListeners();
+
+    // Focus search input initially
+    setTimeout(() => {
+      this.searchInput.focus();
+    }, 100);
+
+    // Add overlay to DOM
+    document.body.appendChild(this.overlay);
+
+    // Prevent body scroll when overlay is open
+    document.body.style.overflow = 'hidden';
+
+    // Auto-cleanup when overlay is removed externally
+    this.observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.removedNodes.forEach(node => {
+          if (node === this.overlay) {
+            this.destroy();
+          }
+        });
+      });
+    });
+    this.observer.observe(document.body, { childList: true });
+  }
+
+  private buildOverlayHTML(
+    viruses: { value: string; label: string; type: string }[]
+  ): string {
+    return `
     <div class="virus-overlay-header">
       <h2 class="virus-overlay-title">Select Virus</h2>
       <button class="virus-thumbnail-close" aria-label="Close overlay">
         X
       </button>
     </div>
-    
+
     <div class="virus-overlay-content">
       <div class="virus-search-container">
-        <input 
-          type="text" 
-          class="virus-search" 
-          placeholder="Search viruses..." 
+        <input
+          type="text"
+          class="virus-search"
+          placeholder="Search viruses..."
           aria-label="Search viruses"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
           spellcheck="false"
         />
-        <span class="virus-search-icon">🔍</span>
+        <span class="virus-search-icon">\uD83D\uDD0D</span>
       </div>
-      
+
       <div class="virus-sections">
         <div class="virus-section">
           <div class="virus-section-title-wrapper">
@@ -156,15 +217,15 @@ export function showVirusThumbnailOverlay({
                 virus => `
               <div class="virus-thumbnail-item" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} virus">
                 <div class="virus-thumbnail-preview">
-                  <iframe 
-                    src="/viruses/${virus.value}/" 
-                    title="${virus.label} preview" 
+                  <iframe
+                    src="/viruses/${virus.value}/"
+                    title="${virus.label} preview"
                     frameborder="0"
                     loading="lazy"
                     importance="low"
                   ></iframe>
                   <div class="virus-thumbnail-overlay-hover">
-                    <span class="play-icon">▶</span>
+                    <span class="play-icon">\u25B6</span>
                   </div>
                 </div>
                 <div class="virus-label">${virus.label}</div>
@@ -175,41 +236,152 @@ export function showVirusThumbnailOverlay({
           </div>
         </div>
 
-        ${renderMixSection('Premixed', 'premixed-viruses', 'premixed', premixedViruses)}
+        ${renderMixSection('Premixed', 'premixed-viruses', 'premixed', this.premixedViruses)}
 
-        ${renderMixSection('Mixes', 'custom-viruses', 'custom', customViruses)}
+        ${renderMixSection('Mixes', 'custom-viruses', 'custom', this.customViruses)}
       </div>
     </div>
   `;
+  }
 
-  // Get references to key elements
-  const searchInput = overlay.querySelector(
-    '.virus-search'
-  ) as HTMLInputElement;
-  const thumbnailItems = overlay.querySelectorAll('.virus-thumbnail-item');
-  const closeBtn = overlay.querySelector(
-    '.virus-thumbnail-close'
-  ) as HTMLButtonElement;
+  private setupEventListeners(): void {
+    const signal = this.abortController.signal;
 
-  // Search functionality
-  let filteredItems = Array.from(thumbnailItems) as HTMLElement[];
-  let touchStartY = 0;
-  let isScrolling = false;
+    const closeBtn = this.overlay.querySelector('.virus-thumbnail-close');
+    if (!(closeBtn instanceof HTMLButtonElement)) {
+      throw new Error(
+        'VirusThumbnailOverlay: .virus-thumbnail-close button not found in overlay'
+      );
+    }
 
-  function filterItems(searchTerm: string) {
+    // Search input
+    this.searchInput.addEventListener(
+      'input',
+      (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        this.filterItems(target.value);
+      },
+      { signal }
+    );
+
+    // Keyboard navigation on overlay
+    this.overlay.addEventListener(
+      'keydown',
+      (e: KeyboardEvent) => {
+        this.handleKeyNavigation(e);
+      },
+      { signal }
+    );
+
+    // Close button
+    closeBtn.addEventListener(
+      'click',
+      (e: MouseEvent) => {
+        e.stopPropagation();
+        this.destroy();
+        trackOverlayClose('close_button');
+        this.onClose();
+      },
+      { signal }
+    );
+
+    // Background click
+    this.overlay.addEventListener(
+      'click',
+      (e: MouseEvent) => {
+        if (e.target === this.overlay) {
+          this.destroy();
+          trackOverlayClose('background_click');
+          this.onClose();
+        }
+      },
+      { signal }
+    );
+
+    // Thumbnail click, keydown, and touch events
+    const thumbnailItems = this.overlay.querySelectorAll(
+      '.virus-thumbnail-item'
+    );
+    thumbnailItems.forEach(thumbWrapper => {
+      const htmlWrapper = thumbWrapper as HTMLElement;
+
+      htmlWrapper.addEventListener(
+        'click',
+        (e: MouseEvent) => {
+          e.stopPropagation();
+          const virus = htmlWrapper.getAttribute('data-virus');
+          if (!virus) return;
+          this.handleVirusSelect(virus, 'thumbnail_click');
+        },
+        { signal }
+      );
+
+      htmlWrapper.addEventListener(
+        'keydown',
+        (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            const virus = htmlWrapper.getAttribute('data-virus');
+            if (!virus) return;
+            this.handleVirusSelect(virus, 'keyboard_select');
+          }
+        },
+        { signal }
+      );
+
+      htmlWrapper.addEventListener(
+        'touchstart',
+        (e: TouchEvent) => {
+          this.touchStartY = e.touches[0].clientY;
+          this.isScrolling = false;
+        },
+        { signal }
+      );
+
+      htmlWrapper.addEventListener(
+        'touchmove',
+        (e: TouchEvent) => {
+          const touchY = e.touches[0].clientY;
+          const diff = this.touchStartY - touchY;
+          if (Math.abs(diff) > 10) {
+            this.isScrolling = true;
+          }
+        },
+        { signal }
+      );
+
+      htmlWrapper.addEventListener(
+        'touchend',
+        () => {
+          if (!this.isScrolling) {
+            const virus = htmlWrapper.getAttribute('data-virus');
+            if (!virus) return;
+            this.handleVirusSelect(virus, 'touch_select');
+          }
+        },
+        { signal }
+      );
+    });
+  }
+
+  private filterItems(searchTerm: string): void {
     const term = searchTerm.toLowerCase().trim();
-    filteredItems = [];
+    this.filteredItems = [];
+    this.currentFocusIndex = -1;
 
-    thumbnailItems.forEach(item => {
+    const allItems = this.overlay.querySelectorAll('.virus-thumbnail-item');
+    allItems.forEach(item => {
       const htmlItem = item as HTMLElement;
-      const virus = htmlItem.getAttribute('data-virus')!;
+      const virus = htmlItem.getAttribute('data-virus');
+      if (!virus) return;
       let matches = false;
 
       if (virus.startsWith('mixed:') || virus.startsWith('premix:')) {
         // For mix viruses (custom or official), search in the label and component virus names
         const mixEntry = virus.startsWith('premix:')
-          ? premixedViruses.find(om => om.value === virus)
-          : customViruses.find(cv => cv.value === virus);
+          ? this.premixedViruses.find(om => om.value === virus)
+          : this.customViruses.find(cv => cv.value === virus);
         if (mixEntry) {
           const label = mixEntry.label.toLowerCase();
           const primaryVirus = formatVirusName(
@@ -235,265 +407,116 @@ export function showVirusThumbnailOverlay({
       if (matches) {
         htmlItem.classList.remove('filtered-out');
         htmlItem.style.removeProperty('display');
-        filteredItems.push(htmlItem);
+        this.filteredItems.push(htmlItem);
       } else {
         htmlItem.classList.add('filtered-out');
       }
     });
   }
 
-  // Event handler functions
-  const handleSearchInput = (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    filterItems(target.value);
-  };
+  private handleVirusSelect(virus: string, trackLabel: string): void {
+    this.destroy();
 
-  const handleTouchStart = (e: TouchEvent) => {
-    touchStartY = e.touches[0].clientY;
-    isScrolling = false;
-  };
-
-  const handleTouchMove = (e: TouchEvent) => {
-    const touchY = e.touches[0].clientY;
-    const diff = touchStartY - touchY;
-
-    // If scrolling more than 10px vertically, consider it a scroll
-    if (Math.abs(diff) > 10) {
-      isScrolling = true;
+    // Close lab if it's open
+    if (this.virusLoader && this.virusLoader.isLabOpen) {
+      this.virusLoader.toggleLab();
     }
-  };
 
-  const handleTouchEnd = (e: TouchEvent, htmlWrapper: HTMLElement) => {
-    if (!isScrolling) {
-      const virus = htmlWrapper.getAttribute('data-virus')!;
-      cleanup();
+    trackVirusSelect(trackLabel, virus);
+    this.onSelect(virus);
+  }
 
-      // Close lab if it's open
-      if (virusLoader && virusLoader.virusLab) {
-        virusLoader.toggleLab();
-      }
-
-      trackVirusSelect('touch_select', virus);
-
-      onSelect(virus);
-    }
-  };
-
-  const handleKeyNavigation = (e: KeyboardEvent) => {
-    if (filteredItems.length === 0) return;
+  private handleKeyNavigation(e: KeyboardEvent): void {
+    if (this.filteredItems.length === 0) return;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        currentFocusIndex = (currentFocusIndex + 1) % filteredItems.length;
-        updateFocus(currentFocusIndex);
+        this.currentFocusIndex =
+          (this.currentFocusIndex + 1) % this.filteredItems.length;
+        this.updateFocus(this.currentFocusIndex);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        currentFocusIndex =
-          currentFocusIndex <= 0
-            ? filteredItems.length - 1
-            : currentFocusIndex - 1;
-        updateFocus(currentFocusIndex);
+        this.currentFocusIndex =
+          this.currentFocusIndex <= 0
+            ? this.filteredItems.length - 1
+            : this.currentFocusIndex - 1;
+        this.updateFocus(this.currentFocusIndex);
         break;
       case 'ArrowRight': {
-        if (document.activeElement === searchInput) return;
+        if (document.activeElement === this.searchInput) return;
         e.preventDefault();
         const nextIndex = Math.min(
-          currentFocusIndex + Math.floor(filteredItems.length / 4) || 1,
-          filteredItems.length - 1
+          this.currentFocusIndex +
+            (Math.floor(this.filteredItems.length / 4) || 1),
+          this.filteredItems.length - 1
         );
-        updateFocus(nextIndex);
+        this.updateFocus(nextIndex);
         break;
       }
       case 'ArrowLeft': {
-        if (document.activeElement === searchInput) return;
+        if (document.activeElement === this.searchInput) return;
         e.preventDefault();
         const prevIndex = Math.max(
-          currentFocusIndex - Math.floor(filteredItems.length / 4) || 1,
+          this.currentFocusIndex -
+            (Math.floor(this.filteredItems.length / 4) || 1),
           0
         );
-        updateFocus(prevIndex);
+        this.updateFocus(prevIndex);
         break;
       }
       case 'Enter':
-        if (currentFocusIndex >= 0 && filteredItems[currentFocusIndex]) {
+        if (
+          this.currentFocusIndex >= 0 &&
+          this.filteredItems[this.currentFocusIndex]
+        ) {
           const virus =
-            filteredItems[currentFocusIndex].getAttribute('data-virus')!;
-          cleanup();
-
-          trackVirusSelect('keyboard_enter', virus);
-
-          onSelect(virus);
+            this.filteredItems[this.currentFocusIndex].getAttribute(
+              'data-virus'
+            );
+          if (!virus) return;
+          this.handleVirusSelect(virus, 'keyboard_enter');
         }
         break;
       case 'Escape':
-        cleanup();
-
+        this.destroy();
         trackOverlayClose('escape_key');
-
-        onClose();
+        this.onClose();
         break;
       case '/':
-        if (document.activeElement !== searchInput) {
+        if (document.activeElement !== this.searchInput) {
           e.preventDefault();
-          searchInput.focus();
+          this.searchInput.focus();
         }
         break;
     }
-  };
+  }
 
-  const handleCloseClick = (e: MouseEvent) => {
-    e.stopPropagation();
-    cleanup();
-
-    trackOverlayClose('close_button');
-
-    onClose();
-  };
-
-  const handleBackgroundClick = (e: MouseEvent) => {
-    if (e.target === overlay) {
-      cleanup();
-
-      trackOverlayClose('background_click');
-
-      onClose();
-    }
-  };
-
-  const handleThumbnailClick = (e: MouseEvent, htmlWrapper: HTMLElement) => {
-    e.stopPropagation();
-    cleanup();
-    const virus = htmlWrapper.getAttribute('data-virus')!;
-
-    // Close lab if it's open
-    if (virusLoader && virusLoader.virusLab) {
-      virusLoader.toggleLab();
-    }
-
-    trackVirusSelect('thumbnail_click', virus);
-
-    onSelect(virus);
-  };
-
-  const handleThumbnailKeydown = (
-    e: KeyboardEvent,
-    htmlWrapper: HTMLElement
-  ) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      const virus = htmlWrapper.getAttribute('data-virus')!;
-      cleanup();
-
-      // Close lab if it's open
-      if (virusLoader && virusLoader.virusLab) {
-        virusLoader.toggleLab();
-      }
-
-      trackVirusSelect('keyboard_select', virus);
-
-      onSelect(virus);
-    }
-  };
-
-  // Keyboard navigation
-  let currentFocusIndex = -1;
-
-  function updateFocus(index: number) {
-    // Remove focus from all items
-    filteredItems.forEach((item, i) => {
+  private updateFocus(index: number): void {
+    this.filteredItems.forEach((item, i) => {
       if (i === index) {
         item.focus();
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     });
-    currentFocusIndex = index;
+    this.currentFocusIndex = index;
   }
 
-  // Add event listeners
-  searchInput.addEventListener('input', handleSearchInput);
-  overlay.addEventListener('keydown', handleKeyNavigation);
-  closeBtn.addEventListener('click', handleCloseClick);
-  overlay.addEventListener('click', handleBackgroundClick);
-
-  // Add click and touch events for each thumbnail
-  const thumbnailHandlers = new Map<
-    HTMLElement,
-    {
-      click: (e: MouseEvent) => void;
-      keydown: (e: KeyboardEvent) => void;
-      touchstart: (e: TouchEvent) => void;
-      touchmove: (e: TouchEvent) => void;
-      touchend: (e: TouchEvent) => void;
-    }
-  >();
-
-  thumbnailItems.forEach(thumbWrapper => {
-    const htmlWrapper = thumbWrapper as HTMLElement;
-    const handlers = {
-      click: (e: MouseEvent) => handleThumbnailClick(e, htmlWrapper),
-      keydown: (e: KeyboardEvent) => handleThumbnailKeydown(e, htmlWrapper),
-      touchstart: (e: TouchEvent) => handleTouchStart(e),
-      touchmove: (e: TouchEvent) => handleTouchMove(e),
-      touchend: (e: TouchEvent) => handleTouchEnd(e, htmlWrapper),
-    };
-
-    thumbnailHandlers.set(htmlWrapper, handlers);
-    htmlWrapper.addEventListener('click', handlers.click);
-    htmlWrapper.addEventListener('keydown', handlers.keydown);
-    htmlWrapper.addEventListener('touchstart', handlers.touchstart);
-    htmlWrapper.addEventListener('touchmove', handlers.touchmove);
-    htmlWrapper.addEventListener('touchend', handlers.touchend);
-  });
-
-  // Focus search input initially
-  setTimeout(() => {
-    searchInput.focus();
-  }, 100);
-
-  // Add overlay to DOM with animation
-  document.body.appendChild(overlay);
-
-  // Prevent body scroll when overlay is open
-  document.body.style.overflow = 'hidden';
-
-  // Cleanup function to restore body scroll and remove event listeners
-  function cleanup() {
+  destroy(): void {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    this.abortController.abort();
+    this.observer.disconnect();
     document.body.style.overflow = '';
-    overlay.removeEventListener('keydown', handleKeyNavigation);
-    searchInput.removeEventListener('input', handleSearchInput);
-    closeBtn.removeEventListener('click', handleCloseClick);
-    overlay.removeEventListener('click', handleBackgroundClick);
-
-    // Clean up thumbnail event listeners using stored handlers
-    thumbnailHandlers.forEach((handlers, element) => {
-      element.removeEventListener('click', handlers.click);
-      element.removeEventListener('keydown', handlers.keydown);
-      element.removeEventListener('touchstart', handlers.touchstart);
-      element.removeEventListener('touchmove', handlers.touchmove);
-      element.removeEventListener('touchend', handlers.touchend);
-    });
-    thumbnailHandlers.clear();
-
-    overlay.remove();
+    this.overlay.remove();
   }
+}
 
-  // Store cleanup function on overlay for potential external cleanup
-  (overlay as unknown as HTMLElement & { cleanup: () => void }).cleanup =
-    cleanup;
-
-  // Auto-cleanup when overlay is removed
-  const observer = new MutationObserver(mutations => {
-    mutations.forEach(mutation => {
-      mutation.removedNodes.forEach(node => {
-        if (node === overlay) {
-          cleanup();
-          observer.disconnect();
-        }
-      });
-    });
-  });
-
-  observer.observe(document.body, { childList: true });
+export function showVirusThumbnailOverlay(options: {
+  onSelect: (virus: string) => void;
+  onClose: () => void;
+  virusLoader?: VirusLoaderInterface;
+}): VirusThumbnailOverlay {
+  return new VirusThumbnailOverlay(options);
 }

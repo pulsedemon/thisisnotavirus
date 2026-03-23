@@ -1,7 +1,27 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
+
+function escapeUnsafeChars(str: string): string {
+  return str.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+}
 
 export default defineConfig({
+  plugins: [
+    {
+      name: 'handlebars-loader',
+      transform(_code: string, id: string) {
+        if (id.endsWith('.hbs')) {
+          const template = readFileSync(id, 'utf-8');
+          return {
+            code: `export default function() { return ${escapeUnsafeChars(JSON.stringify(template))}; }`,
+            map: null,
+          };
+        }
+        return null;
+      },
+    },
+  ],
   test: {
     environment: 'jsdom',
     globals: true,

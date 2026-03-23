@@ -9,83 +9,48 @@ describe('Iframe Utilities', () => {
       expect(iframe.tagName).toBe('IFRAME');
     });
 
-    it('should apply default styles (non-secondary)', () => {
+    it('should apply virus-iframe class (non-secondary)', () => {
       const iframe = createStyledIframe();
-      expect(iframe.style.width).toBe('100%');
-      expect(iframe.style.height).toBe('100%');
-      expect(iframe.style.borderStyle).toBe('none');
-      expect(iframe.style.position).toBe('absolute');
-      expect(iframe.style.top).toBe('0px');
-      expect(iframe.style.left).toBe('0px');
-      expect(iframe.style.background).toBe('rgb(0, 0, 0)');
-      expect(iframe.style.pointerEvents).toBe('none');
-      expect(iframe.style.zIndex).toBe('0');
+      expect(iframe.classList.contains('virus-iframe')).toBe(true);
     });
 
-    it('should not set mix-blend-mode for non-secondary iframe', () => {
+    it('should not set secondary classes for non-secondary iframe', () => {
       const iframe = createStyledIframe();
-      expect(iframe.style.mixBlendMode).toBe('');
-      expect(iframe.className).toBe('');
+      expect(iframe.classList.contains('virus-iframe--secondary')).toBe(false);
+      expect(iframe.classList.contains('secondary-virus')).toBe(false);
     });
 
-    it('should apply secondary styles when isSecondary is true', () => {
+    it('should apply secondary classes when isSecondary is true', () => {
       const iframe = createStyledIframe(true);
-      expect(iframe.style.mixBlendMode).toBe('screen');
-      expect(iframe.className).toBe('secondary-virus');
-      expect(iframe.style.zIndex).toBe('1');
+      expect(iframe.classList.contains('virus-iframe')).toBe(true);
+      expect(iframe.classList.contains('virus-iframe--secondary')).toBe(true);
+      expect(iframe.classList.contains('secondary-virus')).toBe(true);
     });
   });
 
   describe('styleIframe', () => {
-    it('should apply styles to an existing iframe', () => {
+    it('should apply virus-iframe class to an existing iframe', () => {
       const iframe = document.createElement('iframe');
       styleIframe(iframe);
 
-      expect(iframe.style.width).toBe('100%');
-      expect(iframe.style.height).toBe('100%');
-      expect(iframe.style.borderStyle).toBe('none');
-      expect(iframe.style.position).toBe('absolute');
-      expect(iframe.style.top).toBe('0px');
-      expect(iframe.style.left).toBe('0px');
-      expect(iframe.style.right).toBe('0px');
-      expect(iframe.style.bottom).toBe('0px');
-      expect(iframe.style.margin).toBe('0px');
-      expect(iframe.style.padding).toBe('0px');
-      expect(iframe.style.boxSizing).toBe('border-box');
-      expect(iframe.style.pointerEvents).toBe('none');
+      expect(iframe.classList.contains('virus-iframe')).toBe(true);
     });
 
-    it('should apply responsive styles', () => {
-      const iframe = document.createElement('iframe');
-      styleIframe(iframe);
-
-      expect(iframe.style.minWidth).toBe('100%');
-      expect(iframe.style.minHeight).toBe('100%');
-      expect(iframe.style.maxWidth).toBe('100%');
-      expect(iframe.style.maxHeight).toBe('100%');
-    });
-
-    it('should set zIndex to 0 for non-secondary iframe', () => {
-      const iframe = document.createElement('iframe');
-      styleIframe(iframe);
-
-      expect(iframe.style.zIndex).toBe('0');
-    });
-
-    it('should apply secondary styles when isSecondary is true', () => {
-      const iframe = document.createElement('iframe');
-      styleIframe(iframe, true);
-
-      expect(iframe.style.mixBlendMode).toBe('screen');
-      expect(iframe.className).toBe('secondary-virus');
-      expect(iframe.style.zIndex).toBe('1');
-    });
-
-    it('should not set secondary class for non-secondary iframe', () => {
+    it('should not set secondary classes for non-secondary iframe', () => {
       const iframe = document.createElement('iframe');
       styleIframe(iframe, false);
 
-      expect(iframe.className).not.toBe('secondary-virus');
+      expect(iframe.classList.contains('virus-iframe--secondary')).toBe(false);
+      expect(iframe.classList.contains('secondary-virus')).toBe(false);
+    });
+
+    it('should apply secondary classes when isSecondary is true', () => {
+      const iframe = document.createElement('iframe');
+      styleIframe(iframe, true);
+
+      expect(iframe.classList.contains('virus-iframe')).toBe(true);
+      expect(iframe.classList.contains('virus-iframe--secondary')).toBe(true);
+      expect(iframe.classList.contains('secondary-virus')).toBe(true);
     });
   });
 });

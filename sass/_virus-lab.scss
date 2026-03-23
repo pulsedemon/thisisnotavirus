@@ -12,51 +12,31 @@
   z-index: 0;
   pointer-events: auto;
 
-  // Ensure iframes are perfectly aligned
-  // !important is required here to override inline styles set by JavaScript
-  > iframe {
-    width: 100% !important;
-    height: 100% !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    border: none !important;
-    background: #000 !important;
-    min-width: 100% !important;
-    min-height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-    pointer-events: none !important;
-  }
+  // Iframes inherit .virus-iframe styles from main.scss
 
   // Primary iframe (base virus)
   > iframe:not(.secondary-virus) {
-    z-index: 0 !important;
+    z-index: 0;
   }
 
   // Secondary iframe (overlay virus)
   > iframe.secondary-virus {
-    z-index: 1 !important;
-    mix-blend-mode: screen !important;
+    z-index: 1;
+    mix-blend-mode: screen;
   }
 
   .virus-lab-controls {
-    position: absolute !important;
-    bottom: 90px !important;
-    right: 20px !important;
+    position: absolute;
+    bottom: 90px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.8);
     padding: 20px;
     border-radius: 8px;
     width: 300px;
-    z-index: 1000 !important;
+    z-index: 1000;
     border: 1px solid #00ffff;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-    pointer-events: auto !important;
+    pointer-events: auto;
 
     .control-group {
       margin-bottom: 15px;

@@ -1,15 +1,9 @@
 import { showVirusThumbnailOverlay } from '../components/VirusThumbnailOverlay';
 import Playlist from '../components/Playlist';
-
-interface VirusLoaderLike {
-  virusLab: unknown;
-  loadRandomInterval: ReturnType<typeof setInterval>;
-  loadVirus(name: string): void;
-  toggleLab(): void;
-}
+import { VirusLoaderInterface } from '../types/VirusLoaderInterface';
 
 export function createLabButton(
-  virusLoader: VirusLoaderLike
+  virusLoader: VirusLoaderInterface
 ): HTMLButtonElement {
   const labButton = document.createElement('button');
   labButton.id = 'lab-btn';
@@ -25,7 +19,7 @@ export function createLabButton(
 }
 
 export function createThumbnailButton(
-  virusLoader: VirusLoaderLike,
+  virusLoader: VirusLoaderInterface,
   playlist: Playlist
 ): HTMLButtonElement {
   const thumbBtn = document.createElement('button');
@@ -46,7 +40,7 @@ export function createThumbnailButton(
       onSelect: virus => {
         const playPauseBtn = document.getElementById('play-pause');
         if (playPauseBtn) playPauseBtn.innerText = 'play_arrow';
-        clearInterval(virusLoader.loadRandomInterval);
+        virusLoader.pauseRandomization();
         playlist.loadSavedMixes();
         playlist.setCurrentVirus(virus);
         virusLoader.loadVirus(virus);

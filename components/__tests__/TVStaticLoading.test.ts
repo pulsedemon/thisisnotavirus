@@ -87,17 +87,14 @@ describe('TVStaticLoading', () => {
       tvStatic.hide();
     });
 
-    it('should apply correct styles to the canvas', () => {
+    it('should apply correct class to the canvas', () => {
       const tvStatic = new TVStaticLoading();
       tvStatic.show();
 
       const canvas = document.querySelector(
         '.tv-static-canvas'
       ) as HTMLCanvasElement;
-      expect(canvas.style.position).toBe('fixed');
-      expect(canvas.style.top).toBe('0px');
-      expect(canvas.style.left).toBe('0px');
-      expect(canvas.style.zIndex).toBe('100');
+      expect(canvas.classList.contains('tv-static-canvas')).toBe(true);
 
       tvStatic.hide();
     });
