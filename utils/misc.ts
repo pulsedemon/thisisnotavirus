@@ -4,6 +4,11 @@ import { randomInt } from './random';
 const usparser = new UAParser();
 let _isMobileCache: boolean | null = null;
 
+/**
+ * Memoized for the session lifetime. Callers bind event listeners (mousedown vs
+ * touchstart) at init and cannot dynamically switch, so invalidating mid-session
+ * would create inconsistency. Use _resetIsMobileCache() in tests.
+ */
 export function isMobile(): boolean {
   if (_isMobileCache !== null) return _isMobileCache;
 

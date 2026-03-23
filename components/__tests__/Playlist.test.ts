@@ -86,13 +86,25 @@ describe('Playlist', () => {
       expect(next).toBe(playlist.playlist[1]);
     });
 
-    it('should extend the playlist when reaching the end', () => {
+    it('should replenish the playlist when reaching the end', () => {
       const playlist = new Playlist();
-      const initialLength = playlist.playlist.length;
-      playlist.currentIndex = initialLength - 1;
+      const batchSize = playlist.playlist.length;
+      playlist.currentIndex = batchSize - 1;
       const next = playlist.next();
-      expect(playlist.playlist.length).toBeGreaterThan(initialLength);
+      expect(playlist.playlist.length).toBeGreaterThanOrEqual(batchSize);
+      expect(playlist.currentIndex).toBeLessThan(playlist.playlist.length);
       expect(typeof next).toBe('string');
+    });
+
+    it('should trim played items to prevent unbounded growth', () => {
+      const playlist = new Playlist();
+      const batchSize = playlist.playlist.length;
+      // Play through 3 full cycles
+      for (let i = 0; i < batchSize * 3; i++) {
+        playlist.next();
+      }
+      // Playlist should stay bounded, not grow to 3x+ batch size
+      expect(playlist.playlist.length).toBeLessThanOrEqual(batchSize * 2);
     });
 
     it('should return a string', () => {

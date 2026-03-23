@@ -26,11 +26,13 @@ describe('Misc Utilities', () => {
   describe('isMobile', () => {
     let originalNavigator: Navigator;
     let originalInnerWidth: number;
+    let hadOntouchstart: boolean;
 
     beforeEach(() => {
       _resetIsMobileCache();
       originalNavigator = window.navigator;
       originalInnerWidth = window.innerWidth;
+      hadOntouchstart = 'ontouchstart' in window;
     });
 
     afterEach(() => {
@@ -39,6 +41,16 @@ describe('Misc Utilities', () => {
         writable: true,
         configurable: true,
       });
+      Object.defineProperty(window, 'navigator', {
+        value: originalNavigator,
+        writable: true,
+        configurable: true,
+      });
+      if (hadOntouchstart && !('ontouchstart' in window)) {
+        (window as unknown as Record<string, unknown>).ontouchstart = null;
+      } else if (!hadOntouchstart && 'ontouchstart' in window) {
+        delete (window as unknown as Record<string, unknown>).ontouchstart;
+      }
       vi.restoreAllMocks();
     });
 
