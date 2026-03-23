@@ -95,6 +95,9 @@ export default class Playlist {
       this.generatePlaylist();
     }
     if (typeof this.playlist[this.currentIndex] === 'undefined') {
+      console.warn(
+        `Playlist.current(): currentIndex ${this.currentIndex} out of bounds (length: ${this.playlist.length}), resetting to 0`
+      );
       this.currentIndex = 0;
     }
     const current = this.playlist[this.currentIndex];

@@ -140,9 +140,13 @@ export class VirusThumbnailOverlay {
     this.overlay.innerHTML = this.buildOverlayHTML(viruses);
 
     // Get references to key elements
-    this.searchInput = this.overlay.querySelector(
-      '.virus-search'
-    ) as HTMLInputElement;
+    const searchInput = this.overlay.querySelector('.virus-search');
+    if (!(searchInput instanceof HTMLInputElement)) {
+      throw new Error(
+        'VirusThumbnailOverlay: .virus-search input not found in overlay'
+      );
+    }
+    this.searchInput = searchInput;
 
     const thumbnailItems = this.overlay.querySelectorAll(
       '.virus-thumbnail-item'
@@ -243,9 +247,12 @@ export class VirusThumbnailOverlay {
   private setupEventListeners(): void {
     const signal = this.abortController.signal;
 
-    const closeBtn = this.overlay.querySelector(
-      '.virus-thumbnail-close'
-    ) as HTMLButtonElement;
+    const closeBtn = this.overlay.querySelector('.virus-thumbnail-close');
+    if (!(closeBtn instanceof HTMLButtonElement)) {
+      throw new Error(
+        'VirusThumbnailOverlay: .virus-thumbnail-close button not found in overlay'
+      );
+    }
 
     // Search input
     this.searchInput.addEventListener(

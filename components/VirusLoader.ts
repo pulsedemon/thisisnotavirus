@@ -11,15 +11,15 @@ import { safeGtag } from '../utils/gtag';
 import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
 
 export default class VirusLoader implements VirusLoaderInterface {
-  iframe: HTMLIFrameElement;
-  loadRandomInterval: ReturnType<typeof setInterval>;
-  loadingAnimEl: HTMLDivElement;
-  loadingAnimStartTime = 0;
-  loadingAnim: { start: () => void; stop: () => void };
-  loadingRing: HTMLDivElement;
-  sourceCodeLink: HTMLAnchorElement | null;
-  virusLab: VirusLab | null = null;
-  isNavigating = false;
+  private iframe: HTMLIFrameElement;
+  private loadRandomInterval: ReturnType<typeof setInterval> | undefined;
+  private loadingAnimEl: HTMLDivElement;
+  private loadingAnimStartTime = 0;
+  private loadingAnim!: { start: () => void; stop: () => void };
+  private loadingRing: HTMLDivElement;
+  private sourceCodeLink: HTMLAnchorElement | null;
+  private virusLab: VirusLab | null = null;
+  private isNavigating = false;
   virusHasKeyboardControl = false;
 
   private playlist: Playlist;
@@ -164,7 +164,7 @@ export default class VirusLoader implements VirusLoaderInterface {
 
           const mixFrame = createStyledIframe();
           mixFrame.style.visibility = 'hidden';
-          mixFrame.src = `/viruses/lab/?primary=${mix.primary}&secondary=${mix.secondary}&ratio=${mix.mixRatio}`;
+          mixFrame.src = `/viruses/lab/?primary=${encodeURIComponent(mix.primary)}&secondary=${encodeURIComponent(mix.secondary)}&ratio=${encodeURIComponent(String(mix.mixRatio))}`;
 
           this._attachIframeListeners(
             mixFrame,
@@ -340,7 +340,7 @@ export default class VirusLoader implements VirusLoaderInterface {
 
   /**
    * (Re)starts the random virus rotation. Picks a single random interval
-   * (2-12s) that stays fixed until the next call.
+   * (2-11s) that stays fixed until the next call.
    */
   startRandomization() {
     clearInterval(this.loadRandomInterval);

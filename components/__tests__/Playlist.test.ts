@@ -71,11 +71,16 @@ describe('Playlist', () => {
     });
 
     it('should reset index if it is out of bounds', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(vi.fn());
       const playlist = new Playlist();
       playlist.currentIndex = 999999;
       const current = playlist.current();
       expect(playlist.currentIndex).toBe(0);
       expect(current).toBe(playlist.playlist[0]);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('currentIndex 999999 out of bounds')
+      );
+      warnSpy.mockRestore();
     });
   });
 

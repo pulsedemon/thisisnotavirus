@@ -70,13 +70,18 @@ export default class TVStaticLoading {
     this._buffer = document.createElement('canvas');
     this._buffer.width = this.config.bufferW;
     this._buffer.height = this.config.bufferH;
-    this._bufferCtx = this._buffer.getContext('2d', {
+    const bufferCtx = this._buffer.getContext('2d', {
       willReadFrequently: true,
-    })!;
+    });
+    if (!bufferCtx)
+      throw new Error('Failed to get 2d context for buffer canvas');
+    this._bufferCtx = bufferCtx;
     this._tempCanvas = document.createElement('canvas');
     this._tempCanvas.width = this.config.bufferW;
     this._tempCanvas.height = this.config.bufferH;
-    this._tempCtx = this._tempCanvas.getContext('2d')!;
+    const tempCtx = this._tempCanvas.getContext('2d');
+    if (!tempCtx) throw new Error('Failed to get 2d context for temp canvas');
+    this._tempCtx = tempCtx;
     this.watermark.baseAlpha = this.config.watermarkBaseAlpha;
     this.watermark.revealAlpha = this.config.watermarkRevealAlpha;
     this.watermark.step = this.config.watermarkStep;
@@ -426,7 +431,8 @@ export default class TVStaticLoading {
     this._drawVignette();
     this._drawBackgroundVirusText();
     // Draw buffer to main canvas, scaled up
-    const mainCtx = this.canvas.getContext('2d')!;
+    const mainCtx = this.canvas.getContext('2d');
+    if (!mainCtx) return;
     mainCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     mainCtx.imageSmoothingEnabled = false;
     mainCtx.drawImage(
