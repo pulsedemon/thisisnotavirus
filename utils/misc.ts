@@ -32,8 +32,6 @@ export function isMobile(): boolean {
 export function _resetIsMobileCache(): void {
   _isMobileCache = null;
 }
-export const browserName = usparser.getResult().browser.name;
-
 export function preloadImage(url: string) {
   const img = new Image();
   img.src = url;
@@ -109,10 +107,6 @@ export function draggable(el: HTMLElement): () => void {
     el.removeEventListener(downEvent, downHandler);
     if (currentReset) currentReset();
   };
-}
-
-export function stripTags(str: string) {
-  return str.replace(/(<([^>]+)>)/gi, '');
 }
 
 export function formatVirusName(name: string) {
