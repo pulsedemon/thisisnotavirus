@@ -123,8 +123,8 @@ export default class Playlist {
 
   getMixById(id: string): VirusMix | undefined {
     const mixId = parseInt(id.replace('mixed:', ''));
-    const mix = this.savedMixes.find(mix => mix.id === mixId);
-    return mix;
+    if (isNaN(mixId)) return undefined;
+    return this.savedMixes.find(mix => mix.id === mixId);
   }
 
   getPremixByName(name: string): VirusMix | undefined {
@@ -141,15 +141,9 @@ export default class Playlist {
     const index = this.playlist.indexOf(virusId);
 
     if (index !== -1) {
-      // If the virus is in the playlist, set the current index to it
       this.currentIndex = index;
     } else {
-      // If not found, add it to the playlist at the current position
       this.playlist.splice(this.currentIndex, 0, virusId);
-      // Ensure we don't go out of bounds
-      if (this.currentIndex >= this.playlist.length) {
-        this.currentIndex = 0;
-      }
     }
   }
 }

@@ -8,10 +8,10 @@ vi.mock('../../components/VirusThumbnailOverlay', () => ({
 
 describe('floating-buttons', () => {
   const mockVirusLoader = {
-    virusLab: null,
-    loadRandomInterval: 0 as unknown as ReturnType<typeof setInterval>,
+    isLabOpen: false,
     loadVirus: vi.fn(),
     toggleLab: vi.fn(),
+    pauseRandomization: vi.fn(),
   };
 
   beforeEach(() => {

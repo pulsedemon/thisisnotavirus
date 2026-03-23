@@ -1,5 +1,5 @@
 /**
- * Applies standard styling to an iframe element
+ * Applies standard CSS classes to an iframe element
  */
 export function styleIframe(
   iframe: HTMLIFrameElement,
@@ -13,7 +13,7 @@ export function styleIframe(
 }
 
 /**
- * Creates and styles a new iframe element
+ * Creates a new iframe element with standard CSS classes
  */
 export function createStyledIframe(isSecondary = false): HTMLIFrameElement {
   const iframe = document.createElement('iframe');

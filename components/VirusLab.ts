@@ -27,7 +27,6 @@ export default class VirusLab {
     this.playlist = playlist;
     this.displayOnly = displayOnly;
 
-    // Set container styles for perfect alignment
     this.container.className = 'virus-lab';
 
     // Create iframes using utility functions

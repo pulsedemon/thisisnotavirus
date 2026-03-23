@@ -88,7 +88,7 @@ function togglePlayPause() {
   if (!playPauseBtn) return;
   if (playPauseBtn.innerText === 'pause') {
     playPauseBtn.innerText = 'play_arrow';
-    clearInterval(vl.loadRandomInterval);
+    vl.pauseRandomization();
     safeGtag('event', 'pause', {
       animation_name: playlist.current(),
     });

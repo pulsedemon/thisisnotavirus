@@ -40,7 +40,7 @@ export function createThumbnailButton(
       onSelect: virus => {
         const playPauseBtn = document.getElementById('play-pause');
         if (playPauseBtn) playPauseBtn.innerText = 'play_arrow';
-        clearInterval(virusLoader.loadRandomInterval);
+        virusLoader.pauseRandomization();
         playlist.loadSavedMixes();
         playlist.setCurrentVirus(virus);
         virusLoader.loadVirus(virus);

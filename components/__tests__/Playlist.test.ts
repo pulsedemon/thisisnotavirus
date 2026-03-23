@@ -177,6 +177,17 @@ describe('Playlist', () => {
       expect(mix).toBeUndefined();
     });
 
+    it('should return undefined for a non-numeric id', () => {
+      const savedMixes = [
+        { primary: 'sphere', secondary: 'cubes', mixRatio: 0.5, id: 42 },
+      ];
+      getItemSpy.mockReturnValue(JSON.stringify(savedMixes));
+
+      const playlist = new Playlist();
+      expect(playlist.getMixById('mixed:notanumber')).toBeUndefined();
+      expect(playlist.getMixById('mixed:')).toBeUndefined();
+    });
+
     it('should parse the numeric id correctly from the mixed: prefix', () => {
       const savedMixes = [
         { primary: 'sphere', secondary: 'cubes', mixRatio: 0.5, id: 7 },

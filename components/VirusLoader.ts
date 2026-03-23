@@ -13,16 +13,11 @@ import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
 export default class VirusLoader implements VirusLoaderInterface {
   iframe: HTMLIFrameElement;
   loadRandomInterval: ReturnType<typeof setInterval>;
-  loadingAnimEl: HTMLDivElement = document.getElementById(
-    'loading-anim'
-  ) as HTMLDivElement;
+  loadingAnimEl: HTMLDivElement;
   loadingAnimStartTime = 0;
   loadingAnim: { start: () => void; stop: () => void };
-  loadingRing: HTMLDivElement = document.getElementById(
-    'loading-ring'
-  ) as HTMLDivElement;
-  sourceCodeLink: HTMLAnchorElement | null =
-    document.querySelector('#source-code a');
+  loadingRing: HTMLDivElement;
+  sourceCodeLink: HTMLAnchorElement | null;
   virusLab: VirusLab | null = null;
   isNavigating = false;
   virusHasKeyboardControl = false;
@@ -42,10 +37,28 @@ export default class VirusLoader implements VirusLoaderInterface {
   constructor(playlist: Playlist) {
     this.playlist = playlist;
 
-    this.iframe = document.getElementById('container') as HTMLIFrameElement;
+    const iframe = document.getElementById('container');
+    if (!(iframe instanceof HTMLIFrameElement)) {
+      throw new Error('Required element #container not found');
+    }
+    this.iframe = iframe;
     this.iframe.classList.add('virus-iframe');
 
-    // Check for virus redirect parameter
+    const loadingAnimEl = document.getElementById('loading-anim');
+    if (!(loadingAnimEl instanceof HTMLDivElement)) {
+      throw new Error('Required element #loading-anim not found');
+    }
+    this.loadingAnimEl = loadingAnimEl;
+
+    const loadingRing = document.getElementById('loading-ring');
+    if (!(loadingRing instanceof HTMLDivElement)) {
+      throw new Error('Required element #loading-ring not found');
+    }
+    this.loadingRing = loadingRing;
+
+    this.sourceCodeLink = document.querySelector('#source-code a');
+
+    // Check for deep-link via ?virus= query parameter
     const virusParam = new URLSearchParams(window.location.search).get('virus');
 
     if (virusParam && playlist.viruses.includes(virusParam)) {
@@ -317,6 +330,18 @@ export default class VirusLoader implements VirusLoaderInterface {
     }, 300);
   }
 
+  get isLabOpen(): boolean {
+    return this.virusLab !== null;
+  }
+
+  pauseRandomization(): void {
+    clearInterval(this.loadRandomInterval);
+  }
+
+  /**
+   * (Re)starts the random virus rotation. Picks a single random interval
+   * (2-12s) that stays fixed until the next call.
+   */
   startRandomization() {
     clearInterval(this.loadRandomInterval);
     const randomTime = randomIntBetween(2, 12) * 1000;

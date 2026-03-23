@@ -1,6 +1,6 @@
 export interface VirusLoaderInterface {
-  virusLab: unknown;
-  loadRandomInterval: ReturnType<typeof setInterval>;
+  readonly isLabOpen: boolean;
   loadVirus(name: string): void;
   toggleLab(): void;
+  pauseRandomization(): void;
 }

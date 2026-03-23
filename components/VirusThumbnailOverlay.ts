@@ -302,7 +302,8 @@ export class VirusThumbnailOverlay {
         'click',
         (e: MouseEvent) => {
           e.stopPropagation();
-          const virus = htmlWrapper.getAttribute('data-virus')!;
+          const virus = htmlWrapper.getAttribute('data-virus');
+          if (!virus) return;
           this.handleVirusSelect(virus, 'thumbnail_click');
         },
         { signal }
@@ -313,7 +314,8 @@ export class VirusThumbnailOverlay {
         (e: KeyboardEvent) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            const virus = htmlWrapper.getAttribute('data-virus')!;
+            const virus = htmlWrapper.getAttribute('data-virus');
+            if (!virus) return;
             this.handleVirusSelect(virus, 'keyboard_select');
           }
         },
@@ -345,7 +347,8 @@ export class VirusThumbnailOverlay {
         'touchend',
         () => {
           if (!this.isScrolling) {
-            const virus = htmlWrapper.getAttribute('data-virus')!;
+            const virus = htmlWrapper.getAttribute('data-virus');
+            if (!virus) return;
             this.handleVirusSelect(virus, 'touch_select');
           }
         },
@@ -357,11 +360,13 @@ export class VirusThumbnailOverlay {
   private filterItems(searchTerm: string): void {
     const term = searchTerm.toLowerCase().trim();
     this.filteredItems = [];
+    this.currentFocusIndex = -1;
 
     const allItems = this.overlay.querySelectorAll('.virus-thumbnail-item');
     allItems.forEach(item => {
       const htmlItem = item as HTMLElement;
-      const virus = htmlItem.getAttribute('data-virus')!;
+      const virus = htmlItem.getAttribute('data-virus');
+      if (!virus) return;
       let matches = false;
 
       if (virus.startsWith('mixed:') || virus.startsWith('premix:')) {
@@ -405,7 +410,7 @@ export class VirusThumbnailOverlay {
     this.destroy();
 
     // Close lab if it's open
-    if (this.virusLoader && this.virusLoader.virusLab) {
+    if (this.virusLoader && this.virusLoader.isLabOpen) {
       this.virusLoader.toggleLab();
     }
 
@@ -461,7 +466,8 @@ export class VirusThumbnailOverlay {
           const virus =
             this.filteredItems[this.currentFocusIndex].getAttribute(
               'data-virus'
-            )!;
+            );
+          if (!virus) return;
           this.handleVirusSelect(virus, 'keyboard_enter');
         }
         break;

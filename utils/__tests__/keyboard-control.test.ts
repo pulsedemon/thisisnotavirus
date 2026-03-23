@@ -130,6 +130,62 @@ describe('Keyboard Control', () => {
       );
     });
 
+    it('should ignore messages from a different origin', () => {
+      const cleanup = setupKeyboardControl();
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          type: 'keyboardEvent',
+          eventType: 'keydown',
+          key: 'a',
+          code: 'KeyA',
+          shiftKey: false,
+          ctrlKey: false,
+          altKey: false,
+          metaKey: false,
+        },
+        origin: 'https://evil.com',
+      });
+      window.dispatchEvent(messageEvent);
+
+      const keyboardDispatches = dispatchSpy.mock.calls.filter(
+        call => call[0] instanceof KeyboardEvent
+      );
+      expect(keyboardDispatches).toHaveLength(0);
+
+      dispatchSpy.mockRestore();
+      cleanup();
+    });
+
+    it('should dispatch keyboard events from same origin', () => {
+      const cleanup = setupKeyboardControl();
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          type: 'keyboardEvent',
+          eventType: 'keydown',
+          key: 'a',
+          code: 'KeyA',
+          shiftKey: false,
+          ctrlKey: false,
+          altKey: false,
+          metaKey: false,
+        },
+        origin: window.location.origin,
+      });
+      window.dispatchEvent(messageEvent);
+
+      const keyboardDispatches = dispatchSpy.mock.calls.filter(
+        call => call[0] instanceof KeyboardEvent
+      );
+      expect(keyboardDispatches).toHaveLength(1);
+
+      dispatchSpy.mockRestore();
+      cleanup();
+    });
+
     it('should add and remove message event listener', () => {
       const addSpy = vi.spyOn(window, 'addEventListener');
       const removeSpy = vi.spyOn(window, 'removeEventListener');
