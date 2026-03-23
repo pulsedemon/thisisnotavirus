@@ -27,20 +27,7 @@ export default class VirusLab {
     this.playlist = playlist;
     this.displayOnly = displayOnly;
 
-    // Set container styles for perfect alignment
     this.container.className = 'virus-lab';
-    this.container.style.position = 'absolute';
-    this.container.style.top = '0';
-    this.container.style.left = '0';
-    this.container.style.right = '0';
-    this.container.style.bottom = '0';
-    this.container.style.width = '100%';
-    this.container.style.height = '100%';
-    this.container.style.margin = '0';
-    this.container.style.padding = '0';
-    this.container.style.boxSizing = 'border-box';
-    this.container.style.overflow = 'visible';
-    this.container.style.pointerEvents = 'auto';
 
     // Create iframes using utility functions
     this.primaryIframe = createStyledIframe();

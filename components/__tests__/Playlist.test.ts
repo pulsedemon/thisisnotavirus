@@ -86,17 +86,37 @@ describe('Playlist', () => {
       expect(next).toBe(playlist.playlist[1]);
     });
 
-    it('should wrap around to the beginning when at the end', () => {
+    it('should replenish the playlist when reaching the end', () => {
       const playlist = new Playlist();
-      playlist.currentIndex = playlist.playlist.length - 1;
+      const batchSize = playlist.playlist.length;
+      playlist.currentIndex = batchSize - 1;
       const next = playlist.next();
-      expect(playlist.currentIndex).toBe(0);
-      expect(next).toBe(playlist.playlist[0]);
+      expect(playlist.playlist.length).toBeGreaterThanOrEqual(batchSize);
+      expect(playlist.currentIndex).toBeLessThan(playlist.playlist.length);
+      expect(typeof next).toBe('string');
+    });
+
+    it('should trim played items to prevent unbounded growth', () => {
+      const playlist = new Playlist();
+      const batchSize = playlist.playlist.length;
+      // Play through 3 full cycles
+      for (let i = 0; i < batchSize * 3; i++) {
+        playlist.next();
+      }
+      // Playlist should stay bounded, not grow to 3x+ batch size
+      expect(playlist.playlist.length).toBeLessThanOrEqual(batchSize * 2);
     });
 
     it('should return a string', () => {
       const playlist = new Playlist();
       expect(typeof playlist.next()).toBe('string');
+    });
+
+    it('should reset currentIndex when generatePlaylist is called', () => {
+      const playlist = new Playlist();
+      playlist.currentIndex = 5;
+      playlist.generatePlaylist();
+      expect(playlist.currentIndex).toBe(0);
     });
   });
 
@@ -167,6 +187,17 @@ describe('Playlist', () => {
       const playlist = new Playlist();
       const mix = playlist.getMixById('mixed:999');
       expect(mix).toBeUndefined();
+    });
+
+    it('should return undefined for a non-numeric id', () => {
+      const savedMixes = [
+        { primary: 'sphere', secondary: 'cubes', mixRatio: 0.5, id: 42 },
+      ];
+      getItemSpy.mockReturnValue(JSON.stringify(savedMixes));
+
+      const playlist = new Playlist();
+      expect(playlist.getMixById('mixed:notanumber')).toBeUndefined();
+      expect(playlist.getMixById('mixed:')).toBeUndefined();
     });
 
     it('should parse the numeric id correctly from the mixed: prefix', () => {

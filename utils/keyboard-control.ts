@@ -1,6 +1,27 @@
+export interface KeyboardControlMessage {
+  type: string;
+  enabled: boolean;
+}
+
+export function isKeyboardControlMessage(
+  data: unknown
+): data is KeyboardControlMessage {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'type' in data &&
+    'enabled' in data &&
+    data.type === 'requestKeyboardControl' &&
+    typeof data.enabled === 'boolean'
+  );
+}
+
 export function requestKeyboardControl(enabled: boolean): void {
   if (window.parent !== window) {
-    window.parent.postMessage({ type: 'requestKeyboardControl', enabled }, '*');
+    window.parent.postMessage(
+      { type: 'requestKeyboardControl', enabled },
+      window.location.origin
+    );
   }
 }
 
@@ -34,6 +55,8 @@ export function setupKeyboardControl(): () => void {
   requestKeyboardControl(true);
 
   const messageHandler = (event: MessageEvent) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.source !== window.parent) return;
     if (isKeyboardEventMessage(event.data)) {
       const { eventType, key, code, shiftKey, ctrlKey, altKey, metaKey } =
         event.data;
