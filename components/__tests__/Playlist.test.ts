@@ -86,17 +86,25 @@ describe('Playlist', () => {
       expect(next).toBe(playlist.playlist[1]);
     });
 
-    it('should wrap around to the beginning when at the end', () => {
+    it('should extend the playlist when reaching the end', () => {
       const playlist = new Playlist();
-      playlist.currentIndex = playlist.playlist.length - 1;
+      const initialLength = playlist.playlist.length;
+      playlist.currentIndex = initialLength - 1;
       const next = playlist.next();
-      expect(playlist.currentIndex).toBe(0);
-      expect(next).toBe(playlist.playlist[0]);
+      expect(playlist.playlist.length).toBeGreaterThan(initialLength);
+      expect(typeof next).toBe('string');
     });
 
     it('should return a string', () => {
       const playlist = new Playlist();
       expect(typeof playlist.next()).toBe('string');
+    });
+
+    it('should reset currentIndex when generatePlaylist is called', () => {
+      const playlist = new Playlist();
+      playlist.currentIndex = 5;
+      playlist.generatePlaylist();
+      expect(playlist.currentIndex).toBe(0);
     });
   });
 

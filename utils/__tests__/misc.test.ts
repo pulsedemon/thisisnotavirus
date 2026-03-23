@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   isMobile,
+  _resetIsMobileCache,
   shuffle,
   stripTags,
   formatVirusName,
@@ -27,6 +28,7 @@ describe('Misc Utilities', () => {
     let originalInnerWidth: number;
 
     beforeEach(() => {
+      _resetIsMobileCache();
       originalNavigator = window.navigator;
       originalInnerWidth = window.innerWidth;
     });
@@ -40,13 +42,60 @@ describe('Misc Utilities', () => {
       vi.restoreAllMocks();
     });
 
-    it('should return true when screen width is small', () => {
+    it('should return true when screen is small and has touch', () => {
       Object.defineProperty(window, 'innerWidth', {
         value: 375,
         writable: true,
         configurable: true,
       });
+      (window as unknown as Record<string, unknown>).ontouchstart = null;
       expect(isMobile()).toBe(true);
+    });
+
+    it('should return false when screen is small but no touch', () => {
+      Object.defineProperty(window, 'innerWidth', {
+        value: 375,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'navigator', {
+        value: {
+          ...originalNavigator,
+          userAgent:
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          maxTouchPoints: 0,
+        },
+        writable: true,
+        configurable: true,
+      });
+      const hadOntouchstart = 'ontouchstart' in window;
+      if (hadOntouchstart) {
+        delete (window as unknown as Record<string, unknown>).ontouchstart;
+      }
+      expect(isMobile()).toBe(false);
+      if (hadOntouchstart) {
+        (window as unknown as Record<string, unknown>).ontouchstart = null;
+      }
+    });
+
+    it('should return false for touchscreen laptop with large screen', () => {
+      Object.defineProperty(window, 'innerWidth', {
+        value: 1920,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'navigator', {
+        value: {
+          ...originalNavigator,
+          userAgent:
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          maxTouchPoints: 5,
+        },
+        writable: true,
+        configurable: true,
+      });
+      (window as unknown as Record<string, unknown>).ontouchstart = null;
+      expect(isMobile()).toBe(false);
     });
 
     it('should return true when userAgent contains mobile identifier', () => {

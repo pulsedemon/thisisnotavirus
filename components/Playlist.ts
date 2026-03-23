@@ -43,17 +43,14 @@ export default class Playlist {
     this.generatePlaylist();
   }
 
-  generatePlaylist() {
-    // Create a list of all available items (viruses + mixes)
+  private getAllItems(): string[] {
     const allItems: string[] = [...this.viruses];
 
-    // Add default mixes to the available items
     const premixIds = this.premixes
       .map(mix => (mix.name ? `premix:${mix.name}` : null))
       .filter((id): id is string => id !== null);
     allItems.push(...premixIds);
 
-    // Add saved mixes to the available items
     if (this.savedMixes.length > 0) {
       const mixIds = this.savedMixes
         .map(mix => {
@@ -67,17 +64,23 @@ export default class Playlist {
       allItems.push(...mixIds);
     }
 
-    // Generate playlist by shuffling all items
-    this.playlist = [];
-    for (let i = 0; i < 10; i++) {
-      const shuffledItems = shuffle([...allItems]);
-      const lastItemInPlaylist = this.playlist[this.playlist.length - 1];
-      if (lastItemInPlaylist === shuffledItems[0]) {
-        const firstItem = shuffledItems.shift();
-        shuffledItems.push(firstItem!);
-      }
-      this.playlist.push(...shuffledItems);
+    return allItems;
+  }
+
+  private appendBatch() {
+    const shuffledItems = shuffle([...this.getAllItems()]);
+    const lastItemInPlaylist = this.playlist[this.playlist.length - 1];
+    if (lastItemInPlaylist === shuffledItems[0]) {
+      const firstItem = shuffledItems.shift();
+      shuffledItems.push(firstItem!);
     }
+    this.playlist.push(...shuffledItems);
+  }
+
+  generatePlaylist() {
+    this.playlist = [];
+    this.currentIndex = 0;
+    this.appendBatch();
   }
 
   current(): string {
@@ -107,11 +110,9 @@ export default class Playlist {
     if (this.playlist.length === 0) {
       this.generatePlaylist();
     }
-    const nextIndex = this.currentIndex + 1;
-    if (nextIndex >= this.playlist.length) {
-      this.currentIndex = 0;
-    } else {
-      this.currentIndex = nextIndex;
+    this.currentIndex++;
+    if (this.currentIndex >= this.playlist.length) {
+      this.appendBatch();
     }
     return this.current();
   }
