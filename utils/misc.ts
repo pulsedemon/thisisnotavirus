@@ -32,6 +32,7 @@ export function isMobile(): boolean {
 export function _resetIsMobileCache(): void {
   _isMobileCache = null;
 }
+
 export function preloadImage(url: string) {
   const img = new Image();
   img.src = url;

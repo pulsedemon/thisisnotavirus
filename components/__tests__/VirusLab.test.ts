@@ -132,8 +132,7 @@ describe('VirusLab', () => {
     it('should save a new mix to localStorage', () => {
       const lab = new VirusLab(container, playlist, true);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).saveMix();
+      (priv(lab).saveMix as () => void)();
 
       expect(saveMixesMock).toHaveBeenCalledWith(
         expect.arrayContaining([
@@ -160,8 +159,7 @@ describe('VirusLab', () => {
       // saveMix calls loadSavedMixesFromStorage again to check for duplicates
       loadSavedMixesMock.mockReturnValue([existingMix]);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).saveMix();
+      (priv(lab).saveMix as () => void)();
 
       // Should NOT call saveMixes because it's a duplicate
       expect(saveMixesMock).not.toHaveBeenCalled();
@@ -179,17 +177,25 @@ describe('VirusLab', () => {
 
       const lab = new VirusLab(container, playlist, true);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).saveMix();
+      (priv(lab).saveMix as () => void)();
 
       expect(saveMixesMock).toHaveBeenCalled();
-
-      // Should show storage error message
       const errorMessage = container.querySelector('.save-message.error');
       expect(errorMessage).not.toBeNull();
       expect(errorMessage!.textContent).toBe(
         'Failed to save mix. Storage may be full.'
       );
+    });
+
+    it('should auto-remove the temporary message after 2 seconds', () => {
+      saveMixesMock.mockReturnValue(false);
+      const lab = new VirusLab(container, playlist, true);
+
+      (priv(lab).saveMix as () => void)();
+
+      expect(container.querySelector('.save-message')).not.toBeNull();
+      vi.advanceTimersByTime(2000);
+      expect(container.querySelector('.save-message')).toBeNull();
     });
   });
 
@@ -305,13 +311,28 @@ describe('VirusLab', () => {
 
       const lab = new VirusLab(container, playlist, true);
 
-      // Delete mix with id 1
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).deleteMix(1);
+      (priv(lab).deleteMix as (id: number) => void)(1);
 
       expect(saveMixesMock).toHaveBeenCalledWith([
         { primary: 'doors', secondary: 'emoji', mixRatio: 0.7, id: 2 },
       ]);
+    });
+
+    it('should show error message when storage fails on delete', () => {
+      const savedMixes = [
+        { primary: 'sphere', secondary: 'cubes', mixRatio: 0.5, id: 1 },
+      ];
+      loadSavedMixesMock.mockReturnValue(savedMixes);
+
+      const lab = new VirusLab(container, playlist, true);
+      saveMixesMock.mockReturnValue(false);
+
+      (priv(lab).deleteMix as (id: number) => void)(1);
+
+      expect(saveMixesMock).toHaveBeenCalled();
+      const errorMessage = container.querySelector('.save-message.error');
+      expect(errorMessage).not.toBeNull();
+      expect(errorMessage!.textContent).toBe('Failed to delete mix.');
     });
   });
 

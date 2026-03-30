@@ -32,16 +32,13 @@ export default class VirusLab {
 
     this.container.className = 'virus-lab';
 
-    // Create iframes using utility functions
     this.primaryIframe = createStyledIframe();
     this.secondaryIframe = createStyledIframe(true);
     this.secondaryIframe.style.opacity = '0.5'; // Default opacity
 
-    // Ensure iframes don't block interactions
     this.primaryIframe.style.pointerEvents = 'none';
     this.secondaryIframe.style.pointerEvents = 'none';
 
-    // Add iframes to container
     this.container.appendChild(this.primaryIframe);
     this.container.appendChild(this.secondaryIframe);
 
@@ -51,7 +48,6 @@ export default class VirusLab {
       mixRatio: 0.5,
     };
 
-    // Load saved mixes
     this.loadSavedMixes();
 
     if (!this.displayOnly) {
@@ -61,27 +57,16 @@ export default class VirusLab {
   }
 
   cleanup() {
-    // Remove event listeners
     this.eventListeners.forEach(({ element, type, handler }) => {
       element.removeEventListener(type, handler);
     });
     this.eventListeners = [];
 
-    // Remove iframes
-    if (this.primaryIframe.parentNode) {
-      this.primaryIframe.parentNode.removeChild(this.primaryIframe);
-    }
-    if (this.secondaryIframe.parentNode) {
-      this.secondaryIframe.parentNode.removeChild(this.secondaryIframe);
-    }
-
-    // Clear cached refs
     this.primarySelect = null;
     this.secondarySelect = null;
     this.mixRatioInput = null;
 
-    // Clear container
-    this.container.innerHTML = '';
+    this.container.textContent = '';
   }
 
   private loadSavedMixes() {
@@ -108,16 +93,24 @@ export default class VirusLab {
     this.mixRatioInput = document.getElementById(
       'mix-ratio'
     ) as HTMLInputElement | null;
+
+    if (!this.primarySelect || !this.secondarySelect || !this.mixRatioInput) {
+      console.error(
+        'VirusLab: control elements not found after template render'
+      );
+      return;
+    }
+
     this.setupEventListeners();
     this.populateVirusSelects();
     this.updateSavedMixesList();
   }
 
   private setupEventListeners() {
-    const { primarySelect, secondarySelect, mixRatioInput } = this;
+    const primarySelect = this.primarySelect!;
+    const secondarySelect = this.secondarySelect!;
+    const mixRatioInput = this.mixRatioInput!;
     const saveButton = document.getElementById('save-mix');
-
-    if (!primarySelect || !secondarySelect || !mixRatioInput) return;
 
     const primaryHandler = () => {
       this.currentMix.primary = primarySelect.value;
@@ -154,9 +147,8 @@ export default class VirusLab {
   }
 
   private populateVirusSelects() {
-    const { primarySelect, secondarySelect } = this;
-
-    if (!primarySelect || !secondarySelect) return;
+    const primarySelect = this.primarySelect!;
+    const secondarySelect = this.secondarySelect!;
 
     this.playlist.viruses.forEach(virus => {
       const option = document.createElement('option');
