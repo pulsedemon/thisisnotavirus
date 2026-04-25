@@ -53,6 +53,38 @@ body {
   overflow: hidden;
 }
 
+#experience-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  z-index: var(--z-base);
+  pointer-events: none;
+  background: #000;
+}
+
+#virus-dom-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  overflow: hidden;
+  // Modules opt their own children into pointer-events as needed
+  pointer-events: none;
+
+  iframe.iframe-module {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    pointer-events: auto;
+    background: #000;
+  }
+}
+
 .mixed-virus-container {
   position: absolute;
   top: 0;

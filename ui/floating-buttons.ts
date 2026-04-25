@@ -43,7 +43,7 @@ export function createThumbnailButton(
         virusLoader.pauseRandomization();
         playlist.loadSavedMixes();
         playlist.setCurrentVirus(virus);
-        virusLoader.loadVirus(virus);
+        void virusLoader.loadVirus(virus);
       },
       onClose: () => {
         // No-op for now

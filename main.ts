@@ -3,10 +3,9 @@ import * as Sentry from '@sentry/browser';
 import { virus } from './ascii';
 import Playlist from './components/Playlist';
 import TVStaticLoading from './components/TVStaticLoading';
-import VirusLoader from './components/VirusLoader';
+import ExperienceController from './engine/ExperienceController';
 import './sass/main.scss';
 import { safeGtag } from './utils/gtag';
-import { isKeyboardControlMessage } from './utils/keyboard-control';
 import { initFullscreen } from './ui/fullscreen';
 import { toggleInfo, hideInfo, teleportMenu, shuffleTitle } from './ui/menu';
 
@@ -17,7 +16,7 @@ declare global {
   }
 }
 
-// Check if we're in production mode using Vite's import.meta.env
+// Production-only Sentry boot.
 if (import.meta.env.PROD) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN as string,
@@ -29,10 +28,7 @@ if (import.meta.env.PROD) {
     profilesSampleRate: 1.0,
   });
 
-  // Report icon font failures to Sentry. The inline script in index.html
-  // sets __iconFontFailed and dispatches 'icon-font-failed' on failure.
-  // Hybrid check: the flag handles failures before this listener registers;
-  // the event handles failures that occur later (e.g. 3s timeout).
+  // Report icon font failures (set by inline script in index.html).
   if (window.__iconFontFailed) {
     Sentry.captureMessage(
       'Material Symbols icon font failed to load',
@@ -60,36 +56,14 @@ console.log(
 );
 
 const playlist = new Playlist();
-const vl = new VirusLoader(playlist);
-
-// Resolve the active virus iframe's window (main container or lab mix)
-function getActiveIframeWindow(): WindowProxy | null {
-  const mixedContainer = document.querySelector('.mixed-virus-container');
-  const activeIframe = mixedContainer
-    ? mixedContainer.querySelector('iframe')
-    : (document.getElementById('container') as HTMLIFrameElement | null);
-  return activeIframe?.contentWindow ?? null;
-}
-
-// Keyboard control messages from iframe viruses
-window.addEventListener('message', event => {
-  if (event.origin !== window.location.origin) return;
-  if (event.source !== getActiveIframeWindow()) return;
-  if (isKeyboardControlMessage(event.data)) {
-    vl.virusHasKeyboardControl = event.data.enabled;
-  }
-});
-
-window.addEventListener('orientationchange', function () {
-  vl.skipNext();
-});
+const experience = new ExperienceController(playlist);
 
 // Menu button handlers
 const skipPrevBtn = document.getElementById('skip-previous');
 if (skipPrevBtn) {
   skipPrevBtn.onclick = () => {
     safeGtag('event', 'skip_previous');
-    vl.skipPrev();
+    experience.skipPrev();
   };
 }
 
@@ -98,14 +72,14 @@ function togglePlayPause() {
   if (!playPauseBtn) return;
   if (playPauseBtn.innerText === 'pause') {
     playPauseBtn.innerText = 'play_arrow';
-    vl.pauseRandomization();
+    experience.pauseRandomization();
     safeGtag('event', 'pause', {
       animation_name: playlist.current(),
     });
   } else {
     playPauseBtn.innerText = 'pause';
     safeGtag('event', 'play');
-    vl.skipNext();
+    experience.skipNext();
   }
 }
 
@@ -125,7 +99,7 @@ if (skipNextBtn)
     safeGtag('event', 'skip-next', {
       animation_name: playlist.current(),
     });
-    vl.skipNext();
+    experience.skipNext();
     resumePlayback();
   };
 
@@ -135,7 +109,7 @@ if (reloadBtn)
     safeGtag('event', 'reload', {
       animation_name: playlist.current(),
     });
-    vl.reloadCurrent();
+    experience.reloadCurrent();
   };
 
 // Enable keyboard activation for interactive spans (Enter/Space triggers click)
@@ -156,31 +130,9 @@ initFullscreen();
 const infoBtnEl = document.getElementById('info-btn');
 if (infoBtnEl) infoBtnEl.onclick = () => toggleInfo();
 
-// Keyboard event forwarding to iframe
-function forwardKeyboardEventToIframe(event: KeyboardEvent, eventType: string) {
-  if (!vl.virusHasKeyboardControl) return;
-
-  const activeWindow = getActiveIframeWindow();
-  if (activeWindow) {
-    activeWindow.postMessage(
-      {
-        type: 'keyboardEvent',
-        eventType,
-        key: event.key,
-        code: event.code,
-        shiftKey: event.shiftKey,
-        ctrlKey: event.ctrlKey,
-        altKey: event.altKey,
-        metaKey: event.metaKey,
-      },
-      window.location.origin
-    );
-  }
-}
-
 document.onkeydown = e => {
-  if (vl.virusHasKeyboardControl) {
-    forwardKeyboardEventToIframe(e, 'keydown');
+  if (experience.virusHasKeyboardControl) {
+    experience.routeKeyboardEvent(e, 'keydown');
   }
 };
 
@@ -193,25 +145,25 @@ document.onkeyup = e => {
     return;
   }
 
-  if (vl.virusHasKeyboardControl) {
-    forwardKeyboardEventToIframe(e, 'keyup');
+  if (experience.virusHasKeyboardControl) {
+    experience.routeKeyboardEvent(e, 'keyup');
     return;
   }
 
   if (e.key === 'ArrowRight') {
     safeGtag('event', 'skip_next_keyboard');
-    vl.skipNext();
+    experience.skipNext();
     resumePlayback();
   } else if (e.key === 'ArrowLeft') {
     safeGtag('event', 'skip_prev_keyboard');
-    vl.skipPrev();
+    experience.skipPrev();
   } else if (e.key === ' ' || e.key === 'Spacebar') {
     togglePlayPause();
   } else if (e.key === 'r' || e.key === 'R') {
     safeGtag('event', 'reload_keyboard', {
       animation_name: playlist.current(),
     });
-    vl.reloadCurrent();
+    experience.reloadCurrent();
   }
 };
 

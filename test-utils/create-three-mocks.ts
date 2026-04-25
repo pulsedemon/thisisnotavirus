@@ -22,6 +22,9 @@ export function createThreeMocks() {
     WebGLRenderer: vi.fn(() => ({
       setSize: vi.fn(),
       setPixelRatio: vi.fn(),
+      setClearColor: vi.fn(),
+      setRenderTarget: vi.fn(),
+      clear: vi.fn(),
       render: vi.fn(),
       shadowMap: { enabled: false, type: 0 },
       toneMapping: 0,
