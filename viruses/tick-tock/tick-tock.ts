@@ -30,6 +30,14 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+function fitGrid(target: number, w: number, h: number) {
+  const cols = Math.max(1, Math.round(w / target));
+  const cell = w / cols;
+  const rows = Math.ceil(h / cell) + 1;
+  const yOffset = (h - rows * cell) / 2;
+  return { cell, cols, rows, yOffset };
+}
+
 function drawClock(cx: number, cy: number, cell: number, angle: number) {
   const radius = cell * 0.42;
 
@@ -89,9 +97,8 @@ function frame(now: number) {
     stageStart += elapsedStages * STAGE_MS;
   }
 
-  const cell = sizes[stageIdx];
-  const cols = Math.ceil(cssW / cell);
-  const rows = Math.ceil(cssH / cell);
+  const target = sizes[stageIdx];
+  const { cell, cols, rows, yOffset } = fitGrid(target, cssW, cssH);
   const angle =
     ((now % TICK_PERIOD_MS) / TICK_PERIOD_MS) * Math.PI * 2 - Math.PI / 2;
 
@@ -102,7 +109,7 @@ function frame(now: number) {
 
   const half = cell / 2;
   for (let r = 0; r < rows; r++) {
-    const cy = r * cell + half;
+    const cy = r * cell + half + yOffset;
     for (let c = 0; c < cols; c++) {
       drawClock(c * cell + half, cy, cell, angle);
     }
@@ -112,6 +119,7 @@ function frame(now: number) {
 }
 
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', resize);
 window.addEventListener('pagehide', () => {
   cancelAnimationFrame(rafHandle);
 });
