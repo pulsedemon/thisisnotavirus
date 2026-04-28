@@ -25,8 +25,8 @@ function resize() {
   cssH = container.clientHeight;
   canvas.style.width = `${String(cssW)}px`;
   canvas.style.height = `${String(cssH)}px`;
-  canvas.width = Math.floor(cssW * dpr);
-  canvas.height = Math.floor(cssH * dpr);
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
@@ -77,13 +77,16 @@ function drawClock(cx: number, cy: number, cell: number, angle: number) {
   ctx.stroke();
 
   const dot = cell >= 40 ? 2 : 1;
-  ctx.fillRect(cx - dot / 2, cy - dot / 2, dot, dot);
+  const dotX = Math.round(cx - dot / 2);
+  const dotY = Math.round(cy - dot / 2);
+  ctx.fillRect(dotX, dotY, dot, dot);
 }
 
 function frame(now: number) {
-  if (now - stageStart >= STAGE_MS) {
-    stageIdx = (stageIdx + 1) % sizes.length;
-    stageStart = now;
+  const elapsedStages = Math.floor((now - stageStart) / STAGE_MS);
+  if (elapsedStages > 0) {
+    stageIdx = (stageIdx + elapsedStages) % sizes.length;
+    stageStart += elapsedStages * STAGE_MS;
   }
 
   const cell = sizes[stageIdx];
