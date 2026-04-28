@@ -459,6 +459,31 @@ describe('VirusLoader', () => {
       );
       expect(safetyCalls.length).toBe(0);
     });
+
+    it('should clear the safety timeout when the iframe errors first', async () => {
+      const Sentry = await import('@sentry/browser');
+      const captureMessageFn = vi.mocked(Sentry.captureMessage);
+
+      const playlist = createPlaylist();
+      const vl = createVirusLoader(playlist);
+      vl.pauseRandomization();
+
+      captureMessageFn.mockClear();
+
+      const iframe = document.getElementById('container') as HTMLIFrameElement;
+      iframe.dispatchEvent(new Event('error'));
+
+      vi.advanceTimersByTime(5000);
+
+      const safetyCalls = captureMessageFn.mock.calls.filter(call =>
+        String(call[0]).includes('Safety timeout')
+      );
+      expect(safetyCalls.length).toBe(0);
+      expect(captureMessageFn).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load virus iframe'),
+        'error'
+      );
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────
