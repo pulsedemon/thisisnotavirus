@@ -106,10 +106,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       this._pendingRevealTimeout = null;
     }
 
-    if (this._safetyTimeout !== null) {
-      clearTimeout(this._safetyTimeout);
-      this._safetyTimeout = null;
-    }
+    this._clearSafetyTimeout();
 
     this.virusHasKeyboardControl = false;
 
@@ -212,6 +209,13 @@ export default class VirusLoader implements VirusLoaderInterface {
     }
   }
 
+  private _clearSafetyTimeout(): void {
+    if (this._safetyTimeout !== null) {
+      clearTimeout(this._safetyTimeout);
+      this._safetyTimeout = null;
+    }
+  }
+
   private _attachIframeListeners(
     frame: HTMLIFrameElement,
     generation: number,
@@ -221,10 +225,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       'load',
       () => {
         if (generation !== this._loadGeneration) return;
-        if (this._safetyTimeout !== null) {
-          clearTimeout(this._safetyTimeout);
-          this._safetyTimeout = null;
-        }
+        this._clearSafetyTimeout();
         this._delayedIframeLoaded(generation);
       },
       { once: true }
@@ -236,10 +237,7 @@ export default class VirusLoader implements VirusLoaderInterface {
         const errorMsg = `Failed to load ${errorLabel}`;
         console.error(errorMsg, event);
         Sentry.captureMessage(errorMsg, 'error');
-        if (this._safetyTimeout !== null) {
-          clearTimeout(this._safetyTimeout);
-          this._safetyTimeout = null;
-        }
+        this._clearSafetyTimeout();
         this._delayedIframeLoaded(generation);
       },
       { once: true }

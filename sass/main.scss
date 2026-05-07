@@ -4,11 +4,9 @@
 
 :root {
   --color-primary: #00ffff;
-  --color-primary-dark: #00cccc;
   --color-accent: #ff00ff;
   --color-bg: #000;
   --color-surface: #2a2a2a;
-  --z-base: 0;
   --z-overlay: 100;
   --z-floating-btn: 2000;
   --z-modal: 9999;
@@ -252,10 +250,6 @@ body {
   &.github-icon {
     background-image: url('/images/github-mark-white.svg');
   }
-}
-
-.grecaptcha-badge {
-  display: none !important;
 }
 
 .lds-ring {
