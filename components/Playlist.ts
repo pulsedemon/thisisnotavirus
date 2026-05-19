@@ -97,12 +97,11 @@ export default class Playlist {
     }
     if (typeof this.playlist[this.currentIndex] === 'undefined') {
       console.warn(
-        `Playlist.current(): currentIndex ${this.currentIndex} out of bounds (length: ${this.playlist.length}), resetting to 0`
+        `Playlist.current(): currentIndex ${this.currentIndex} out of bounds (length: ${this.playlist.length}), regenerating`
       );
-      this.currentIndex = 0;
+      this.generatePlaylist();
     }
-    const current = this.playlist[this.currentIndex];
-    return current;
+    return this.playlist[this.currentIndex];
   }
 
   prev(): string {
@@ -148,7 +147,6 @@ export default class Playlist {
    * This allows the mix to be properly referenced by playlist.current()
    */
   setCurrentVirus(virusId: string): void {
-    // Find the index of this virus in the playlist
     const index = this.playlist.indexOf(virusId);
 
     if (index !== -1) {
