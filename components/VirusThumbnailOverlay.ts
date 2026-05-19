@@ -90,6 +90,7 @@ export class VirusThumbnailOverlay {
   private currentFocusIndex = -1;
   private abortController: AbortController;
   private observer: MutationObserver;
+  private iframeObserver: IntersectionObserver | null = null;
   private onSelect: (virus: string) => void;
   private onClose: () => void;
   private virusLoader?: VirusLoaderInterface;
@@ -165,6 +166,11 @@ export class VirusThumbnailOverlay {
     // Add overlay to DOM
     document.body.appendChild(this.overlay);
 
+    // Lazy-load iframe srcs only when their thumbnail intersects the
+    // viewport. Without this, every virus iframe (three.js/rapier)
+    // boots simultaneously on overlay open.
+    this.setupIframeLazyLoad();
+
     // Prevent body scroll when overlay is open
     document.body.style.overflow = 'hidden';
 
@@ -219,7 +225,7 @@ export class VirusThumbnailOverlay {
               <div class="virus-thumbnail-item" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} virus">
                 <div class="virus-thumbnail-preview">
                   <iframe
-                    src="/viruses/${virus.value}/"
+                    data-src="/viruses/${virus.value}/"
                     title="${virus.label} preview"
                     frameborder="0"
                     loading="lazy"
@@ -504,11 +510,51 @@ export class VirusThumbnailOverlay {
     this.currentFocusIndex = index;
   }
 
+  private setupIframeLazyLoad(): void {
+    const iframes = Array.from(
+      this.overlay.querySelectorAll<HTMLIFrameElement>('iframe[data-src]')
+    );
+    if (iframes.length === 0) return;
+
+    // IntersectionObserver isn't available in every test environment.
+    // Fall back to immediate src assignment so jsdom-only tests still work.
+    if (typeof IntersectionObserver === 'undefined') {
+      iframes.forEach(iframe => {
+        const src = iframe.getAttribute('data-src');
+        if (src) {
+          iframe.src = src;
+          iframe.removeAttribute('data-src');
+        }
+      });
+      return;
+    }
+
+    this.iframeObserver = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const iframe = entry.target as HTMLIFrameElement;
+          const src = iframe.getAttribute('data-src');
+          if (src) {
+            iframe.src = src;
+            iframe.removeAttribute('data-src');
+          }
+          this.iframeObserver?.unobserve(iframe);
+        });
+      },
+      { root: this.overlay, rootMargin: '100px' }
+    );
+
+    iframes.forEach(iframe => this.iframeObserver?.observe(iframe));
+  }
+
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
     this.abortController.abort();
     this.observer.disconnect();
+    this.iframeObserver?.disconnect();
+    this.iframeObserver = null;
     document.body.style.overflow = '';
     this.overlay.remove();
   }

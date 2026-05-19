@@ -142,6 +142,64 @@ describe('VirusThumbnailOverlay', () => {
       expect(mixedItem).toBeDefined();
     });
 
+    it('lazy-loads thumbnail iframes via IntersectionObserver', () => {
+      interface IOEntry {
+        isIntersecting: boolean;
+        target: Element;
+      }
+      type IOCallback = (entries: IOEntry[]) => void;
+      const observed: Element[] = [];
+      let lastCallback: IOCallback | null = null;
+      class FakeIO {
+        constructor(cb: IOCallback) {
+          lastCallback = cb;
+        }
+        observe(el: Element) {
+          observed.push(el);
+        }
+        unobserve() {
+          /* no-op */
+        }
+        disconnect() {
+          /* no-op */
+        }
+      }
+      const originalIO = (
+        window as unknown as { IntersectionObserver?: unknown }
+      ).IntersectionObserver;
+      (
+        window as unknown as { IntersectionObserver: unknown }
+      ).IntersectionObserver = FakeIO;
+
+      createOverlay();
+      const iframes = Array.from(
+        getOverlayEl()?.querySelectorAll('iframe') ?? []
+      );
+      // Before intersection, src is unset; data-src holds the URL
+      iframes.forEach(iframe => {
+        expect(iframe.getAttribute('src')).toBeNull();
+        expect(iframe.getAttribute('data-src')).toContain('/viruses/');
+      });
+      expect(observed.length).toBe(iframes.length);
+
+      // Simulate intersection
+      lastCallback!(iframes.map(target => ({ isIntersecting: true, target })));
+      iframes.forEach(iframe => {
+        expect(iframe.getAttribute('src')).toContain('/viruses/');
+        expect(iframe.getAttribute('data-src')).toBeNull();
+      });
+
+      // Restore
+      if (originalIO === undefined) {
+        delete (window as unknown as { IntersectionObserver?: unknown })
+          .IntersectionObserver;
+      } else {
+        (
+          window as unknown as { IntersectionObserver: unknown }
+        ).IntersectionObserver = originalIO;
+      }
+    });
+
     it('sets document.body.style.overflow to hidden', () => {
       createOverlay();
       expect(document.body.style.overflow).toBe('hidden');
