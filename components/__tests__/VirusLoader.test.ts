@@ -384,7 +384,7 @@ describe('VirusLoader', () => {
       const gen2 = priv(vl)._loadGeneration as number;
       expect(gen2).toBe(gen1 + 1);
 
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(12000);
 
       const captureMessageFn = vi.mocked(Sentry.captureMessage);
       const safetyCalls = captureMessageFn.mock.calls.filter(call =>
@@ -415,16 +415,16 @@ describe('VirusLoader', () => {
   // 5. safety timeout
   // ─────────────────────────────────────────────────────────────────────────
   describe('safety timeout', () => {
-    it('should force loading animation stop after 5 seconds', async () => {
+    it('should force loading animation stop after the safety timeout', async () => {
       const Sentry = await import('@sentry/browser');
 
       const playlist = createPlaylist();
       const vl = createVirusLoader(playlist);
 
-      // Pause randomization to prevent interval from firing at 5s
+      // Pause randomization to prevent interval from firing
       vl.pauseRandomization();
 
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(12000);
 
       const captureMessageFn = vi.mocked(Sentry.captureMessage);
       expect(captureMessageFn).toHaveBeenCalledWith(
@@ -452,7 +452,7 @@ describe('VirusLoader', () => {
       const iframe = document.getElementById('container') as HTMLIFrameElement;
       iframe.dispatchEvent(new Event('load'));
 
-      vi.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(12000);
 
       const safetyCalls = captureMessageFn.mock.calls.filter(call =>
         String(call[0]).includes('Safety timeout')

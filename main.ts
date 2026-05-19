@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/browser';
 
 import { virus } from './ascii';
 import Playlist from './components/Playlist';
-import TVStaticLoading from './components/TVStaticLoading';
 import VirusLoader from './components/VirusLoader';
 import './sass/main.scss';
 import { safeGtag } from './utils/gtag';
@@ -12,7 +11,6 @@ import { toggleInfo, hideInfo, teleportMenu, shuffleTitle } from './ui/menu';
 
 declare global {
   interface Window {
-    TVStaticLoading?: typeof TVStaticLoading;
     __iconFontFailed?: boolean;
   }
 }
@@ -228,5 +226,3 @@ setTimeout(function () {
 window.addEventListener('beforeunload', () => {
   shuffleTitleHandle?.stop();
 });
-
-window.TVStaticLoading = TVStaticLoading;

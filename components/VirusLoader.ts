@@ -364,6 +364,7 @@ export default class VirusLoader implements VirusLoaderInterface {
     if (this.virusLab) {
       // Close lab
       const currentMix = this.virusLab.getCurrentMix();
+      this.virusLab.cleanup();
       const labContainer = document.getElementById('virus-lab');
       if (labContainer) {
         labContainer.remove();
