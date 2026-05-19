@@ -144,7 +144,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       console.warn(msg);
       Sentry.captureMessage(msg, 'warning');
       this._delayedIframeLoaded(generation);
-    }, 5000);
+    }, 12000);
 
     try {
       if (this.playlist.isMixedVirus(name)) {
