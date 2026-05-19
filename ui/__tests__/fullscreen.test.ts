@@ -92,11 +92,11 @@ describe('initFullscreen', () => {
   });
 
   it('invokes requestFullscreen with the element as `this`', async () => {
-    const doc = document.documentElement as HTMLElement & {
-      requestFullscreen?: () => Promise<void>;
-    };
+    const doc = document.documentElement;
+    const docAsAny = doc as unknown as Record<string, unknown>;
+    const original = docAsAny.requestFullscreen;
     const fakeRequest = vi.fn().mockResolvedValue(undefined);
-    doc.requestFullscreen = fakeRequest;
+    docAsAny.requestFullscreen = fakeRequest;
 
     const { initFullscreen } = await import('../fullscreen');
     initFullscreen();
@@ -107,9 +107,8 @@ describe('initFullscreen', () => {
     await Promise.resolve();
 
     expect(fakeRequest).toHaveBeenCalledTimes(1);
-    // vitest exposes the receiver each call was invoked with
     expect(fakeRequest.mock.contexts[0]).toBe(doc);
 
-    delete doc.requestFullscreen;
+    docAsAny.requestFullscreen = original;
   });
 });
