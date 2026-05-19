@@ -1,4 +1,5 @@
 import { randomRgbColor } from '../../utils/random';
+import { FLASH_INTERVAL_MS, FLASH_STOP_DELAY_MS } from '../constants';
 
 export default class Flash {
   el: HTMLDivElement;
@@ -10,14 +11,17 @@ export default class Flash {
 
   start() {
     this.el.style.display = 'block';
-    this.animationInterval = setInterval(() => this.update(), 100);
+    this.animationInterval = setInterval(
+      () => this.update(),
+      FLASH_INTERVAL_MS
+    );
   }
 
   stop() {
     setTimeout(() => {
       clearInterval(this.animationInterval);
       this.el.style.display = 'none';
-    }, 200);
+    }, FLASH_STOP_DELAY_MS);
   }
 
   update() {
