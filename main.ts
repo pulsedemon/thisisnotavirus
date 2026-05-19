@@ -220,13 +220,13 @@ const iconEl = document.getElementById('icon');
 if (iconEl) iconEl.onclick = () => teleportMenu();
 
 // Title shuffle effect
-let shuffleTitleInterval: ReturnType<typeof setInterval> | undefined;
+let shuffleTitleHandle: ReturnType<typeof shuffleTitle> | undefined;
 setTimeout(function () {
-  shuffleTitleInterval = shuffleTitle();
+  shuffleTitleHandle = shuffleTitle();
 }, 5000);
 
 window.addEventListener('beforeunload', () => {
-  clearInterval(shuffleTitleInterval);
+  shuffleTitleHandle?.stop();
 });
 
 window.TVStaticLoading = TVStaticLoading;

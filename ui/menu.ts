@@ -1,5 +1,6 @@
 import { randomInt } from '../utils/random';
 import { safeGtag } from '../utils/gtag';
+import { shuffle } from '../utils/misc';
 
 export function toggleInfo(): void {
   const infoEl = document.querySelector('.modal.info-modal');
@@ -60,20 +61,28 @@ export function teleportMenu(): void {
   safeGtag('event', 'v_icon_click');
 }
 
-export function shuffleTitle(): ReturnType<typeof setInterval> {
+export interface ShuffleTitleHandle {
+  interval: ReturnType<typeof setInterval>;
+  stop: () => void;
+}
+
+export function shuffleTitle(): ShuffleTitleHandle {
   const originalTitle = document.title;
   let intervalCounter = 0;
-  return setInterval(function () {
+  const interval = setInterval(function () {
     intervalCounter++;
     if (intervalCounter % 5 === 0) {
       document.title = originalTitle;
       return;
     }
-    document.title = document.title
-      .split('')
-      .sort(function () {
-        return 0.5 - Math.random();
-      })
-      .join('');
+    document.title = shuffle(document.title.split('')).join('');
   }, 200);
+
+  return {
+    interval,
+    stop: () => {
+      clearInterval(interval);
+      document.title = originalTitle;
+    },
+  };
 }
