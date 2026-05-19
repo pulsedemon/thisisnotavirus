@@ -178,13 +178,13 @@ function forwardKeyboardEventToIframe(event: KeyboardEvent, eventType: string) {
   }
 }
 
-document.onkeydown = e => {
+document.addEventListener('keydown', e => {
   if (vl.virusHasKeyboardControl) {
     forwardKeyboardEventToIframe(e, 'keydown');
   }
-};
+});
 
-document.onkeyup = e => {
+document.addEventListener('keyup', e => {
   if (e.key === 'Escape') {
     hideInfo();
     return;
@@ -213,7 +213,7 @@ document.onkeyup = e => {
     });
     vl.reloadCurrent();
   }
-};
+});
 
 // Menu teleport
 const iconEl = document.getElementById('icon');
