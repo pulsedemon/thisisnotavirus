@@ -11,3 +11,5 @@ coverage
 CLAUDE.md
 .superpowers/
 docs/
+.env
+
