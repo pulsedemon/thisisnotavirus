@@ -200,6 +200,36 @@ describe('VirusThumbnailOverlay', () => {
       }
     });
 
+    it('rejects tampered data-src that does not match the safe virus path', () => {
+      // If playlist.viruses is ever poisoned, the lazy-loader must drop
+      // anything that doesn't match `/viruses/<slug>/`. Driven via the
+      // IntersectionObserver-undefined fallback so it runs synchronously.
+      const originalIO = (
+        window as unknown as { IntersectionObserver?: unknown }
+      ).IntersectionObserver;
+      delete (window as unknown as { IntersectionObserver?: unknown })
+        .IntersectionObserver;
+
+      testPlaylist.viruses = ['sphere', '../etc/passwd', 'sphere/?x=<script>'];
+
+      createOverlay();
+      const overlay = getOverlayEl();
+      const iframes = Array.from(overlay?.querySelectorAll('iframe') ?? []);
+      // Exactly one iframe (sphere) should have a src; the others were dropped.
+      const withSrc = iframes.filter(f => f.getAttribute('src'));
+      expect(withSrc).toHaveLength(1);
+      expect(withSrc[0].getAttribute('src')).toBe('/viruses/sphere/');
+      iframes.forEach(iframe => {
+        expect(iframe.getAttribute('data-src')).toBeNull();
+      });
+
+      if (originalIO !== undefined) {
+        (
+          window as unknown as { IntersectionObserver: unknown }
+        ).IntersectionObserver = originalIO;
+      }
+    });
+
     it('sets document.body.style.overflow to hidden', () => {
       createOverlay();
       expect(document.body.style.overflow).toBe('hidden');

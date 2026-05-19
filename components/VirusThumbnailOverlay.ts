@@ -516,16 +516,24 @@ export class VirusThumbnailOverlay {
     );
     if (iframes.length === 0) return;
 
+    // Strict pattern check: src must look like `/viruses/<slug>/` where
+    // <slug> is lowercase kebab. Rejects anything containing `..`, `//`,
+    // scheme characters, or HTML metacharacters before it ever reaches
+    // iframe.src — satisfies CodeQL's "DOM text reinterpreted as HTML"
+    // and stops a tampered data-src from navigating off-origin.
+    const SAFE_VIRUS_PATH = /^\/viruses\/[a-z][a-z0-9-]*\/$/;
+    const assignSafeSrc = (iframe: HTMLIFrameElement): void => {
+      const src = iframe.getAttribute('data-src');
+      iframe.removeAttribute('data-src');
+      if (src && SAFE_VIRUS_PATH.test(src)) {
+        iframe.src = src;
+      }
+    };
+
     // IntersectionObserver isn't available in every test environment.
     // Fall back to immediate src assignment so jsdom-only tests still work.
     if (typeof IntersectionObserver === 'undefined') {
-      iframes.forEach(iframe => {
-        const src = iframe.getAttribute('data-src');
-        if (src) {
-          iframe.src = src;
-          iframe.removeAttribute('data-src');
-        }
-      });
+      iframes.forEach(assignSafeSrc);
       return;
     }
 
@@ -534,11 +542,7 @@ export class VirusThumbnailOverlay {
         entries.forEach(entry => {
           if (!entry.isIntersecting) return;
           const iframe = entry.target as HTMLIFrameElement;
-          const src = iframe.getAttribute('data-src');
-          if (src) {
-            iframe.src = src;
-            iframe.removeAttribute('data-src');
-          }
+          assignSafeSrc(iframe);
           this.iframeObserver?.unobserve(iframe);
         });
       },
