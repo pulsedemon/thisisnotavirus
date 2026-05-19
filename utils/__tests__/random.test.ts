@@ -70,6 +70,25 @@ describe('Random Utility', () => {
       expect(result).toBeGreaterThanOrEqual(min);
       expect(result).toBeLessThanOrEqual(max);
     });
+
+    it('is inclusive of both bounds', () => {
+      // Sample enough times that hitting both bounds is overwhelmingly likely
+      const seen = new Set<number>();
+      for (let i = 0; i < 1000; i++) {
+        const v = randomIntBetween(2, 5);
+        expect(v).toBeGreaterThanOrEqual(2);
+        expect(v).toBeLessThanOrEqual(5);
+        seen.add(v);
+      }
+      // With 1000 samples over 4 values, all four should appear
+      expect(seen).toEqual(new Set([2, 3, 4, 5]));
+    });
+
+    it('handles min === max by returning min', () => {
+      for (let i = 0; i < 10; i++) {
+        expect(randomIntBetween(7, 7)).toBe(7);
+      }
+    });
   });
 
   describe('randomItem', () => {

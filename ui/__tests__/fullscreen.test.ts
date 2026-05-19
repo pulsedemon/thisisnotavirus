@@ -90,4 +90,25 @@ describe('initFullscreen', () => {
 
     expect(document.getElementById('fullscreen')).toBeNull();
   });
+
+  it('invokes requestFullscreen with the element as `this`', async () => {
+    const doc = document.documentElement;
+    const docAsAny = doc as unknown as Record<string, unknown>;
+    const original = docAsAny.requestFullscreen;
+    const fakeRequest = vi.fn().mockResolvedValue(undefined);
+    docAsAny.requestFullscreen = fakeRequest;
+
+    const { initFullscreen } = await import('../fullscreen');
+    initFullscreen();
+
+    const btn = document.getElementById('fullscreen');
+    btn?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(fakeRequest).toHaveBeenCalledTimes(1);
+    expect(fakeRequest.mock.contexts[0]).toBe(doc);
+
+    docAsAny.requestFullscreen = original;
+  });
 });

@@ -10,6 +10,18 @@ import {
 import Playlist from '../Playlist';
 import VirusLab from '../VirusLab';
 
+// Test helper to call private methods on VirusLab without `as any`.
+// Intersection with VirusLab itself collapses to `never` (TS won't intersect
+// public + private), so we declare the bare shape and double-cast through
+// `unknown`.
+interface VirusLabInternals {
+  saveMix: () => void;
+  deleteMix: (id: number) => void;
+}
+function internals(lab: VirusLab): VirusLabInternals {
+  return lab as unknown as VirusLabInternals;
+}
+
 vi.mock('../../utils/iframe', () => ({
   createStyledIframe: vi.fn(() => {
     const iframe = document.createElement('iframe');
@@ -30,7 +42,15 @@ vi.mock('../../utils/misc', () => ({
 }));
 
 vi.mock('../templates/virus-lab-controls.hbs', () => ({
-  default: vi.fn(() => '<div class="control-group"></div>'),
+  default: vi.fn(
+    () => `
+    <select id="primary-virus"></select>
+    <select id="secondary-virus"></select>
+    <input type="range" id="mix-ratio" min="0" max="1" step="0.1" value="0.5">
+    <button id="save-mix">Save Mix</button>
+    <div id="saved-mixes-list"></div>
+  `
+  ),
 }));
 
 describe('VirusLab', () => {
@@ -118,8 +138,7 @@ describe('VirusLab', () => {
     it('should save a new mix to localStorage', () => {
       const lab = new VirusLab(container, playlist, true);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).saveMix();
+      internals(lab).saveMix();
 
       expect(saveMixesMock).toHaveBeenCalledWith(
         expect.arrayContaining([
@@ -146,8 +165,7 @@ describe('VirusLab', () => {
       // saveMix calls loadSavedMixesFromStorage again to check for duplicates
       loadSavedMixesMock.mockReturnValue([existingMix]);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).saveMix();
+      internals(lab).saveMix();
 
       // Should NOT call saveMixes because it's a duplicate
       expect(saveMixesMock).not.toHaveBeenCalled();
@@ -165,8 +183,7 @@ describe('VirusLab', () => {
 
       const lab = new VirusLab(container, playlist, true);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).saveMix();
+      internals(lab).saveMix();
 
       expect(saveMixesMock).toHaveBeenCalled();
 
@@ -237,12 +254,37 @@ describe('VirusLab', () => {
       const lab = new VirusLab(container, playlist, true);
 
       // Delete mix with id 1
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (lab as any).deleteMix(1);
+      internals(lab).deleteMix(1);
 
       expect(saveMixesMock).toHaveBeenCalledWith([
         { primary: 'doors', secondary: 'emoji', mixRatio: 0.7, id: 2 },
       ]);
+    });
+  });
+
+  describe('updateSavedMixesList XSS regression', () => {
+    it('should not execute HTML embedded in mix.name from localStorage', () => {
+      const malicious = {
+        primary: 'sphere',
+        secondary: 'uzumaki',
+        mixRatio: 0.5,
+        id: 1,
+        name: '<img src=x onerror="window.__xssFired=true">',
+      };
+      loadSavedMixesMock.mockReturnValue([malicious]);
+      const w = window as Window & { __xssFired?: boolean };
+      delete w.__xssFired;
+
+      // displayOnly: false so initializeUI -> updateSavedMixesList runs
+      new VirusLab(container, playlist, false);
+
+      expect(w.__xssFired).toBeUndefined();
+
+      const label = container.querySelector('.saved-mix span');
+      expect(label).not.toBeNull();
+      expect(label!.textContent).toBe(malicious.name);
+      // Confirm no <img> tag was actually parsed from the name
+      expect(container.querySelector('.saved-mix img')).toBeNull();
     });
   });
 

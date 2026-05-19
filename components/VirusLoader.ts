@@ -7,6 +7,13 @@ import VirusLab from './VirusLab';
 import { VirusLoaderInterface } from '../types/VirusLoaderInterface';
 import { createStyledIframe } from '../utils/iframe';
 import { randomIntBetween } from '../utils/random';
+import {
+  LOAD_SAFETY_TIMEOUT_MS,
+  MIN_LOAD_ANIMATION_MS,
+  NAVIGATION_LOCK_MS,
+  RANDOMIZATION_MAX_S,
+  RANDOMIZATION_MIN_S,
+} from './constants';
 import { safeGtag } from '../utils/gtag';
 import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
 
@@ -124,7 +131,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       this.loadingAnim = new Flash(this.loadingAnimEl);
     }
 
-    console.log('Loading virus:', name);
+    if (import.meta.env.DEV) console.log('Loading virus:', name);
     this.loadingAnim.start();
     this.loadingAnimStartTime = Date.now();
     this.setSourceCodeLinkVisible(false);
@@ -144,7 +151,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       console.warn(msg);
       Sentry.captureMessage(msg, 'warning');
       this._delayedIframeLoaded(generation);
-    }, 5000);
+    }, LOAD_SAFETY_TIMEOUT_MS);
 
     try {
       if (this.playlist.isMixedVirus(name)) {
@@ -249,7 +256,7 @@ export default class VirusLoader implements VirusLoaderInterface {
   private _delayedIframeLoaded(generation: number) {
     if (generation !== this._loadGeneration) return;
 
-    const minDuration = 500;
+    const minDuration = MIN_LOAD_ANIMATION_MS;
     const elapsed = Date.now() - this.loadingAnimStartTime;
     if (elapsed >= minDuration) {
       this._iframeLoaded();
@@ -321,13 +328,14 @@ export default class VirusLoader implements VirusLoaderInterface {
 
     const virus =
       direction === 'next' ? this.playlist.next() : this.playlist.prev();
-    console.log(`Skipping to ${direction} virus:`, virus);
+    if (import.meta.env.DEV)
+      console.log(`Skipping to ${direction} virus:`, virus);
     this.loadVirus(virus);
     this.startRandomization();
 
     setTimeout(() => {
       this.isNavigating = false;
-    }, 300);
+    }, NAVIGATION_LOCK_MS);
   }
 
   get isLabOpen(): boolean {
@@ -340,11 +348,12 @@ export default class VirusLoader implements VirusLoaderInterface {
 
   /**
    * (Re)starts the random virus rotation. Picks a single random interval
-   * (2-11s) that stays fixed until the next call.
+   * (2-12s, both inclusive) that stays fixed until the next call.
    */
   startRandomization() {
     clearInterval(this.loadRandomInterval);
-    const randomTime = randomIntBetween(2, 12) * 1000;
+    const randomTime =
+      randomIntBetween(RANDOMIZATION_MIN_S, RANDOMIZATION_MAX_S) * 1000;
 
     this.loadRandomInterval = setInterval(() => {
       this.removeMixContainer();
@@ -364,6 +373,7 @@ export default class VirusLoader implements VirusLoaderInterface {
     if (this.virusLab) {
       // Close lab
       const currentMix = this.virusLab.getCurrentMix();
+      this.virusLab.cleanup();
       const labContainer = document.getElementById('virus-lab');
       if (labContainer) {
         labContainer.remove();
@@ -379,8 +389,6 @@ export default class VirusLoader implements VirusLoaderInterface {
         labButton.title = 'Virus Lab';
       }
       safeGtag('event', 'close_lab');
-
-      clearInterval(this.loadRandomInterval);
 
       if (currentMix && currentMix.id) {
         this.loadVirus(`mixed:${currentMix.id}`);
@@ -434,12 +442,13 @@ export default class VirusLoader implements VirusLoaderInterface {
     this.removeMixContainer();
 
     const currentVirus = this.playlist.current();
-    console.log('Reloading current virus:', currentVirus);
+    if (import.meta.env.DEV)
+      console.log('Reloading current virus:', currentVirus);
     this.loadVirus(currentVirus);
     this.startRandomization();
 
     setTimeout(() => {
       this.isNavigating = false;
-    }, 300);
+    }, NAVIGATION_LOCK_MS);
   }
 }

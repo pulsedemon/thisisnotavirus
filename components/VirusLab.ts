@@ -234,20 +234,25 @@ export default class VirusLab {
     this.savedMixes.forEach(mix => {
       const mixElement = document.createElement('div');
       mixElement.className = 'saved-mix';
-      mixElement.innerHTML = `
-        <span>${mix.name}</span>
-        <div class="saved-mix-actions">
-          <button class="load-mix" data-id="${mix.id}">Load</button>
-          <button class="delete-mix" data-id="${mix.id}">Delete</button>
-        </div>
-      `;
 
-      const loadButton = mixElement.querySelector('.load-mix');
-      const deleteButton = mixElement.querySelector('.delete-mix');
+      const label = document.createElement('span');
+      label.textContent = mix.name ?? '';
 
-      loadButton?.addEventListener('click', () => this.loadMix(mix));
-      deleteButton?.addEventListener('click', () => this.deleteMix(mix.id!));
+      const actions = document.createElement('div');
+      actions.className = 'saved-mix-actions';
 
+      const loadButton = document.createElement('button');
+      loadButton.className = 'load-mix';
+      loadButton.textContent = 'Load';
+      loadButton.addEventListener('click', () => this.loadMix(mix));
+
+      const deleteButton = document.createElement('button');
+      deleteButton.className = 'delete-mix';
+      deleteButton.textContent = 'Delete';
+      deleteButton.addEventListener('click', () => this.deleteMix(mix.id!));
+
+      actions.append(loadButton, deleteButton);
+      mixElement.append(label, actions);
       savedMixesList.appendChild(mixElement);
     });
   }

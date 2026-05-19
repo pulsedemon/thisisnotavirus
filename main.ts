@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/browser';
 
 import { virus } from './ascii';
 import Playlist from './components/Playlist';
-import TVStaticLoading from './components/TVStaticLoading';
 import VirusLoader from './components/VirusLoader';
 import './sass/main.scss';
 import { safeGtag } from './utils/gtag';
@@ -12,7 +11,6 @@ import { toggleInfo, hideInfo, teleportMenu, shuffleTitle } from './ui/menu';
 
 declare global {
   interface Window {
-    TVStaticLoading?: typeof TVStaticLoading;
     __iconFontFailed?: boolean;
   }
 }
@@ -178,13 +176,13 @@ function forwardKeyboardEventToIframe(event: KeyboardEvent, eventType: string) {
   }
 }
 
-document.onkeydown = e => {
+document.addEventListener('keydown', e => {
   if (vl.virusHasKeyboardControl) {
     forwardKeyboardEventToIframe(e, 'keydown');
   }
-};
+});
 
-document.onkeyup = e => {
+document.addEventListener('keyup', e => {
   if (e.key === 'Escape') {
     hideInfo();
     return;
@@ -213,20 +211,18 @@ document.onkeyup = e => {
     });
     vl.reloadCurrent();
   }
-};
+});
 
 // Menu teleport
 const iconEl = document.getElementById('icon');
 if (iconEl) iconEl.onclick = () => teleportMenu();
 
 // Title shuffle effect
-let shuffleTitleInterval: ReturnType<typeof setInterval> | undefined;
+let shuffleTitleHandle: ReturnType<typeof shuffleTitle> | undefined;
 setTimeout(function () {
-  shuffleTitleInterval = shuffleTitle();
+  shuffleTitleHandle = shuffleTitle();
 }, 5000);
 
 window.addEventListener('beforeunload', () => {
-  clearInterval(shuffleTitleInterval);
+  shuffleTitleHandle?.stop();
 });
-
-window.TVStaticLoading = TVStaticLoading;

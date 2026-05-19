@@ -1,5 +1,6 @@
 import { randomInt } from '../utils/random';
 import { safeGtag } from '../utils/gtag';
+import { shuffle } from '../utils/misc';
 
 export function toggleInfo(): void {
   const infoEl = document.querySelector('.modal.info-modal');
@@ -25,27 +26,33 @@ export function hideInfo(): void {
   if (infoBtn) infoBtn.innerText = 'info';
 }
 
+const MENU_POSITIONS = [
+  '0px auto auto 0px',
+  '0px 0px auto auto',
+  'auto auto 0px 0px',
+  'auto 0px 0px auto',
+] as const;
+
+// Default position matches the menu's initial inset in index.html (top-right).
+let currentMenuPositionIdx = 1;
+
 export function teleportMenu(): void {
   const animationClassName = 'teleporting';
   const menu = document.getElementById('menu');
   if (!menu) return;
 
-  const menuPositions = [
-    '0px auto auto 0px',
-    '0px 0px auto auto',
-    'auto auto 0px 0px',
-    'auto 0px 0px auto',
-  ];
-
-  const currentInset = menu.style.inset || '0px 0px auto auto';
-  const index = menuPositions.indexOf(currentInset);
-  if (index > -1) {
-    menuPositions.splice(index, 1);
-  }
+  // Pick any index other than the current one. Tracking by index
+  // avoids fragile string-match against style.inset, whose
+  // serialization differs across browsers.
+  const candidates = MENU_POSITIONS.map((_, i) => i).filter(
+    i => i !== currentMenuPositionIdx
+  );
+  const nextIdx = candidates[randomInt(candidates.length)];
 
   menu.classList.add(animationClassName);
   setTimeout(() => {
-    menu.style.inset = menuPositions[randomInt(menuPositions.length)];
+    currentMenuPositionIdx = nextIdx;
+    menu.style.inset = MENU_POSITIONS[nextIdx];
     setTimeout(() => {
       menu.classList.remove(animationClassName);
     }, 400);
@@ -54,20 +61,28 @@ export function teleportMenu(): void {
   safeGtag('event', 'v_icon_click');
 }
 
-export function shuffleTitle(): ReturnType<typeof setInterval> {
+export interface ShuffleTitleHandle {
+  interval: ReturnType<typeof setInterval>;
+  stop: () => void;
+}
+
+export function shuffleTitle(): ShuffleTitleHandle {
   const originalTitle = document.title;
   let intervalCounter = 0;
-  return setInterval(function () {
+  const interval = setInterval(function () {
     intervalCounter++;
     if (intervalCounter % 5 === 0) {
       document.title = originalTitle;
       return;
     }
-    document.title = document.title
-      .split('')
-      .sort(function () {
-        return 0.5 - Math.random();
-      })
-      .join('');
+    document.title = shuffle(document.title.split('')).join('');
   }, 200);
+
+  return {
+    interval,
+    stop: () => {
+      clearInterval(interval);
+      document.title = originalTitle;
+    },
+  };
 }

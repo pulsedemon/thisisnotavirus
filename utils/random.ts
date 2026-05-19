@@ -2,8 +2,9 @@ export function randomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
+/** Returns a random integer in [min, max] (inclusive of both bounds). */
 export function randomIntBetween(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min) + min);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export function randomFloat(min: number, max: number): number {
