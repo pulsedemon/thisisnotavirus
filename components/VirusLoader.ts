@@ -131,7 +131,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       this.loadingAnim = new Flash(this.loadingAnimEl);
     }
 
-    console.log('Loading virus:', name);
+    if (import.meta.env.DEV) console.log('Loading virus:', name);
     this.loadingAnim.start();
     this.loadingAnimStartTime = Date.now();
     this.setSourceCodeLinkVisible(false);
@@ -328,7 +328,8 @@ export default class VirusLoader implements VirusLoaderInterface {
 
     const virus =
       direction === 'next' ? this.playlist.next() : this.playlist.prev();
-    console.log(`Skipping to ${direction} virus:`, virus);
+    if (import.meta.env.DEV)
+      console.log(`Skipping to ${direction} virus:`, virus);
     this.loadVirus(virus);
     this.startRandomization();
 
@@ -441,7 +442,8 @@ export default class VirusLoader implements VirusLoaderInterface {
     this.removeMixContainer();
 
     const currentVirus = this.playlist.current();
-    console.log('Reloading current virus:', currentVirus);
+    if (import.meta.env.DEV)
+      console.log('Reloading current virus:', currentVirus);
     this.loadVirus(currentVirus);
     this.startRandomization();
 
