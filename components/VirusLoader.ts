@@ -380,8 +380,6 @@ export default class VirusLoader implements VirusLoaderInterface {
       }
       safeGtag('event', 'close_lab');
 
-      clearInterval(this.loadRandomInterval);
-
       if (currentMix && currentMix.id) {
         this.loadVirus(`mixed:${currentMix.id}`);
         const mixId = `mixed:${currentMix.id}`;
