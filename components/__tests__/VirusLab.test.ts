@@ -30,7 +30,15 @@ vi.mock('../../utils/misc', () => ({
 }));
 
 vi.mock('../templates/virus-lab-controls.hbs', () => ({
-  default: vi.fn(() => '<div class="control-group"></div>'),
+  default: vi.fn(
+    () => `
+    <select id="primary-virus"></select>
+    <select id="secondary-virus"></select>
+    <input type="range" id="mix-ratio" min="0" max="1" step="0.1" value="0.5">
+    <button id="save-mix">Save Mix</button>
+    <div id="saved-mixes-list"></div>
+  `
+  ),
 }));
 
 describe('VirusLab', () => {
@@ -243,6 +251,32 @@ describe('VirusLab', () => {
       expect(saveMixesMock).toHaveBeenCalledWith([
         { primary: 'doors', secondary: 'emoji', mixRatio: 0.7, id: 2 },
       ]);
+    });
+  });
+
+  describe('updateSavedMixesList XSS regression', () => {
+    it('should not execute HTML embedded in mix.name from localStorage', () => {
+      const malicious = {
+        primary: 'sphere',
+        secondary: 'uzumaki',
+        mixRatio: 0.5,
+        id: 1,
+        name: '<img src=x onerror="window.__xssFired=true">',
+      };
+      loadSavedMixesMock.mockReturnValue([malicious]);
+      const w = window as Window & { __xssFired?: boolean };
+      delete w.__xssFired;
+
+      // displayOnly: false so initializeUI -> updateSavedMixesList runs
+      new VirusLab(container, playlist, false);
+
+      expect(w.__xssFired).toBeUndefined();
+
+      const label = container.querySelector('.saved-mix span');
+      expect(label).not.toBeNull();
+      expect(label!.textContent).toBe(malicious.name);
+      // Confirm no <img> tag was actually parsed from the name
+      expect(container.querySelector('.saved-mix img')).toBeNull();
     });
   });
 
