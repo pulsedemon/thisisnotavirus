@@ -6,6 +6,7 @@ import {
   stripTags,
   formatVirusName,
   preloadImage,
+  draggable,
 } from '../misc';
 
 // Mock ua-parser-js
@@ -264,6 +265,58 @@ describe('Misc Utilities', () => {
 
     it('should not throw when called with an empty string', () => {
       expect(() => preloadImage('')).not.toThrow();
+    });
+  });
+
+  describe('draggable', () => {
+    beforeEach(() => {
+      _resetIsMobileCache();
+      Object.defineProperty(window, 'innerWidth', {
+        value: 1920,
+        writable: true,
+        configurable: true,
+      });
+      // Force desktop branch
+      Object.defineProperty(window, 'navigator', {
+        value: { ...window.navigator, userAgent: 'desktop', maxTouchPoints: 0 },
+        writable: true,
+        configurable: true,
+      });
+      if ('ontouchstart' in window) {
+        delete (window as unknown as Record<string, unknown>).ontouchstart;
+      }
+    });
+
+    it('does not set top/left to NaN when starting position is auto', () => {
+      const el = document.createElement('div');
+      // Default styles → computed top/left = "auto" in jsdom
+      document.body.appendChild(el);
+
+      const cleanup = draggable(el);
+
+      const down = new MouseEvent('mousedown', {
+        clientX: 100,
+        clientY: 50,
+        bubbles: true,
+      });
+      el.dispatchEvent(down);
+
+      const move = new MouseEvent('mousemove', {
+        clientX: 120,
+        clientY: 70,
+        bubbles: true,
+      });
+      window.dispatchEvent(move);
+
+      expect(el.style.top).not.toBe('');
+      expect(el.style.left).not.toBe('');
+      expect(el.style.top).not.toContain('NaN');
+      expect(el.style.left).not.toContain('NaN');
+      expect(Number.isFinite(parseInt(el.style.top))).toBe(true);
+      expect(Number.isFinite(parseInt(el.style.left))).toBe(true);
+
+      cleanup();
+      el.remove();
     });
   });
 });
