@@ -340,7 +340,7 @@ export default class VirusLoader implements VirusLoaderInterface {
 
   /**
    * (Re)starts the random virus rotation. Picks a single random interval
-   * (2-11s) that stays fixed until the next call.
+   * (2-12s, both inclusive) that stays fixed until the next call.
    */
   startRandomization() {
     clearInterval(this.loadRandomInterval);
