@@ -80,6 +80,7 @@ interface VirusThumbnailOverlayOptions {
   onSelect: (virus: string) => void;
   onClose: () => void;
   virusLoader?: VirusLoaderInterface;
+  playlist: Playlist;
 }
 
 export class VirusThumbnailOverlay {
@@ -115,8 +116,8 @@ export class VirusThumbnailOverlay {
     const existing = document.getElementById('virus-thumbnail-overlay');
     if (existing) existing.remove();
 
-    // Get virus list
-    const playlist = new Playlist();
+    // Re-use the live Playlist so newly saved mixes show without reload.
+    const playlist = options.playlist;
     const viruses = playlist.viruses.map(virus => ({
       value: virus,
       label: formatVirusName(virus),
@@ -513,10 +514,8 @@ export class VirusThumbnailOverlay {
   }
 }
 
-export function showVirusThumbnailOverlay(options: {
-  onSelect: (virus: string) => void;
-  onClose: () => void;
-  virusLoader?: VirusLoaderInterface;
-}): VirusThumbnailOverlay {
+export function showVirusThumbnailOverlay(
+  options: VirusThumbnailOverlayOptions
+): VirusThumbnailOverlay {
   return new VirusThumbnailOverlay(options);
 }

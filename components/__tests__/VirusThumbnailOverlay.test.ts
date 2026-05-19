@@ -18,6 +18,7 @@ vi.mock('../../utils/misc', () => ({
   isMobile: vi.fn(() => false),
 }));
 
+import Playlist from '../Playlist';
 import {
   VirusThumbnailOverlay,
   showVirusThumbnailOverlay,
@@ -26,6 +27,7 @@ import {
 let onSelectSpy: ReturnType<typeof vi.fn>;
 let onCloseSpy: ReturnType<typeof vi.fn>;
 let mockVirusLoader: VirusLoaderInterface;
+let testPlaylist: Playlist;
 
 beforeEach(() => {
   // jsdom doesn't implement scrollIntoView
@@ -42,6 +44,7 @@ beforeEach(() => {
     toggleLab: vi.fn(),
     pauseRandomization: vi.fn(),
   };
+  testPlaylist = new Playlist();
 });
 
 afterEach(() => {
@@ -57,6 +60,7 @@ function createOverlay(
     onSelect: onSelectSpy,
     onClose: onCloseSpy,
     virusLoader,
+    playlist: testPlaylist,
   });
 }
 
@@ -122,6 +126,20 @@ describe('VirusThumbnailOverlay', () => {
       items.forEach(item => {
         expect(item.getAttribute('data-virus')).toBeTruthy();
       });
+    });
+
+    it('reflects mixes added to the live playlist without reload', () => {
+      // Mutating the live playlist's savedMixes after construction
+      // and before opening the overlay should make the new mix visible.
+      testPlaylist.savedMixes = [
+        { primary: 'sphere', secondary: 'uzumaki', mixRatio: 0.5, id: 42 },
+      ];
+      createOverlay();
+      const items = getThumbnailItems();
+      const mixedItem = items.find(
+        el => el.getAttribute('data-virus') === 'mixed:42'
+      );
+      expect(mixedItem).toBeDefined();
     });
 
     it('sets document.body.style.overflow to hidden', () => {
@@ -367,6 +385,7 @@ describe('VirusThumbnailOverlay', () => {
         onSelect: onSelectSpy,
         onClose: onCloseSpy,
         virusLoader: mockVirusLoader,
+        playlist: testPlaylist,
       });
 
       expect(instance).toBeInstanceOf(VirusThumbnailOverlay);
