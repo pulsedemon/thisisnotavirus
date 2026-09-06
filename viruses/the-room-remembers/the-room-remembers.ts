@@ -397,6 +397,7 @@ function drawRoom(room: Room, allowNested = true) {
 }
 
 function drawComposition(room: Room, clipLeft: number, clipRight: number) {
+  if (clipRight <= clipLeft) return;
   ctx.save();
   ctx.beginPath();
   ctx.rect(clipLeft, 0, Math.max(0, clipRight - clipLeft), height);
