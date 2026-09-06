@@ -19,6 +19,7 @@ export default class Playlist {
     'crane-game',
     'sky',
     'tick-tock',
+    'the-room-remembers',
   ];
 
   premixes: VirusMix[] = [
