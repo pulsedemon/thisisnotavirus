@@ -468,5 +468,8 @@ function resize() {
 
 window.addEventListener('resize', resize);
 window.addEventListener('pagehide', () => cancelAnimationFrame(animationId));
+window.addEventListener('pageshow', event => {
+  if (event.persisted) animationId = requestAnimationFrame(frame);
+});
 resize();
 animationId = requestAnimationFrame(frame);
