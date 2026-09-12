@@ -35,7 +35,8 @@ const FULLSCREEN = {
   ): Promise<boolean> {
     const methodName = methods.find(m => typeof obj[m] === 'function');
     if (methodName) {
-      await (obj[methodName] as () => Promise<void>)();
+      // requestFullscreen / exitFullscreen need their `this` per spec.
+      await (obj[methodName] as (this: typeof obj) => Promise<void>).call(obj);
       return true;
     }
     console.warn('Fullscreen: no supported method found among', methods);

@@ -100,15 +100,16 @@ describe('menu', () => {
       vi.useRealTimers();
     });
 
-    it('should return an interval ID', () => {
-      const intervalId = shuffleTitle();
-      expect(intervalId).toBeDefined();
-      clearInterval(intervalId);
+    it('returns a handle with interval and stop', () => {
+      const handle = shuffleTitle();
+      expect(handle.interval).toBeDefined();
+      expect(typeof handle.stop).toBe('function');
+      handle.stop();
     });
 
-    it('should mutate document.title', () => {
+    it('mutates document.title on tick', () => {
       document.title = 'thisisnotavirus';
-      const intervalId = shuffleTitle();
+      const handle = shuffleTitle();
 
       vi.advanceTimersByTime(200);
       // After one tick the title should have been shuffled
@@ -116,7 +117,15 @@ describe('menu', () => {
       expect(typeof document.title).toBe('string');
       expect(document.title.length).toBe('thisisnotavirus'.length);
 
-      clearInterval(intervalId);
+      handle.stop();
+    });
+
+    it('restores the original title on stop', () => {
+      document.title = 'thisisnotavirus';
+      const handle = shuffleTitle();
+      vi.advanceTimersByTime(200);
+      handle.stop();
+      expect(document.title).toBe('thisisnotavirus');
     });
   });
 });

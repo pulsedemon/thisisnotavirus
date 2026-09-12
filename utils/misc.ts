@@ -75,8 +75,13 @@ export function draggable(el: HTMLElement): () => void {
       e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;
     const clientX =
       e instanceof MouseEvent ? e.clientX : e.changedTouches[0].clientX;
-    const offsetX = clientX - parseInt(window.getComputedStyle(target).left);
-    const offsetY = clientY - parseInt(window.getComputedStyle(target).top);
+    // getComputedStyle returns "auto" for unset positions, which
+    // parseInt's to NaN. Fall back to 0 so the first drag doesn't
+    // snap the element to NaN-land.
+    const left = parseInt(window.getComputedStyle(target).left) || 0;
+    const top = parseInt(window.getComputedStyle(target).top) || 0;
+    const offsetX = clientX - left;
+    const offsetY = clientY - top;
 
     function moveHandler(e: MouseEvent | TouchEvent) {
       if (!el.isConnected) {

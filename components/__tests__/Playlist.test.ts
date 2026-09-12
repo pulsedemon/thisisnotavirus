@@ -70,7 +70,7 @@ describe('Playlist', () => {
       expect(current).toBe(playlist.playlist[0]);
     });
 
-    it('should reset index if it is out of bounds', () => {
+    it('should regenerate the playlist if currentIndex is out of bounds', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(vi.fn());
       const playlist = new Playlist();
       playlist.currentIndex = 999999;

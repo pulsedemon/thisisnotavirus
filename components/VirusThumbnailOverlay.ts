@@ -80,6 +80,7 @@ interface VirusThumbnailOverlayOptions {
   onSelect: (virus: string) => void;
   onClose: () => void;
   virusLoader?: VirusLoaderInterface;
+  playlist: Playlist;
 }
 
 export class VirusThumbnailOverlay {
@@ -89,6 +90,7 @@ export class VirusThumbnailOverlay {
   private currentFocusIndex = -1;
   private abortController: AbortController;
   private observer: MutationObserver;
+  private iframeObserver: IntersectionObserver | null = null;
   private onSelect: (virus: string) => void;
   private onClose: () => void;
   private virusLoader?: VirusLoaderInterface;
@@ -115,8 +117,8 @@ export class VirusThumbnailOverlay {
     const existing = document.getElementById('virus-thumbnail-overlay');
     if (existing) existing.remove();
 
-    // Get virus list
-    const playlist = new Playlist();
+    // Re-use the live Playlist so newly saved mixes show without reload.
+    const playlist = options.playlist;
     const viruses = playlist.viruses.map(virus => ({
       value: virus,
       label: formatVirusName(virus),
@@ -163,6 +165,11 @@ export class VirusThumbnailOverlay {
 
     // Add overlay to DOM
     document.body.appendChild(this.overlay);
+
+    // Lazy-load iframe srcs only when their thumbnail intersects the
+    // viewport. Without this, every virus iframe (three.js/rapier)
+    // boots simultaneously on overlay open.
+    this.setupIframeLazyLoad();
 
     // Prevent body scroll when overlay is open
     document.body.style.overflow = 'hidden';
@@ -218,7 +225,7 @@ export class VirusThumbnailOverlay {
               <div class="virus-thumbnail-item" data-virus="${virus.value}" tabindex="0" role="button" aria-label="Select ${virus.label} virus">
                 <div class="virus-thumbnail-preview">
                   <iframe
-                    src="/viruses/${virus.value}/"
+                    data-src="/viruses/${virus.value}/"
                     title="${virus.label} preview"
                     frameborder="0"
                     loading="lazy"
@@ -503,20 +510,62 @@ export class VirusThumbnailOverlay {
     this.currentFocusIndex = index;
   }
 
+  private setupIframeLazyLoad(): void {
+    const iframes = Array.from(
+      this.overlay.querySelectorAll<HTMLIFrameElement>('iframe[data-src]')
+    );
+    if (iframes.length === 0) return;
+
+    // Strict pattern check: src must look like `/viruses/<slug>/` where
+    // <slug> is lowercase kebab. Rejects anything containing `..`, `//`,
+    // scheme characters, or HTML metacharacters before it ever reaches
+    // iframe.src — satisfies CodeQL's "DOM text reinterpreted as HTML"
+    // and stops a tampered data-src from navigating off-origin.
+    const SAFE_VIRUS_PATH = /^\/viruses\/[a-z][a-z0-9-]*\/$/;
+    const assignSafeSrc = (iframe: HTMLIFrameElement): void => {
+      const src = iframe.getAttribute('data-src');
+      iframe.removeAttribute('data-src');
+      if (src && SAFE_VIRUS_PATH.test(src)) {
+        iframe.src = src;
+      }
+    };
+
+    // IntersectionObserver isn't available in every test environment.
+    // Fall back to immediate src assignment so jsdom-only tests still work.
+    if (typeof IntersectionObserver === 'undefined') {
+      iframes.forEach(assignSafeSrc);
+      return;
+    }
+
+    this.iframeObserver = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const iframe = entry.target as HTMLIFrameElement;
+          assignSafeSrc(iframe);
+          this.iframeObserver?.unobserve(iframe);
+        });
+      },
+      { root: this.overlay, rootMargin: '100px' }
+    );
+
+    iframes.forEach(iframe => this.iframeObserver?.observe(iframe));
+  }
+
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
     this.abortController.abort();
     this.observer.disconnect();
+    this.iframeObserver?.disconnect();
+    this.iframeObserver = null;
     document.body.style.overflow = '';
     this.overlay.remove();
   }
 }
 
-export function showVirusThumbnailOverlay(options: {
-  onSelect: (virus: string) => void;
-  onClose: () => void;
-  virusLoader?: VirusLoaderInterface;
-}): VirusThumbnailOverlay {
+export function showVirusThumbnailOverlay(
+  options: VirusThumbnailOverlayOptions
+): VirusThumbnailOverlay {
   return new VirusThumbnailOverlay(options);
 }

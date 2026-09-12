@@ -92,6 +92,27 @@
       <iframe id="secondary-virus"></iframe>
     </div>
     <script type="module">
+      // Keep in sync with components/Playlist.ts `viruses` array.
+      // Validates URL params so path traversal can't point the inner
+      // iframes at arbitrary same-origin resources.
+      const ALLOWED_VIRUSES = new Set([
+        "random-shapes",
+        "sphere",
+        "uzumaki",
+        "random-characters",
+        "buttons",
+        "faces",
+        "doors",
+        "emoji",
+        "cubes",
+        "static",
+        "shitstorm",
+        "void",
+        "crane-game",
+        "sky",
+        "tick-tock",
+      ]);
+
       const urlParams = new URLSearchParams(window.location.search);
       const primary = urlParams.get("primary");
       const secondary = urlParams.get("secondary");
@@ -100,13 +121,19 @@
       const primaryFrame = document.getElementById("primary-virus");
       const secondaryFrame = document.getElementById("secondary-virus");
 
-      // Load the viruses
-      if (primary) {
-        primaryFrame.src = `/viruses/${primary}/`;
+      if (
+        !primary ||
+        !ALLOWED_VIRUSES.has(primary) ||
+        !secondary ||
+        !ALLOWED_VIRUSES.has(secondary)
+      ) {
+        document.body.textContent = "invalid mix";
+        document.body.style.visibility = "visible";
+        throw new Error("lab: invalid primary/secondary params");
       }
-      if (secondary) {
-        secondaryFrame.src = `/viruses/${secondary}/`;
-      }
+
+      primaryFrame.src = `/viruses/${primary}/`;
+      secondaryFrame.src = `/viruses/${secondary}/`;
 
       // Apply mix ratio
       secondaryFrame.style.opacity = ratio.toString();
