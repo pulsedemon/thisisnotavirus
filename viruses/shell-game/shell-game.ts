@@ -4,10 +4,16 @@ import { randomFloat, randomItem } from '../../utils/random';
 
 type Grid = [cols: number, rows: number];
 type Kind = 'open' | 'peek' | 'swap' | 'multiply' | 'lift' | 'hold' | 'close';
+type Edge = 'near' | 'left' | 'right';
 
 interface Spot {
   u: number;
   v: number;
+}
+
+interface Point {
+  x: number;
+  y: number;
 }
 
 interface Cap {
@@ -20,11 +26,37 @@ interface Cap {
 
 interface Item {
   cap: Cap;
+  u: number;
+  v: number;
   x: number;
   y: number;
   radius: number;
   lift: number;
   struck: boolean;
+}
+
+interface Hole {
+  edge: Edge;
+  /** the ragged line across the board, rim to rim. */
+  rip: Spot[];
+  /** the rip closed along the rim it takes, pushed past the edge so the rim's outline goes too. */
+  outline: Spot[];
+  grab: Spot;
+}
+
+interface Hand {
+  hole: Hole;
+  born: number;
+  drift: number;
+  spin: number;
+  mirror: number;
+  /** caps carried off on the torn piece, set once the hand rips it loose. */
+  riding?: Item[];
+}
+
+interface Sinking {
+  item: Item;
+  born: number;
 }
 
 interface Watcher {
@@ -87,6 +119,11 @@ const LASER_MS = 200;
 const BLAST_MS = 700;
 /** a blast on a shuffled cap is big enough to be a WCAG 2.3.1 flash, so potshots land under three a second. */
 const POTSHOT_GAP_MS = 350;
+const EDGES: Edge[] = ['near', 'left', 'right'];
+const REACH_MS = 450;
+const GRIP_MS = 150;
+const PULL_MS = 700;
+const SINK_MS = 450;
 const TICK = 10;
 const LANDSCAPE_GRIDS: Grid[] = [
   [3, 1],
@@ -170,6 +207,9 @@ let squint = 0;
 let laser: { cap: Cap; firedAt: number } | undefined;
 let blasts: Blast[] = [];
 let lastBlast = Number.NEGATIVE_INFINITY;
+let holes: Hole[] = [];
+let hands: Hand[] = [];
+let sinking: Sinking[] = [];
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
@@ -221,6 +261,7 @@ function begin(kind: Kind) {
   if (kind === 'open') {
     cycleStart = stepStart;
     placeWatchers();
+    holes = [];
     grid = 0;
     shape = grids()[0];
     previousShape = shape;
@@ -246,28 +287,43 @@ function begin(kind: Kind) {
   } else if (kind === 'multiply') {
     grid++;
     shape = grids()[grid];
-    const children = caps.map(parent => ({
-      from: parent.from,
-      to: parent.from,
-      bulge: 0,
-      growing: true,
-      rebornAt: Number.NEGATIVE_INFINITY,
-    }));
-    caps = [...caps, ...children];
     const free = shuffle(spots(shape));
+    const whole = free.filter(spot => !torn(spot));
+    const parents = [...caps];
+    // the doubling also regrows lost caps, as many as the board left whole can hold.
+    const children = whole.slice(parents.length).map((spot, index) => {
+      const from = parents.length ? parents[index % parents.length].from : spot;
+      return {
+        from,
+        to: from,
+        bulge: 0,
+        growing: true,
+        rebornAt: Number.NEGATIVE_INFINITY,
+      };
+    });
+    caps = [...parents, ...children];
+    const order = [...whole, ...free.filter(torn)];
     caps.forEach((cap, index) => {
-      cap.to = free[index];
+      cap.to = order[index];
     });
   }
 }
 
-function settle() {
+function settle(now: number) {
   previousShape = shape;
   caps.forEach(cap => {
     cap.from = cap.to;
     cap.bulge = 0;
     cap.growing = false;
   });
+  const landed = caps.filter(cap => torn(cap.to));
+  landed.forEach(cap => {
+    const { x, y, scale } = project(cap.to.u, cap.to.v);
+    const radius = radiusFor(shape) * scale;
+    const item = { cap, ...cap.to, x, y, radius, lift: 0, struck: false };
+    sinking.push({ item, born: now });
+  });
+  caps = caps.filter(cap => !landed.includes(cap));
 }
 
 function liftOf(cap: Cap, index: number, kind: Kind, p: number) {
@@ -463,6 +519,13 @@ function glitch() {
 function line(x0: number, y0: number, x1: number, y1: number) {
   ctx.moveTo(x0, y0);
   ctx.lineTo(x1, y1);
+}
+
+function trace(points: Point[]) {
+  points.forEach(({ x, y }, index) => {
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
 }
 
 function traceAlmond(
@@ -671,6 +734,244 @@ function drawBed() {
   ctx.stroke();
 }
 
+/** `along` runs down an edge and `into` points in from its rim, both in board units. */
+function onEdge(edge: Edge, along: number, into: number): Spot {
+  if (edge === 'near') return { u: along, v: 1 - into };
+  return { u: edge === 'left' ? into : 1 - into, v: along };
+}
+
+function ripFrom(edge: Edge): Hole {
+  const span = randomFloat(0.18, 0.34);
+  const start = randomFloat(0.08, 0.92 - span);
+  const bite = randomFloat(0.15, 0.38);
+  const rip = Array.from({ length: 11 }, (_, index) => {
+    const s = index / 10;
+    if (index === 0 || index === 10) return onEdge(edge, start + span * s, 0);
+    return onEdge(
+      edge,
+      start + span * s + randomFloat(-0.015, 0.015),
+      bite * Math.sin(Math.PI * s) ** 0.6 + randomFloat(-0.03, 0.03)
+    );
+  });
+  const outline = [
+    onEdge(edge, start, -0.03),
+    ...rip,
+    onEdge(edge, start + span, -0.03),
+  ];
+  // clipping to every hole at once only unions them when they all wind clockwise.
+  if (edge === 'right') outline.reverse();
+  return { edge, rip, outline, grab: onEdge(edge, start + span / 2, 0.1) };
+}
+
+/** even-odd point-in-polygon, in board units. */
+function inside(polygon: Spot[], { u, v }: Spot) {
+  let hit = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [a, b] = [polygon[i], polygon[j]];
+    if (
+      a.v > v !== b.v > v &&
+      u < ((b.u - a.u) * (v - a.v)) / (b.v - a.v) + a.u
+    ) {
+      hit = !hit;
+    }
+  }
+  return hit;
+}
+
+const torn = (spot: Spot) => holes.some(hole => inside(hole.outline, spot));
+const onScreen = (spots: Spot[]) => spots.map(({ u, v }) => project(u, v));
+
+/** a hole through the near rim takes the board's front face below it too. */
+function holeShape({ edge, outline }: Hole) {
+  const points: Point[] = onScreen(outline);
+  if (edge === 'near') {
+    const floor = bed.bottom + bed.depth + 3;
+    points.push(
+      { x: points[points.length - 1].x, y: floor },
+      { x: points[0].x, y: floor }
+    );
+  }
+  return points;
+}
+
+function traceRip({ edge, rip }: Hole) {
+  const points = onScreen(rip);
+  trace(points);
+  if (edge === 'near') {
+    for (const { x } of [points[0], points[points.length - 1]]) {
+      line(x, bed.bottom, x, bed.bottom + bed.depth);
+    }
+  }
+}
+
+/** repaints what's behind the board inside every hole, which also erases torn edges a later hole took. */
+function drawHoles(now: number, background: string) {
+  if (!holes.length) return;
+  ctx.strokeStyle = AMBER;
+  // the inner half of this lands in the hole and gets painted over.
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  holes.forEach(traceRip);
+  ctx.stroke();
+  ctx.save();
+  ctx.beginPath();
+  holes.forEach(hole => {
+    trace(holeShape(hole));
+    ctx.closePath();
+  });
+  ctx.clip();
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
+  drawTickers();
+  drawRain();
+  sinking.forEach(({ item, born }) => {
+    const p = (now - born) / SINK_MS;
+    drawCap({ ...item, y: item.y + item.radius * 2.5 * p * p });
+  });
+  ctx.restore();
+}
+
+/** reaching along `angle` with its fingertips at `tip`; `grip` hooks the fingers in. */
+function drawHand(tip: Point, angle: number, grip: number, mirror: number) {
+  const palm = Math.min(width, height) * 0.19;
+  const finger = palm * 0.19;
+  const reach = palm * 1.1;
+  const outline = Math.max(1.5, palm * 0.03);
+  ctx.save();
+  ctx.translate(tip.x, tip.y);
+  ctx.rotate(angle);
+  ctx.scale(1, mirror);
+  // gripping shortens the outer bones, as if they bend away over the rim.
+  const bones = [
+    { share: 0.45, bend: 0 },
+    { share: 0.32, bend: 0.4 },
+    { share: 0.23, bend: 0.7 },
+  ];
+  // the hand leans in by what the middle finger loses, so the fingertips stay on the board.
+  const lean = bones.reduce((sum, { share, bend }) => sum + share * bend, 0);
+  ctx.translate(reach * lean * grip, 0);
+  ctx.lineCap = 'round';
+  // each bone is a fat amber stroke with a thinner black one inside, and the next bone's outline draws
+  // the joint.
+  const digit = (
+    base: Point,
+    length: number,
+    heading: number,
+    curl: number,
+    thickness: number
+  ) => {
+    let { x, y } = base;
+    bones.forEach(({ share, bend }, bone) => {
+      const bent = length * share * (1 - grip * bend);
+      const end = {
+        x: x + Math.cos(heading) * bent,
+        y: y + Math.sin(heading) * bent,
+      };
+      const girth = thickness * (1 - bone * 0.18);
+      ctx.beginPath();
+      line(x, y, end.x, end.y);
+      ctx.strokeStyle = AMBER;
+      ctx.lineWidth = girth;
+      ctx.stroke();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = girth - outline * 2;
+      ctx.stroke();
+      ({ x, y } = end);
+      heading += curl;
+    });
+  };
+  [0.85, 1, 0.95, 0.75].forEach((length, index) => {
+    const side = index - 1.5;
+    digit(
+      { x: -reach, y: side * finger * 1.1 },
+      reach * length,
+      side * lerp(0.18, 0.05, grip),
+      -Math.sign(side) * lerp(0.1, 0.04, grip),
+      finger
+    );
+  });
+  digit(
+    { x: -reach - palm * 0.5, y: palm * 0.4 },
+    reach * 0.7,
+    lerp(1.1, 0.7, grip),
+    -lerp(0.25, 0.4, grip),
+    finger * 1.15
+  );
+
+  // the palm and forearm run back off-screen, covering the roots of the fingers and thumb.
+  const wrist = -reach - palm * 0.95;
+  const arm = Math.max(width, height);
+  ctx.beginPath();
+  ctx.moveTo(-reach, -palm * 0.5);
+  ctx.quadraticCurveTo(-reach + finger * 0.9, 0, -reach, palm * 0.5);
+  ctx.quadraticCurveTo(wrist + palm * 0.4, palm * 0.56, wrist, palm * 0.34);
+  ctx.lineTo(wrist - arm, palm * 0.4);
+  ctx.lineTo(wrist - arm, -palm * 0.4);
+  ctx.lineTo(wrist, -palm * 0.34);
+  ctx.quadraticCurveTo(wrist + palm * 0.4, -palm * 0.56, -reach, -palm * 0.5);
+  ctx.closePath();
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  ctx.strokeStyle = AMBER;
+  ctx.lineWidth = outline;
+  ctx.stroke();
+  ctx.strokeStyle = DIM_AMBER;
+  ctx.beginPath();
+  for (let index = 0; index < 4; index++) {
+    const side = index - 1.5;
+    line(
+      -reach - finger * 0.5,
+      side * finger * 1.1,
+      wrist + palm * 0.15,
+      side * palm * 0.08
+    );
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** a hand lunges in from off-screen, grips the rim, then drags the torn piece back out with it. */
+function drawSnatch(hand: Hand, now: number) {
+  const age = now - hand.born;
+  const grab = project(hand.hole.grab.u, hand.hole.grab.v);
+  const away = Math.max(width, height) * 0.45;
+  const start =
+    hand.hole.edge === 'near'
+      ? { x: grab.x + hand.drift, y: height + away }
+      : {
+          x: hand.hole.edge === 'left' ? -away : width + away,
+          y: grab.y + hand.drift,
+        };
+  const pull = clamp01((age - REACH_MS - GRIP_MS) / PULL_MS);
+  const t = age < REACH_MS ? 1 - (1 - age / REACH_MS) ** 2 : 1 - pull ** 2;
+  const tip = { x: lerp(start.x, grab.x, t), y: lerp(start.y, grab.y, t) };
+  if (hand.riding) {
+    ctx.save();
+    ctx.translate(tip.x, tip.y);
+    ctx.rotate(hand.spin * pull);
+    ctx.translate(-grab.x, -grab.y);
+    ctx.save();
+    ctx.beginPath();
+    trace(holeShape(hand.hole));
+    ctx.clip();
+    drawBed();
+    ctx.restore();
+    hand.riding.forEach(drawCap);
+    ctx.strokeStyle = AMBER;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    traceRip(hand.hole);
+    ctx.stroke();
+    ctx.restore();
+  }
+  drawHand(
+    tip,
+    Math.atan2(grab.y - start.y, grab.x - start.x),
+    clamp01((age - REACH_MS) / GRIP_MS),
+    hand.mirror
+  );
+}
+
 /** solid amber, unlike the line-art caps it hides under. */
 function drawCoin({ x, y, radius }: Item, now: number) {
   const coinX = radius * 0.34;
@@ -877,7 +1178,7 @@ function drawBlasts(now: number) {
 
 function frame(now: number) {
   if (now - stepStart >= SCRIPT[stepIndex].ms) {
-    settle();
+    settle(now);
     stepIndex = (stepIndex + 1) % SCRIPT.length;
     stepStart = now;
     begin(SCRIPT[stepIndex].kind);
@@ -902,7 +1203,7 @@ function frame(now: number) {
     ((kind === 'swap' || kind === 'multiply') &&
       now - lastBlast >= POTSHOT_GAP_MS - LASER_MS &&
       Math.random() < (shotsPerSecond * elapsed) / 1000);
-  if (!laser && open && firing) {
+  if (!laser && open && firing && caps.length) {
     laser = { cap: randomItem(caps), firedAt: now };
   }
   const shot = laser;
@@ -910,13 +1211,15 @@ function frame(now: number) {
   const radius = lerp(radiusFor(previousShape), radiusFor(shape), t);
   const items = caps
     .map((cap, index): Item => {
-      const { x, y, scale } = project(
-        lerp(cap.from.u, cap.to.u, t),
-        lerp(cap.from.v, cap.to.v, t) + cap.bulge * Math.sin(Math.PI * t)
-      );
+      const u = lerp(cap.from.u, cap.to.u, t);
+      const v =
+        lerp(cap.from.v, cap.to.v, t) + cap.bulge * Math.sin(Math.PI * t);
+      const { x, y, scale } = project(u, v);
       const struck = shot?.cap === cap;
       return {
         cap,
+        u,
+        v,
         x,
         y,
         radius:
@@ -938,6 +1241,41 @@ function frame(now: number) {
     else shot.cap.rebornAt = now;
     laser = undefined;
   }
+  // hands come faster as the game speeds up, one per edge, and rip whatever caps stand on the piece.
+  const free = EDGES.filter(edge =>
+    hands.every(hand => hand.hole.edge !== edge)
+  );
+  const handsPerSecond = 0.25 + 0.35 * progress;
+  if (
+    open &&
+    kind !== 'open' &&
+    kind !== 'close' &&
+    hands.length < 2 &&
+    Math.random() < (handsPerSecond * elapsed) / 1000
+  ) {
+    const hole = ripFrom(randomItem(free));
+    // a piece drawn over an older hole would put board back where it was gone.
+    if (!hole.rip.some(torn)) {
+      hands.push({
+        hole,
+        born: now,
+        drift: randomFloat(-0.15, 0.15) * Math.min(width, height),
+        spin: randomFloat(-0.5, 0.5),
+        mirror: randomItem([-1, 1]),
+      });
+    }
+  }
+  hands.forEach(hand => {
+    if (hand.riding || now - hand.born < REACH_MS + GRIP_MS) return;
+    const riding = items.filter(
+      item => caps.includes(item.cap) && inside(hand.hole.outline, item)
+    );
+    holes.push(hand.hole);
+    hand.riding = riding;
+    caps = caps.filter(cap => riding.every(item => item.cap !== cap));
+  });
+  hands = hands.filter(hand => now - hand.born < REACH_MS + GRIP_MS + PULL_MS);
+  sinking = sinking.filter(({ born }) => now - born < SINK_MS);
   const standing = items.filter(item => caps.includes(item.cap));
   const coinItem = standing.find(item => item.cap === coinCap);
   const aiming = laser;
@@ -959,7 +1297,8 @@ function frame(now: number) {
       (kind === 'swap' && Math.random() < 0.05 * progress));
 
   ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-  ctx.fillStyle = tearing ? FLASH : '#000';
+  const background = tearing ? FLASH : '#000';
+  ctx.fillStyle = background;
   ctx.fillRect(0, 0, width, height);
   // the board jolts at every blast and shakes while the eye laughs at the empty caps.
   const shake = now - lastBlast < 150 ? 5 : kind === 'hold' ? 2.5 : 0;
@@ -972,8 +1311,10 @@ function frame(now: number) {
   drawEye(open, shotItem ?? target, now);
   if (open) {
     drawBed();
+    drawHoles(now, background);
     if (kind === 'peek' && coinItem) drawCoin(coinItem, now);
     standing.forEach(drawCap);
+    hands.forEach(hand => drawSnatch(hand, now));
     if (aiming && shotItem) {
       drawLaser(shotItem, (now - aiming.firedAt) / LASER_MS);
     }
