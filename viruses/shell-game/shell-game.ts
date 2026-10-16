@@ -85,6 +85,8 @@ const FLASH = '#3a0800';
 const LASER_CORE = '#ffd8c8';
 const LASER_MS = 200;
 const BLAST_MS = 700;
+/** a blast on a shuffled cap is big enough to be a WCAG 2.3.1 flash, so potshots land under three a second. */
+const POTSHOT_GAP_MS = 350;
 const TICK = 10;
 const LANDSCAPE_GRIDS: Grid[] = [
   [3, 1],
@@ -893,10 +895,12 @@ function frame(now: number) {
   const elapsed = Math.min(100, now - lastFrame);
   lastFrame = now;
   // potshots during the shuffle, then a barrage into the empty caps while it gloats.
+  // the barrage skips the gap because by then the caps are too small to flash.
   const shotsPerSecond = 0.8 + 3.2 * progress;
   const firing =
     kind === 'hold' ||
     ((kind === 'swap' || kind === 'multiply') &&
+      now - lastBlast >= POTSHOT_GAP_MS - LASER_MS &&
       Math.random() < (shotsPerSecond * elapsed) / 1000);
   if (!laser && open && firing) {
     laser = { cap: randomItem(caps), firedAt: now };
