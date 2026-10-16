@@ -280,7 +280,7 @@ function begin(kind: Kind) {
       const [a, b] = [order[index], order[index + 1]];
       a.to = b.from;
       b.to = a.from;
-      // one passes in front and the other behind, so they never collide.
+      // one swings toward the front and the other toward the back.
       a.bulge = bulge;
       b.bulge = -bulge;
     }
