@@ -778,6 +778,25 @@ function inside(polygon: Spot[], { u, v }: Spot) {
   return hit;
 }
 
+const turn = (a: Spot, b: Spot, c: Spot) =>
+  Math.sign((b.u - a.u) * (c.v - a.v) - (b.v - a.v) * (c.u - a.u));
+
+/** outlines overlap when a side of one crosses a side of the other, or one holds the other whole. */
+function overlaps(a: Spot[], b: Spot[]) {
+  const sides = (polygon: Spot[]): [Spot, Spot][] =>
+    polygon.map((spot, index) => [spot, polygon[(index + 1) % polygon.length]]);
+  return (
+    inside(a, b[0]) ||
+    inside(b, a[0]) ||
+    sides(a).some(([p, q]) =>
+      sides(b).some(
+        ([r, s]) =>
+          turn(p, q, r) !== turn(p, q, s) && turn(r, s, p) !== turn(r, s, q)
+      )
+    )
+  );
+}
+
 const torn = (spot: Spot) => holes.some(hole => inside(hole.outline, spot));
 const onScreen = (spots: Spot[]) => spots.map(({ u, v }) => project(u, v));
 
@@ -1254,8 +1273,10 @@ function frame(now: number) {
     Math.random() < (handsPerSecond * elapsed) / 1000
   ) {
     const hole = ripFrom(randomItem(free));
-    // a piece drawn over an older hole would put board back where it was gone.
-    if (!hole.rip.some(torn)) {
+    // a piece drawn over another hole, even one a hand is still reaching for, would put board back
+    // where it was gone.
+    const taken = [...holes, ...hands.map(hand => hand.hole)];
+    if (!taken.some(({ outline }) => overlaps(outline, hole.outline))) {
       hands.push({
         hole,
         born: now,
