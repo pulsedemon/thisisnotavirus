@@ -39,17 +39,13 @@ export function preloadImage(url: string) {
   img.src = url;
 }
 
-export function shuffle(array: string[]): string[] {
+export function shuffle<T>(array: T[]): T[] {
   let currentIndex = array.length,
     randomIndex;
 
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
+  while (currentIndex !== 0) {
     randomIndex = randomInt(currentIndex);
     currentIndex--;
-
-    // And swap it with the current element.
     [array[currentIndex], array[randomIndex]] = [
       array[randomIndex],
       array[currentIndex],
