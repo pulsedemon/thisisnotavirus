@@ -334,7 +334,7 @@ function placeWatchers() {
   }
 }
 
-/** a rate line that wanders, spikes and drifts back to its baseline, except while crashing, when it only falls. */
+/** a rate line that wanders, spikes and drifts back to its baseline, or down the screen while crashing. */
 function nextValue(
   values: number[],
   band: number,
@@ -669,7 +669,7 @@ function drawBed() {
   ctx.stroke();
 }
 
-/** the only solid thing on screen. */
+/** solid amber, unlike the line-art caps it hides under. */
 function drawCoin({ x, y, radius }: Item, now: number) {
   const coinX = radius * 0.34;
   const coinY = coinX * 0.45;
@@ -898,7 +898,7 @@ function frame(now: number) {
     kind === 'hold' ||
     ((kind === 'swap' || kind === 'multiply') &&
       Math.random() < (shotsPerSecond * elapsed) / 1000);
-  if (!laser && open && firing && caps.length) {
+  if (!laser && open && firing) {
     laser = { cap: randomItem(caps), firedAt: now };
   }
   const shot = laser;
@@ -930,7 +930,7 @@ function frame(now: number) {
   if (shot && now - shot.firedAt > LASER_MS) {
     const hit = items.find(item => item.cap === shot.cap);
     if (hit) explode(hit, now);
-    if (kind === 'hold') caps = caps.filter(cap => cap !== shot.cap);
+    if (gloating) caps = caps.filter(cap => cap !== shot.cap);
     else shot.cap.rebornAt = now;
     laser = undefined;
   }
