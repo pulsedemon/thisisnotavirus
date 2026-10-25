@@ -14,6 +14,7 @@ describe('virus sharing', () => {
     writeText.mockReset().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { share, clipboard: { writeText } });
     vi.spyOn(window, 'prompt').mockReturnValue(null);
+    vi.spyOn(console, 'warn').mockImplementation(vi.fn());
     window.history.replaceState({}, '', '/collection/?campaign=test#old');
     document.body.innerHTML =
       '<div id="menu"><div class="controls"><span id="info-btn"></span></div></div>';
@@ -39,6 +40,14 @@ describe('virus sharing', () => {
     expect(button.title).toBe('Spread virus');
     expect(button.getAttribute('aria-label')).toBe('Spread current virus');
     expect(button.nextElementSibling?.id).toBe('info-btn');
+  });
+
+  it('skips Share when the menu controls are missing', () => {
+    document.body.innerHTML = '<div id="menu"></div>';
+
+    expect(createShareControl()).toBeNull();
+    expect(document.getElementById('share-virus')).toBeNull();
+    expect(console.warn).toHaveBeenCalledOnce();
   });
 
   it('shares the latest virus with its name and a clean link on the current site', async () => {
@@ -107,7 +116,8 @@ describe('virus sharing', () => {
     control.startLoading('doors');
     control.finishLoading();
     expect(button.getAttribute('aria-disabled')).toBe('true');
-    pendingShare.reject(new DOMException('Unavailable', 'DataError'));
+    const failure = new DOMException('Unavailable', 'DataError');
+    pendingShare.reject(failure);
     await vi.advanceTimersByTimeAsync(0);
 
     expect(writeText).toHaveBeenCalledExactlyOnceWith(
@@ -115,6 +125,10 @@ describe('virus sharing', () => {
     );
     expect(status.textContent).toBe('Link copied');
     expect(window.prompt).not.toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith(
+      expect.any(String),
+      failure
+    );
     expect(button.getAttribute('aria-disabled')).toBe('false');
   });
 
@@ -165,6 +179,7 @@ describe('virus sharing', () => {
         'Copy this link:',
         `${window.location.origin}/collection/?virus=doors`
       );
+      expect(console.warn).toHaveBeenCalledOnce();
       expect(status.textContent).toBe('');
       expect(button.getAttribute('aria-disabled')).toBe('false');
     }

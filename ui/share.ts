@@ -2,7 +2,10 @@ import { formatVirusName } from '../utils/misc';
 
 export function createShareControl() {
   const controls = document.querySelector('#menu .controls');
-  if (!controls) return null;
+  if (!controls) {
+    console.warn('createShareControl: #menu .controls not found, skipping');
+    return null;
+  }
 
   const button = document.createElement('button');
   button.id = 'share-virus';
@@ -22,7 +25,7 @@ export function createShareControl() {
   let loading = true;
   let sharing = false;
 
-  // native disabled drops keyboard focus on every rotation load.
+  // native disabled drops keyboard focus whenever the button becomes unavailable.
   function updateDisabled() {
     const unavailable = loading || sharing || !button.value;
     button.setAttribute('aria-disabled', String(unavailable));
@@ -58,6 +61,7 @@ export function createShareControl() {
           if (error instanceof DOMException && error.name === 'AbortError') {
             return;
           }
+          console.warn('Native share failed, copying link instead:', error);
         }
       }
 
@@ -67,7 +71,8 @@ export function createShareControl() {
         feedbackTimeout = setTimeout(() => {
           status.textContent = '';
         }, 2000);
-      } catch {
+      } catch (error) {
+        console.warn('Copying link failed:', error);
         window.prompt('Copy this link:', url.href);
       }
     } finally {
