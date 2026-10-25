@@ -9,7 +9,7 @@ import { createStyledIframe } from '../utils/iframe';
 import { randomIntBetween } from '../utils/random';
 import { safeGtag } from '../utils/gtag';
 import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
-import { createShareButton } from '../ui/share';
+import { createShareControl } from '../ui/share';
 
 export default class VirusLoader implements VirusLoaderInterface {
   private iframe: HTMLIFrameElement;
@@ -19,7 +19,7 @@ export default class VirusLoader implements VirusLoaderInterface {
   private loadingAnim!: { start: () => void; stop: () => void };
   private loadingRing: HTMLDivElement;
   private sourceCodeLink: HTMLAnchorElement | null;
-  private shareButton: HTMLButtonElement | null;
+  private shareControl: ReturnType<typeof createShareControl>;
   private virusLab: VirusLab | null = null;
   private isNavigating = false;
   virusHasKeyboardControl = false;
@@ -53,7 +53,7 @@ export default class VirusLoader implements VirusLoaderInterface {
     this.loadingRing = loadingRing;
 
     this.sourceCodeLink = document.querySelector('#source-code a');
-    this.shareButton = createShareButton();
+    this.shareControl = createShareControl();
 
     const virusParam = new URLSearchParams(window.location.search).get('virus');
 
@@ -108,10 +108,9 @@ export default class VirusLoader implements VirusLoaderInterface {
 
     this.virusHasKeyboardControl = false;
 
-    if (this.shareButton) {
-      this.shareButton.hidden = true;
-      this.shareButton.value = this.playlist.viruses.includes(name) ? name : '';
-    }
+    this.shareControl?.startLoading(
+      this.playlist.viruses.includes(name) ? name : null
+    );
 
     if (Math.random() < 0.5) {
       const tvStatic = new TVStaticLoading();
@@ -296,7 +295,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       this.loadingRing.classList.remove('loading');
       const reloadBtn = document.getElementById('reload');
       if (reloadBtn) reloadBtn.classList.remove('spinning');
-      if (this.shareButton) this.shareButton.hidden = !this.shareButton.value;
+      this.shareControl?.finishLoading();
     }
   }
 

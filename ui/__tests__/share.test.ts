@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createShareButton } from '../share';
+import { createShareControl } from '../share';
 
 describe('virus sharing', () => {
   let button: HTMLButtonElement;
+  let control: NonNullable<ReturnType<typeof createShareControl>>;
   let status: HTMLElement;
   const share = vi.fn<(data: ShareData) => Promise<void>>();
   const writeText = vi.fn<(text: string) => Promise<void>>();
@@ -16,9 +17,10 @@ describe('virus sharing', () => {
     window.history.replaceState({}, '', '/collection/?campaign=test#old');
     document.body.innerHTML =
       '<div id="menu"><div class="controls"><span id="info-btn"></span></div></div>';
-    button = createShareButton()!;
-    button.value = 'tick-tock';
-    button.hidden = false;
+    control = createShareControl()!;
+    button = document.getElementById('share-virus') as HTMLButtonElement;
+    control.startLoading('tick-tock');
+    control.finishLoading();
     status = document.querySelector('[role="status"]')!;
   });
 
@@ -36,7 +38,8 @@ describe('virus sharing', () => {
   it('shares the latest virus with its name and a clean link on the current site', async () => {
     button.click();
     await vi.advanceTimersByTimeAsync(0);
-    button.value = 'doors';
+    control.startLoading('doors');
+    control.finishLoading();
     button.click();
     await vi.advanceTimersByTimeAsync(0);
 
@@ -95,7 +98,9 @@ describe('virus sharing', () => {
     const pendingShare = Promise.withResolvers<void>();
     share.mockReturnValue(pendingShare.promise);
     button.click();
-    button.value = 'doors';
+    control.startLoading('doors');
+    control.finishLoading();
+    expect(button.disabled).toBe(true);
     pendingShare.reject(new DOMException('Unavailable', 'DataError'));
     await vi.advanceTimersByTimeAsync(0);
 
@@ -106,6 +111,27 @@ describe('virus sharing', () => {
     expect(window.prompt).not.toHaveBeenCalled();
     expect(button.disabled).toBe(false);
   });
+
+  it.each([
+    { virus: 'doors', disabledAfterLoad: false },
+    { virus: null, disabledAfterLoad: true },
+  ])(
+    'keeps Share disabled while $virus loads after an earlier share finishes',
+    async ({ virus, disabledAfterLoad }) => {
+      const pendingShare = Promise.withResolvers<void>();
+      share.mockReturnValue(pendingShare.promise);
+      button.click();
+      control.startLoading(virus);
+
+      pendingShare.resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(true);
+
+      control.finishLoading();
+      expect(button.disabled).toBe(disabledAfterLoad);
+    }
+  );
 
   it.each(['denied', 'unavailable'])(
     'exposes the link for manual copying when the clipboard is %s',
@@ -122,7 +148,8 @@ describe('virus sharing', () => {
       } else {
         vi.stubGlobal('navigator', {});
       }
-      button.value = 'doors';
+      control.startLoading('doors');
+      control.finishLoading();
       button.click();
       await vi.advanceTimersByTimeAsync(0);
 
@@ -155,11 +182,14 @@ describe('virus sharing', () => {
     }
   );
 
-  it('does not share while the loader hides the control or has no individual virus', () => {
-    button.hidden = true;
+  it('keeps an unshareable virus visible and disabled', () => {
+    control.startLoading(null);
+    expect(button.hidden).toBe(false);
+    expect(button.disabled).toBe(true);
     button.click();
-    button.hidden = false;
-    button.value = '';
+    control.finishLoading();
+    expect(button.hidden).toBe(false);
+    expect(button.disabled).toBe(true);
     button.click();
 
     expect(share).not.toHaveBeenCalled();

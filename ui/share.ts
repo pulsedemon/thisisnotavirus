@@ -1,6 +1,6 @@
 import { formatVirusName } from '../utils/misc';
 
-export function createShareButton(): HTMLButtonElement | null {
+export function createShareControl() {
   const controls = document.querySelector('#menu .controls');
   if (!controls) return null;
 
@@ -11,7 +11,7 @@ export function createShareButton(): HTMLButtonElement | null {
   button.textContent = 'share';
   button.title = 'Share virus';
   button.setAttribute('aria-label', 'Share current virus');
-  button.hidden = true;
+  button.disabled = true;
   controls.insertBefore(button, document.getElementById('info-btn'));
 
   const status = document.createElement('div');
@@ -19,6 +19,12 @@ export function createShareButton(): HTMLButtonElement | null {
   status.setAttribute('role', 'status');
   document.body.appendChild(status);
   let feedbackTimeout: ReturnType<typeof setTimeout> | undefined;
+  let loading = true;
+  let sharing = false;
+
+  function updateDisabled() {
+    button.disabled = loading || sharing || !button.value;
+  }
 
   function stopActivationShortcut(event: KeyboardEvent) {
     if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
@@ -29,11 +35,12 @@ export function createShareButton(): HTMLButtonElement | null {
 
   button.onclick = async () => {
     const virus = button.value;
-    if (!virus || button.hidden || button.disabled) return;
+    if (button.disabled) return;
 
     const url = new URL(window.location.pathname, window.location.origin);
     url.searchParams.set('virus', virus);
-    button.disabled = true;
+    sharing = true;
+    updateDisabled();
     clearTimeout(feedbackTimeout);
     status.textContent = '';
 
@@ -62,9 +69,20 @@ export function createShareButton(): HTMLButtonElement | null {
         window.prompt('Copy this link:', url.href);
       }
     } finally {
-      button.disabled = false;
+      sharing = false;
+      updateDisabled();
     }
   };
 
-  return button;
+  return {
+    startLoading(virus: string | null) {
+      button.value = virus ?? '';
+      loading = true;
+      updateDisabled();
+    },
+    finishLoading() {
+      loading = false;
+      updateDisabled();
+    },
+  };
 }

@@ -152,12 +152,10 @@ body {
     color: inherit;
     cursor: pointer;
 
-    &[hidden] {
-      display: none;
-    }
-
     &:disabled {
       cursor: default;
+      color: inherit;
+      opacity: 0.4;
     }
   }
 

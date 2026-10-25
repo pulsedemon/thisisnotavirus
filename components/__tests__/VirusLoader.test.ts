@@ -204,7 +204,7 @@ describe('VirusLoader', () => {
   });
 
   describe('loadVirus', () => {
-    it('shares the loaded individual virus and hides sharing during loads and mixes', async () => {
+    it('keeps Share visible and only enables loaded individual viruses', async () => {
       const share = vi.fn().mockResolvedValue(undefined);
       vi.stubGlobal('navigator', { share });
       const playlist = createPlaylist();
@@ -215,11 +215,13 @@ describe('VirusLoader', () => {
       ) as HTMLButtonElement;
       const iframe = document.getElementById('container') as HTMLIFrameElement;
 
-      expect(button.hidden).toBe(true);
+      expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(true);
       vl.loadVirus('doors');
       iframe.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(500);
       expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(false);
       button.click();
       await vi.advanceTimersByTimeAsync(0);
       expect(share).toHaveBeenCalledExactlyOnceWith({
@@ -228,18 +230,24 @@ describe('VirusLoader', () => {
       });
 
       vl.loadVirus('premix:sphere-uzumaki');
-      expect(button.hidden).toBe(true);
+      expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(true);
       document
         .querySelector('.mixed-virus-container iframe')!
         .dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(500);
-      expect(button.hidden).toBe(true);
+      expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(true);
+      button.click();
+      expect(share).toHaveBeenCalledOnce();
 
       vl.loadVirus('tick-tock');
-      expect(button.hidden).toBe(true);
+      expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(true);
       iframe.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(500);
       expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(false);
       button.click();
       await vi.advanceTimersByTimeAsync(0);
       expect(share).toHaveBeenLastCalledWith({
