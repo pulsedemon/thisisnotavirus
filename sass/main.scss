@@ -12,11 +12,10 @@
   --z-overlay: 100;
   --z-floating-btn: 2000;
   --z-modal: 9999;
-  // Controls sit above modal intentionally — menu/source-code remain accessible over modals
+  // keep menu and source controls accessible over modals.
   --z-controls: 10000;
 }
 
-// Global hide class
 .hide {
   display: none !important;
 }
@@ -137,11 +136,26 @@ body {
     margin-right: 10px;
   }
 
-  span {
+  span,
+  #share-virus {
     padding: 0 5px;
 
     &:hover {
       color: var(--color-primary);
+    }
+  }
+
+  #share-virus {
+    box-sizing: content-box;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+
+    &[aria-disabled='true'] {
+      cursor: default;
+      color: inherit;
+      opacity: 0.4;
     }
   }
 
@@ -181,6 +195,23 @@ body {
       text-shadow: -1px 0 red;
       animation: glitch-effect 2s infinite linear alternate-reverse;
     }
+  }
+}
+
+.share-status {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-controls);
+  color: var(--color-primary);
+  font-size: 14px;
+  line-height: 1.4;
+  pointer-events: none;
+
+  &:not(:empty) {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
   }
 }
 
@@ -325,16 +356,6 @@ body {
     top: 3px;
     left: 1px;
   }
-}
-
-#intro {
-  position: fixed;
-  top: 6px;
-  left: 65px;
-  color: white;
-  font-family: sans-serif;
-  font-size: 40px;
-  text-shadow: var(--color-primary) 1px 0 10px;
 }
 
 .lab-button {

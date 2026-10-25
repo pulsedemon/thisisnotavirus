@@ -12,6 +12,7 @@ ui/                  → Extracted UI modules
   menu.ts            → Info modal, teleport menu, title shuffle
   fullscreen.ts      → Fullscreen toggle (desktop only)
   floating-buttons.ts → Lab button & gallery thumbnail button
+  share.ts           → Spread virus button: share menu with copy-link fallback
 components/          → Reusable components
   Playlist.ts        → Virus playlist with shuffle, mix support, localStorage persistence
   VirusLab.ts        → Virus mixing lab UI

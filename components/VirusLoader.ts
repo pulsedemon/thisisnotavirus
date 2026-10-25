@@ -9,6 +9,7 @@ import { createStyledIframe } from '../utils/iframe';
 import { randomIntBetween } from '../utils/random';
 import { safeGtag } from '../utils/gtag';
 import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
+import { createShareControl } from '../ui/share';
 
 export default class VirusLoader implements VirusLoaderInterface {
   private iframe: HTMLIFrameElement;
@@ -18,18 +19,13 @@ export default class VirusLoader implements VirusLoaderInterface {
   private loadingAnim!: { start: () => void; stop: () => void };
   private loadingRing: HTMLDivElement;
   private sourceCodeLink: HTMLAnchorElement | null;
+  private shareControl: ReturnType<typeof createShareControl>;
   private virusLab: VirusLab | null = null;
   private isNavigating = false;
   virusHasKeyboardControl = false;
 
   private playlist: Playlist;
-  /**
-   * Generation counter for cancelling stale iframe loads.
-   * Each loadVirus() call increments this and captures the value locally.
-   * All async callbacks (load, error, safety timeout, reveal delay) compare
-   * their captured generation against the current value and bail out if a
-   * newer load has superseded them.
-   */
+  // ignore callbacks from iframe loads superseded by newer navigation.
   private _loadGeneration = 0;
   private _pendingRevealTimeout: ReturnType<typeof setTimeout> | null = null;
   private _safetyTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -57,8 +53,8 @@ export default class VirusLoader implements VirusLoaderInterface {
     this.loadingRing = loadingRing;
 
     this.sourceCodeLink = document.querySelector('#source-code a');
+    this.shareControl = createShareControl();
 
-    // Check for deep-link via ?virus= query parameter
     const virusParam = new URLSearchParams(window.location.search).get('virus');
 
     if (virusParam && playlist.viruses.includes(virusParam)) {
@@ -79,7 +75,6 @@ export default class VirusLoader implements VirusLoaderInterface {
       });
     });
 
-    // Create floating buttons
     createLabButton(this);
     createThumbnailButton(this, playlist);
   }
@@ -113,7 +108,10 @@ export default class VirusLoader implements VirusLoaderInterface {
 
     this.virusHasKeyboardControl = false;
 
-    // Randomly choose the loading animation for each load
+    this.shareControl?.startLoading(
+      this.playlist.viruses.includes(name) ? name : null
+    );
+
     if (Math.random() < 0.5) {
       const tvStatic = new TVStaticLoading();
       this.loadingAnim = {
@@ -134,7 +132,6 @@ export default class VirusLoader implements VirusLoaderInterface {
     const reloadBtn = document.getElementById('reload');
     if (reloadBtn) reloadBtn.classList.add('spinning');
 
-    // Clean up any existing mixed virus
     this.removeMixContainer();
 
     this._safetyTimeout = setTimeout(() => {
@@ -298,6 +295,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       this.loadingRing.classList.remove('loading');
       const reloadBtn = document.getElementById('reload');
       if (reloadBtn) reloadBtn.classList.remove('spinning');
+      this.shareControl?.finishLoading();
     }
   }
 
@@ -339,8 +337,7 @@ export default class VirusLoader implements VirusLoaderInterface {
   }
 
   /**
-   * (Re)starts the random virus rotation. Picks a single random interval
-   * (2-11s) that stays fixed until the next call.
+   * keep one random rotation interval until the next call.
    */
   startRandomization() {
     clearInterval(this.loadRandomInterval);
@@ -362,7 +359,6 @@ export default class VirusLoader implements VirusLoaderInterface {
 
   toggleLab() {
     if (this.virusLab) {
-      // Close lab
       const currentMix = this.virusLab.getCurrentMix();
       const labContainer = document.getElementById('virus-lab');
       if (labContainer) {
@@ -398,7 +394,6 @@ export default class VirusLoader implements VirusLoaderInterface {
 
       this.startRandomization();
     } else {
-      // Open lab
       this.iframe.style.display = 'none';
       const menuEl = document.getElementById('menu');
       if (menuEl) menuEl.style.display = 'none';

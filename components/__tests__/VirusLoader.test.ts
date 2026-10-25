@@ -67,15 +67,13 @@ function createVirusLoader(playlist: Playlist): VirusLoader {
   return new VirusLoader(playlist);
 }
 
-/**
- * Helper to access private members on VirusLoader via a Record cast.
- */
 function priv(vl: VirusLoader): Record<string, unknown> {
   return vl as unknown as Record<string, unknown>;
 }
 
 describe('VirusLoader', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.useFakeTimers();
     vi.spyOn(Math, 'random').mockReturnValue(0.6);
 
@@ -100,18 +98,22 @@ describe('VirusLoader', () => {
     const anchor = document.createElement('a');
     sourceCode.appendChild(anchor);
     document.body.appendChild(sourceCode);
+
+    const menu = document.createElement('div');
+    menu.id = 'menu';
+    menu.innerHTML =
+      '<div class="controls"><span id="play-pause">pause</span><span id="info-btn"></span></div>';
+    document.body.appendChild(menu);
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     document.body.textContent = '';
     window.history.replaceState({}, '', '/');
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 1. constructor
-  // ─────────────────────────────────────────────────────────────────────────
   describe('constructor', () => {
     it('should throw when #container is missing', () => {
       document.getElementById('container')!.remove();
@@ -158,21 +160,24 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 2. constructor deep-link
-  // ─────────────────────────────────────────────────────────────────────────
   describe('constructor deep-link', () => {
     it('should load deep-linked virus when ?virus= matches a known virus', () => {
-      window.history.replaceState({}, '', '/?virus=random-shapes');
+      window.history.replaceState({}, '', '/?virus=tick-tock');
 
       const playlist = createPlaylist();
       const setCurrentVirusSpy = vi.spyOn(playlist, 'setCurrentVirus');
 
       createVirusLoader(playlist);
 
-      expect(setCurrentVirusSpy).toHaveBeenCalledWith('random-shapes');
+      expect(setCurrentVirusSpy).toHaveBeenCalledWith('tick-tock');
       const iframe = document.getElementById('container') as HTMLIFrameElement;
-      expect(iframe.src).toContain('/viruses/random-shapes/');
+      expect(iframe.src).toContain('/viruses/tick-tock/');
+      iframe.dispatchEvent(new Event('load'));
+      vi.advanceTimersByTime(15000);
+      expect(iframe.src).toContain('/viruses/tick-tock/');
+      expect(document.getElementById('play-pause')!.innerText).toBe(
+        'play_arrow'
+      );
     });
 
     it('should ignore ?virus= if virus is not in playlist', () => {
@@ -194,15 +199,63 @@ describe('VirusLoader', () => {
       const playlist = createPlaylist();
       const vl = createVirusLoader(playlist);
 
-      // startRandomization sets loadRandomInterval
       expect(priv(vl).loadRandomInterval).toBeDefined();
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 3. loadVirus
-  // ─────────────────────────────────────────────────────────────────────────
   describe('loadVirus', () => {
+    it('keeps Share visible and only enables loaded individual viruses', async () => {
+      const share = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal('navigator', { share });
+      const playlist = createPlaylist();
+      const vl = createVirusLoader(playlist);
+      vl.pauseRandomization();
+      const button = document.getElementById(
+        'share-virus'
+      ) as HTMLButtonElement;
+      const iframe = document.getElementById('container') as HTMLIFrameElement;
+
+      expect(button.hidden).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      vl.loadVirus('doors');
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(500);
+      expect(button.hidden).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('false');
+      button.click();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(share).toHaveBeenCalledExactlyOnceWith({
+        title: 'doors | THISISNOTAVIRUS',
+        url: `${window.location.origin}/?virus=doors`,
+      });
+
+      vl.loadVirus('premix:sphere-uzumaki');
+      expect(button.hidden).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      document
+        .querySelector('.mixed-virus-container iframe')!
+        .dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(500);
+      expect(button.hidden).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      button.click();
+      expect(share).toHaveBeenCalledOnce();
+
+      vl.loadVirus('tick-tock');
+      expect(button.hidden).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(500);
+      expect(button.hidden).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('false');
+      button.click();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(share).toHaveBeenLastCalledWith({
+        title: 'tick-tock | THISISNOTAVIRUS',
+        url: `${window.location.origin}/?virus=tick-tock`,
+      });
+    });
+
     it('should set iframe src for a regular virus', () => {
       const playlist = createPlaylist();
       const vl = createVirusLoader(playlist);
@@ -226,7 +279,6 @@ describe('VirusLoader', () => {
 
       const vl = createVirusLoader(playlist);
 
-      // Reset isMixedVirus to only match premix calls going forward
       const isMixedSpy = vi.spyOn(playlist, 'isMixedVirus');
       isMixedSpy.mockImplementation((name: string) =>
         name.startsWith('premix:')
@@ -261,7 +313,6 @@ describe('VirusLoader', () => {
 
       const vl = createVirusLoader(playlist);
 
-      // Now load a mixed virus that doesn't exist
       const isMixedSpy = vi.spyOn(playlist, 'isMixedVirus');
       isMixedSpy.mockReturnValue(true);
       const getPremixSpy = vi.spyOn(playlist, 'getPremixByName');
@@ -363,9 +414,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 4. generation counter
-  // ─────────────────────────────────────────────────────────────────────────
   describe('generation counter', () => {
     it('should cancel stale safety timeout when new load starts', async () => {
       const Sentry = await import('@sentry/browser');
@@ -411,9 +459,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 5. safety timeout
-  // ─────────────────────────────────────────────────────────────────────────
   describe('safety timeout', () => {
     it('should force loading animation stop after 5 seconds', async () => {
       const Sentry = await import('@sentry/browser');
@@ -446,7 +491,6 @@ describe('VirusLoader', () => {
       const vl = createVirusLoader(playlist);
       vl.pauseRandomization();
 
-      // Clear any calls from constructor
       captureMessageFn.mockClear();
 
       const iframe = document.getElementById('container') as HTMLIFrameElement;
@@ -461,9 +505,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 6. skipNext / skipPrev
-  // ─────────────────────────────────────────────────────────────────────────
   describe('skipNext / skipPrev', () => {
     it('should skip to next virus', () => {
       const playlist = createPlaylist();
@@ -500,7 +541,7 @@ describe('VirusLoader', () => {
       nextSpy.mockClear();
 
       vl.skipNext();
-      vl.skipNext(); // Should be ignored due to isNavigating
+      vl.skipNext();
 
       expect(nextSpy).toHaveBeenCalledTimes(1);
 
@@ -511,9 +552,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 7. toggleLab
-  // ─────────────────────────────────────────────────────────────────────────
   describe('toggleLab', () => {
     it('should open lab', () => {
       const playlist = createPlaylist();
@@ -557,9 +595,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 8. pauseRandomization / startRandomization
-  // ─────────────────────────────────────────────────────────────────────────
   describe('pauseRandomization / startRandomization', () => {
     it('should clear interval on pause', () => {
       const playlist = createPlaylist();
@@ -603,7 +638,6 @@ describe('VirusLoader', () => {
       const vl = createVirusLoader(playlist);
       nextSpy.mockClear();
 
-      // randomIntBetween is mocked to return 5, so interval = 5000ms
       vl.startRandomization();
 
       vi.advanceTimersByTime(4999);
@@ -617,9 +651,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 9. reloadCurrent
-  // ─────────────────────────────────────────────────────────────────────────
   describe('reloadCurrent', () => {
     it('should reload the current virus', () => {
       const playlist = createPlaylist();
@@ -643,19 +674,15 @@ describe('VirusLoader', () => {
       currentSpy.mockClear();
 
       vl.reloadCurrent();
-      vl.reloadCurrent(); // Should be ignored
+      vl.reloadCurrent();
 
       vi.advanceTimersByTime(300);
       vl.reloadCurrent();
 
-      // Two successful reloads (first + after debounce)
       expect(currentSpy).toHaveBeenCalledTimes(2);
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 10. sourceCodeUrl
-  // ─────────────────────────────────────────────────────────────────────────
   describe('sourceCodeUrl', () => {
     it('should return the correct GitHub URL', () => {
       const playlist = createPlaylist();
@@ -668,9 +695,6 @@ describe('VirusLoader', () => {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 11. virusHasKeyboardControl
-  // ─────────────────────────────────────────────────────────────────────────
   describe('virusHasKeyboardControl', () => {
     it('should default to false', () => {
       const playlist = createPlaylist();
