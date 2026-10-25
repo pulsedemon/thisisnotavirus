@@ -98,6 +98,18 @@ describe('virus sharing', () => {
     expect(status.textContent).toBe('');
   });
 
+  it('keeps a repeated copy confirmation for its full duration', async () => {
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    button.click();
+    await vi.advanceTimersByTimeAsync(1500);
+    button.click();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(status.textContent).toBe('Link copied');
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(status.textContent).toBe('');
+  });
+
   it('does not copy or report failure when native sharing is cancelled', async () => {
     share.mockRejectedValue(new DOMException('Cancelled', 'AbortError'));
     button.click();
@@ -133,10 +145,10 @@ describe('virus sharing', () => {
   });
 
   it.each([
-    { virus: 'doors', disabledAfterLoad: false },
-    { virus: null, disabledAfterLoad: true },
+    { kind: 'an individual virus', virus: 'doors', disabledAfterLoad: false },
+    { kind: 'a mix', virus: null, disabledAfterLoad: true },
   ])(
-    'keeps Share disabled while $virus loads after an earlier share finishes',
+    'keeps Share disabled while $kind loads after an earlier share finishes',
     async ({ virus, disabledAfterLoad }) => {
       const pendingShare = Promise.withResolvers<void>();
       share.mockReturnValue(pendingShare.promise);
@@ -219,8 +231,21 @@ describe('virus sharing', () => {
     expect(writeText).not.toHaveBeenCalled();
   });
 
-  it('keeps keyboard focus on Share while the next virus loads', () => {
-    control.startLoading('doors');
+  it.each([
+    {
+      state: 'the next virus loads',
+      makeUnavailable: () => control.startLoading('doors'),
+    },
+    {
+      state: 'a share is pending',
+      makeUnavailable: () => {
+        share.mockReturnValue(Promise.withResolvers<void>().promise);
+        button.click();
+      },
+    },
+  ])('keeps keyboard focus on Share while $state', ({ makeUnavailable }) => {
+    makeUnavailable();
+    expect(button.getAttribute('aria-disabled')).toBe('true');
     button.focus();
 
     expect(document.activeElement).toBe(button);
