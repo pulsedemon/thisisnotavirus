@@ -152,7 +152,7 @@ body {
     color: inherit;
     cursor: pointer;
 
-    &:disabled {
+    &[aria-disabled='true'] {
       cursor: default;
       color: inherit;
       opacity: 0.4;

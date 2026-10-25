@@ -11,7 +11,7 @@ export function createShareControl() {
   button.textContent = 'share';
   button.title = 'Share virus';
   button.setAttribute('aria-label', 'Share current virus');
-  button.disabled = true;
+  button.setAttribute('aria-disabled', 'true');
   controls.insertBefore(button, document.getElementById('info-btn'));
 
   const status = document.createElement('div');
@@ -22,8 +22,10 @@ export function createShareControl() {
   let loading = true;
   let sharing = false;
 
+  // native disabled drops keyboard focus on every rotation load.
   function updateDisabled() {
-    button.disabled = loading || sharing || !button.value;
+    const unavailable = loading || sharing || !button.value;
+    button.setAttribute('aria-disabled', String(unavailable));
   }
 
   function stopActivationShortcut(event: KeyboardEvent) {
@@ -35,7 +37,7 @@ export function createShareControl() {
 
   button.onclick = async () => {
     const virus = button.value;
-    if (button.disabled) return;
+    if (button.getAttribute('aria-disabled') === 'true') return;
 
     const url = new URL(window.location.pathname, window.location.origin);
     url.searchParams.set('virus', virus);

@@ -216,12 +216,12 @@ describe('VirusLoader', () => {
       const iframe = document.getElementById('container') as HTMLIFrameElement;
 
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
       vl.loadVirus('doors');
       iframe.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(500);
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('false');
       button.click();
       await vi.advanceTimersByTimeAsync(0);
       expect(share).toHaveBeenCalledExactlyOnceWith({
@@ -231,23 +231,23 @@ describe('VirusLoader', () => {
 
       vl.loadVirus('premix:sphere-uzumaki');
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
       document
         .querySelector('.mixed-virus-container iframe')!
         .dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(500);
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
       button.click();
       expect(share).toHaveBeenCalledOnce();
 
       vl.loadVirus('tick-tock');
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
       iframe.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(500);
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('false');
       button.click();
       await vi.advanceTimersByTimeAsync(0);
       expect(share).toHaveBeenLastCalledWith({

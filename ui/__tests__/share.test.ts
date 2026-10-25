@@ -59,7 +59,7 @@ describe('virus sharing', () => {
     ]);
     expect(writeText).not.toHaveBeenCalled();
     expect(status.textContent).toBe('');
-    expect(button.disabled).toBe(false);
+    expect(button.getAttribute('aria-disabled')).toBe('false');
   });
 
   it('confirms copying only after the clipboard write completes', async () => {
@@ -73,12 +73,12 @@ describe('virus sharing', () => {
       `${window.location.origin}/collection/?virus=tick-tock`
     );
     expect(status.textContent).toBe('');
-    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
 
     copy.resolve();
     await vi.advanceTimersByTimeAsync(0);
     expect(status.textContent).toBe('Link copied');
-    expect(button.disabled).toBe(false);
+    expect(button.getAttribute('aria-disabled')).toBe('false');
     await vi.advanceTimersByTimeAsync(2000);
     expect(status.textContent).toBe('');
   });
@@ -91,7 +91,7 @@ describe('virus sharing', () => {
     expect(writeText).not.toHaveBeenCalled();
     expect(window.prompt).not.toHaveBeenCalled();
     expect(status.textContent).toBe('');
-    expect(button.disabled).toBe(false);
+    expect(button.getAttribute('aria-disabled')).toBe('false');
   });
 
   it('copies the clicked virus if sharing fails after the displayed virus changes', async () => {
@@ -100,7 +100,7 @@ describe('virus sharing', () => {
     button.click();
     control.startLoading('doors');
     control.finishLoading();
-    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
     pendingShare.reject(new DOMException('Unavailable', 'DataError'));
     await vi.advanceTimersByTimeAsync(0);
 
@@ -109,7 +109,7 @@ describe('virus sharing', () => {
     );
     expect(status.textContent).toBe('Link copied');
     expect(window.prompt).not.toHaveBeenCalled();
-    expect(button.disabled).toBe(false);
+    expect(button.getAttribute('aria-disabled')).toBe('false');
   });
 
   it.each([
@@ -126,10 +126,12 @@ describe('virus sharing', () => {
       pendingShare.resolve();
       await vi.advanceTimersByTimeAsync(0);
       expect(button.hidden).toBe(false);
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
 
       control.finishLoading();
-      expect(button.disabled).toBe(disabledAfterLoad);
+      expect(button.getAttribute('aria-disabled')).toBe(
+        String(disabledAfterLoad)
+      );
     }
   );
 
@@ -158,7 +160,7 @@ describe('virus sharing', () => {
         `${window.location.origin}/collection/?virus=doors`
       );
       expect(status.textContent).toBe('');
-      expect(button.disabled).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('false');
     }
   );
 
@@ -185,14 +187,21 @@ describe('virus sharing', () => {
   it('keeps an unshareable virus visible and disabled', () => {
     control.startLoading(null);
     expect(button.hidden).toBe(false);
-    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
     button.click();
     control.finishLoading();
     expect(button.hidden).toBe(false);
-    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
     button.click();
 
     expect(share).not.toHaveBeenCalled();
     expect(writeText).not.toHaveBeenCalled();
+  });
+
+  it('keeps keyboard focus on Share while the next virus loads', () => {
+    control.startLoading('doors');
+    button.focus();
+
+    expect(document.activeElement).toBe(button);
   });
 });
