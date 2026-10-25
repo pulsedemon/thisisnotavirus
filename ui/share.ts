@@ -9,8 +9,8 @@ export function createShareControl() {
   button.type = 'button';
   button.className = 'material-symbols-outlined';
   button.textContent = 'share';
-  button.title = 'Share virus';
-  button.setAttribute('aria-label', 'Share current virus');
+  button.title = 'Spread virus';
+  button.setAttribute('aria-label', 'Spread current virus');
   button.setAttribute('aria-disabled', 'true');
   controls.insertBefore(button, document.getElementById('info-btn'));
 

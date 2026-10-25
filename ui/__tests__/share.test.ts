@@ -35,6 +35,12 @@ describe('virus sharing', () => {
     window.history.replaceState({}, '', '/');
   });
 
+  it('labels Spread beside the playback controls', () => {
+    expect(button.title).toBe('Spread virus');
+    expect(button.getAttribute('aria-label')).toBe('Spread current virus');
+    expect(button.nextElementSibling?.id).toBe('info-btn');
+  });
+
   it('shares the latest virus with its name and a clean link on the current site', async () => {
     button.click();
     await vi.advanceTimersByTimeAsync(0);
