@@ -4,6 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "packageManager": "yarn@1.22.22",
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.19.2",
     "@sentry/browser": "10.22.0",
