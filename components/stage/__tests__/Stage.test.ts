@@ -9,7 +9,7 @@ const { flashStart, flashStop, tvShow, tvHide, pickTransition } = vi.hoisted(
     tvShow: vi.fn(),
     tvHide: vi.fn(),
     pickTransition: vi.fn(
-      (_previous: string | null): Transition | null => null
+      (_previous: string | null, _incoming: string): Transition | null => null
     ),
   })
 );
@@ -287,7 +287,7 @@ describe('Stage', () => {
       stage.show(load('b'));
       const bSlot = slots()[1];
 
-      expect(pickTransition).toHaveBeenCalledWith(null);
+      expect(pickTransition).toHaveBeenCalledWith(null, 'b');
       expect(aSlot.style.visibility).toBe('');
       expect(bSlot.style.visibility).toBe('hidden');
       expect(flashStart).toHaveBeenCalledTimes(1);
@@ -316,13 +316,13 @@ describe('Stage', () => {
       stage.show(load('b'));
       reveal(slots()[1]);
       stage.show(load('c'));
-      expect(pickTransition).toHaveBeenLastCalledWith('fake');
+      expect(pickTransition).toHaveBeenLastCalledWith('fake', 'c');
 
       pickTransition.mockReturnValue(null);
       stage.show(load('d'));
       reveal(slots()[0]);
       stage.show(load('e'));
-      expect(pickTransition).toHaveBeenLastCalledWith(null);
+      expect(pickTransition).toHaveBeenLastCalledWith(null, 'e');
     });
 
     it('waits for every animation before removing the old slot', async () => {
@@ -405,6 +405,26 @@ describe('Stage', () => {
       stage.show(load('d'));
       expect(pickTransition).not.toHaveBeenCalled();
       expect(slots()).toHaveLength(1);
+    });
+
+    it('shows an overlay from its first frame, with its query on the src', () => {
+      pickTransition.mockReturnValue({
+        name: 'fake',
+        run,
+        overlayQuery: 'q=1',
+      });
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      const bSlot = slots()[1];
+      const bFrame = frameOf(bSlot);
+
+      expect(bSlot.style.visibility).toBe('');
+      expect(bFrame.getAttribute('src')).toBe('/viruses/b/?q=1');
+      expect(bFrame.classList.contains('virus-iframe--overlay')).toBe(true);
+      expect(flashStart).toHaveBeenCalledTimes(1);
+
+      reveal(bSlot);
+      expect(run).toHaveBeenCalledWith(aSlot, bSlot);
     });
   });
 });

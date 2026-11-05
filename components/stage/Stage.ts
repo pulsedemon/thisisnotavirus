@@ -74,7 +74,9 @@ export default class Stage {
     this.dropPending();
 
     const outgoing = this.visible;
-    const transition = outgoing ? pickTransition(this.lastTransition) : null;
+    const transition = outgoing
+      ? pickTransition(this.lastTransition, load.virus)
+      : null;
     this.lastTransition = transition?.name ?? null;
     if (!transition) {
       outgoing?.remove();
@@ -85,10 +87,16 @@ export default class Stage {
     const frame = createStyledIframe();
     frame.title = 'virus';
     if (load.interactive) frame.classList.add('virus-iframe--interactive');
+    let src = load.src;
 
     const slot = document.createElement('div');
     slot.className = 'virus-slot';
-    slot.style.visibility = 'hidden';
+    if (transition?.overlayQuery) {
+      frame.classList.add('virus-iframe--overlay');
+      src += `?${transition.overlayQuery}`;
+    } else {
+      slot.style.visibility = 'hidden';
+    }
 
     const pending: PendingLoad = {
       slot,
@@ -117,7 +125,7 @@ export default class Stage {
       },
       { once: true }
     );
-    frame.src = load.src;
+    frame.src = src;
     slot.appendChild(frame);
     this.el.appendChild(slot);
   }

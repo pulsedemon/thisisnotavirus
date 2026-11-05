@@ -14,21 +14,27 @@ describe('pickTransition', () => {
 
   it('picks the cover for the first bucket', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
-    expect(pickTransition(null)).toBeNull();
+    expect(pickTransition(null, 'cubes')).toBeNull();
   });
 
   it('reaches every generic transition', () => {
     const n = transitions.length + 1;
     const picked = transitions.map((_, i) => {
       vi.spyOn(Math, 'random').mockReturnValue((i + 1) / n);
-      return pickTransition(null)?.name;
+      return pickTransition(null, 'cubes')?.name;
     });
     expect(picked).toEqual(['blink']);
   });
 
   it('never runs the previous transition again', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.99);
-    expect(pickTransition('blink')).toBeNull();
+    expect(pickTransition('blink', 'cubes')).toBeNull();
+  });
+
+  it('offers bury only when random-shapes is next', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    expect(pickTransition(null, 'random-shapes')?.name).toBe('bury');
+    expect(pickTransition(null, 'cubes')?.name).toBe('blink');
   });
 });
 
