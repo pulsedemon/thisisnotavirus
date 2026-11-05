@@ -2,12 +2,11 @@ export interface Transition {
   name: string;
   /** animates `incoming` over `outgoing`; the caller removes `outgoing` once every animation finishes */
   run(outgoing: HTMLElement, incoming: HTMLElement): Animation[];
-}
-
-/** the incoming iframe joins the outgoing slot and draws over the still-running virus */
-export interface Overlay {
-  name: string;
-  overlay: true;
+  /**
+   * shows the incoming slot over the outgoing one from its first frame, with
+   * this query on its src, instead of hiding it until it loads
+   */
+  overlayQuery?: string;
 }
 
 interface Lids {
@@ -144,23 +143,33 @@ export const transitions: Transition[] = [
   },
 ];
 
-/** overlays offered only when the incoming virus is the key */
-const virusOverlays: Record<string, Overlay[]> = {
-  'random-shapes': [{ name: 'bury', overlay: true }],
+// random-shapes keeps its page transparent this long, so its shapes pile up
+// on the old virus before its own background fills the gaps
+const BURY_MS = 1000;
+
+/** extra transitions offered only when the incoming virus is the key */
+const virusTransitions: Record<string, Transition[]> = {
+  'random-shapes': [
+    {
+      name: 'bury',
+      overlayQuery: `bury=${BURY_MS}`,
+      // the shapes do the burying; this only holds the old virus underneath
+      run: (_outgoing, incoming) => [
+        incoming.animate(null, { duration: BURY_MS }),
+      ],
+    },
+  ],
 };
 
-/**
- * null means the loading cover. the `previous` transition never runs twice in
- * a row, and overlays are left out when `allowOverlay` is false.
- */
+/** null means the loading cover; the `previous` transition never runs twice in a row */
 export function pickTransition(
   previous: string | null,
-  incoming: string,
-  allowOverlay: boolean
-): Transition | Overlay | null {
-  const overlays = allowOverlay ? (virusOverlays[incoming] ?? []) : [];
-  const pool = [null, ...transitions, ...overlays].filter(
-    t => !t || t.name !== previous
-  );
+  incoming: string
+): Transition | null {
+  const pool = [
+    null,
+    ...transitions,
+    ...(virusTransitions[incoming] ?? []),
+  ].filter(t => !t || t.name !== previous);
   return pool[Math.floor(Math.random() * pool.length)];
 }

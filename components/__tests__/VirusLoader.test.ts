@@ -4,19 +4,14 @@ import VirusLoader from '../VirusLoader';
 import type { StageLoad } from '../stage/Stage';
 import type { VirusMix } from '../../types/VirusMix';
 
-const {
-  stageShow,
-  stageClear,
-  stageSetKeyboardOwner,
-  stageOnShown,
-  labGetCurrentMix,
-} = vi.hoisted(() => ({
-  stageShow: vi.fn<(load: StageLoad) => void>(),
-  stageClear: vi.fn(),
-  stageSetKeyboardOwner: vi.fn(),
-  stageOnShown: { current: (): void => undefined },
-  labGetCurrentMix: vi.fn((): VirusMix | null => null),
-}));
+const { stageShow, stageClear, stageOnShown, labGetCurrentMix } = vi.hoisted(
+  () => ({
+    stageShow: vi.fn<(load: StageLoad) => void>(),
+    stageClear: vi.fn(),
+    stageOnShown: { current: (): void => undefined },
+    labGetCurrentMix: vi.fn((): VirusMix | null => null),
+  })
+);
 
 vi.mock('@sentry/browser', () => ({
   captureException: vi.fn(),
@@ -27,7 +22,6 @@ vi.mock('../stage/Stage', () => ({
   default: class MockStage {
     show = stageShow;
     clear = stageClear;
-    setKeyboardOwner = stageSetKeyboardOwner;
     activeWindow = null;
     constructor(_el: HTMLElement, _anim: HTMLDivElement, onShown: () => void) {
       stageOnShown.current = onShown;
@@ -661,16 +655,6 @@ describe('VirusLoader', () => {
       vl.loadVirus('some-virus');
 
       expect(vl.virusHasKeyboardControl).toBe(false);
-    });
-
-    it('marks the stage keyboard owner when set', () => {
-      const playlist = createPlaylist();
-      const vl = createVirusLoader(playlist);
-
-      vl.setKeyboardControl(true);
-
-      expect(vl.virusHasKeyboardControl).toBe(true);
-      expect(stageSetKeyboardOwner).toHaveBeenCalledWith(true);
     });
   });
 });

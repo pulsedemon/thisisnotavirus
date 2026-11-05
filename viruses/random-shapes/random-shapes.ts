@@ -19,11 +19,13 @@ class RandomBlocks {
   bgColors = ['black', 'aqua', 'red'];
 
   constructor() {
-    // ?overlay leaves the page transparent so the shapes pile up on the virus underneath
-    if (!new URLSearchParams(location.search).has('overlay')) {
-      document.body.style.backgroundColor =
-        this.bgColors[randomIntBetween(0, this.bgColors.length)];
-    }
+    // ?bury=<ms> leaves the page transparent that long, so the shapes pile up
+    // on the virus underneath first
+    const buryMs = Number(new URLSearchParams(location.search).get('bury'));
+    const bgColor = this.bgColors[randomIntBetween(0, this.bgColors.length)];
+    setTimeout(() => {
+      document.body.style.backgroundColor = bgColor;
+    }, buryMs);
     this.canvas = document.createElement('canvas');
     this.canvasCtx = this.canvas.getContext('2d')!;
     this.container.appendChild(this.canvas);
