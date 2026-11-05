@@ -46,19 +46,59 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-#container {
-  width: 100vw;
-  height: 100vh;
+#stage,
+.virus-slot {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
-.mixed-virus-container {
+// the blink transition's eye, drawn over the virus slots
+.eye-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.eye-ball {
+  background:
+    radial-gradient(
+      circle at 40% 38%,
+      rgb(255 255 255 / 75%) 0 0.8%,
+      transparent 1.6%
+    ),
+    radial-gradient(
+      ellipse 30% 22% at 50% 50%,
+      transparent 55%,
+      rgb(20 0 0 / 60%)
+    );
+}
+
+.eye-skin {
+  background:
+    radial-gradient(
+      ellipse 34% 26% at 50% 50%,
+      rgb(60 20 10 / 70%),
+      transparent 70%
+    ),
+    radial-gradient(ellipse at 50% 45%, #e2ab8d, #b97a5e 45%, #5a3022);
+}
+
+.eye-crease {
+  background: rgb(80 35 20 / 55%);
+}
+
+.eye-lashes {
+  // lashes fan outward from the middle of the lid
+  background:
+    repeating-linear-gradient(118deg, #0d0604 0 3px, transparent 3px 8px) left /
+      50% 100% no-repeat,
+    repeating-linear-gradient(62deg, #0d0604 0 3px, transparent 3px 8px) right /
+      50% 100% no-repeat;
+
+  &--lower {
+    opacity: 0.7;
+  }
 }
 
 #virus-lab {
@@ -98,11 +138,10 @@ body {
     mix-blend-mode: screen;
     z-index: 1;
   }
-}
 
-#container.virus-iframe {
-  position: absolute;
-  pointer-events: auto;
+  &--interactive {
+    pointer-events: auto;
+  }
 }
 
 #menu {

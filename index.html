@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <script
@@ -10,9 +10,9 @@
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
+      gtag('js', new Date());
 
-      gtag("config", "G-BPXNQFCW9L");
+      gtag('config', 'G-BPXNQFCW9L');
     </script>
     <meta charset="utf-8" />
     <meta
@@ -57,7 +57,7 @@
       onerror="window.__iconFontFailed=true;window.dispatchEvent(new Event('icon-font-failed'));console.error('Failed to load Material Symbols icon font');document.documentElement.classList.add('icons-loaded')"
     />
     <script>
-      (function() {
+      (function () {
         var link = document.getElementById('icon-font-link');
         if (!link) {
           document.documentElement.classList.add('icons-loaded');
@@ -68,28 +68,34 @@
           var fontsReady = document.fonts
             ? document.fonts.load('1em "Material Symbols Outlined"')
             : Promise.resolve();
-          timeoutId = setTimeout(function() {
+          timeoutId = setTimeout(function () {
             timeoutId = null;
             window.__iconFontFailed = true;
             window.dispatchEvent(new Event('icon-font-failed'));
             console.warn('Icon font load timed out after 3s');
           }, 3000);
           fontsReady
-            .then(function() {
-              if (timeoutId != null) { clearTimeout(timeoutId); timeoutId = null; }
+            .then(function () {
+              if (timeoutId != null) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+              }
             })
-            .catch(function(err) {
-              if (timeoutId != null) { clearTimeout(timeoutId); timeoutId = null; }
+            .catch(function (err) {
+              if (timeoutId != null) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+              }
               window.__iconFontFailed = true;
               window.dispatchEvent(new Event('icon-font-failed'));
               console.warn('Icon font loading issue:', err);
             })
-            .finally(function() {
+            .finally(function () {
               document.documentElement.classList.add('icons-loaded');
             });
         }
         var origOnload = link.onload;
-        link.onload = function() {
+        link.onload = function () {
           if (origOnload) origOnload.call(this);
           link.onload = null;
           waitForFont();
@@ -114,7 +120,11 @@
     <style>
       /* Critical CSS for overlay loading */
       .virus-overlay {
-        font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        font-family:
+          'Roboto',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
           sans-serif;
       }
 
@@ -153,16 +163,49 @@
   </head>
   <body>
     <div id="loading-anim"></div>
-    <iframe id="container" title="virus"></iframe>
+    <div id="stage"></div>
     <div id="menu">
       <div class="controls">
-        <span class="material-symbols-outlined" id="skip-previous" role="button" aria-label="Skip to previous virus" tabindex="0"
+        <span
+          class="material-symbols-outlined"
+          id="skip-previous"
+          role="button"
+          aria-label="Skip to previous virus"
+          tabindex="0"
           >skip_previous</span
         >
-        <span class="material-symbols-outlined" id="play-pause" role="button" aria-label="Pause" tabindex="0">pause</span>
-        <span class="material-symbols-outlined" id="reload" role="button" aria-label="Reload current virus" tabindex="0">refresh</span>
-        <span class="material-symbols-outlined" id="skip-next" role="button" aria-label="Skip to next virus" tabindex="0">skip_next</span>
-        <span class="material-symbols-outlined" id="info-btn" role="button" aria-label="Show info" tabindex="0">info</span>
+        <span
+          class="material-symbols-outlined"
+          id="play-pause"
+          role="button"
+          aria-label="Pause"
+          tabindex="0"
+          >pause</span
+        >
+        <span
+          class="material-symbols-outlined"
+          id="reload"
+          role="button"
+          aria-label="Reload current virus"
+          tabindex="0"
+          >refresh</span
+        >
+        <span
+          class="material-symbols-outlined"
+          id="skip-next"
+          role="button"
+          aria-label="Skip to next virus"
+          tabindex="0"
+          >skip_next</span
+        >
+        <span
+          class="material-symbols-outlined"
+          id="info-btn"
+          role="button"
+          aria-label="Show info"
+          tabindex="0"
+          >info</span
+        >
       </div>
       <span id="icon" role="button" aria-label="Move menu" tabindex="0">V</span>
     </div>

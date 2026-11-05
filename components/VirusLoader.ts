@@ -1,22 +1,17 @@
 import * as Sentry from '@sentry/browser';
 
-import Flash from './flash/flash';
 import Playlist from './Playlist';
-import TVStaticLoading from './TVStaticLoading';
+import Stage from './stage/Stage';
 import VirusLab from './VirusLab';
 import { VirusLoaderInterface } from '../types/VirusLoaderInterface';
-import { createStyledIframe } from '../utils/iframe';
 import { randomIntBetween } from '../utils/random';
 import { safeGtag } from '../utils/gtag';
 import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
 import { createShareControl } from '../ui/share';
 
 export default class VirusLoader implements VirusLoaderInterface {
-  private iframe: HTMLIFrameElement;
+  private stage: Stage;
   private loadRandomInterval: ReturnType<typeof setInterval> | undefined;
-  private loadingAnimEl: HTMLDivElement;
-  private loadingAnimStartTime = 0;
-  private loadingAnim!: { start: () => void; stop: () => void };
   private loadingRing: HTMLDivElement;
   private sourceCodeLink: HTMLAnchorElement | null;
   private shareControl: ReturnType<typeof createShareControl>;
@@ -25,26 +20,19 @@ export default class VirusLoader implements VirusLoaderInterface {
   virusHasKeyboardControl = false;
 
   private playlist: Playlist;
-  // ignore callbacks from iframe loads superseded by newer navigation.
-  private _loadGeneration = 0;
-  private _pendingRevealTimeout: ReturnType<typeof setTimeout> | null = null;
-  private _safetyTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(playlist: Playlist) {
     this.playlist = playlist;
 
-    const iframe = document.getElementById('container');
-    if (!(iframe instanceof HTMLIFrameElement)) {
-      throw new Error('Required element #container not found');
+    const stageEl = document.getElementById('stage');
+    if (!stageEl) {
+      throw new Error('Required element #stage not found');
     }
-    this.iframe = iframe;
-    this.iframe.classList.add('virus-iframe');
 
     const loadingAnimEl = document.getElementById('loading-anim');
     if (!(loadingAnimEl instanceof HTMLDivElement)) {
       throw new Error('Required element #loading-anim not found');
     }
-    this.loadingAnimEl = loadingAnimEl;
 
     const loadingRing = document.getElementById('loading-ring');
     if (!(loadingRing instanceof HTMLDivElement)) {
@@ -54,6 +42,7 @@ export default class VirusLoader implements VirusLoaderInterface {
 
     this.sourceCodeLink = document.querySelector('#source-code a');
     this.shareControl = createShareControl();
+    this.stage = new Stage(stageEl, loadingAnimEl, () => this.onShown());
 
     const virusParam = new URLSearchParams(window.location.search).get('virus');
 
@@ -79,6 +68,10 @@ export default class VirusLoader implements VirusLoaderInterface {
     createThumbnailButton(this, playlist);
   }
 
+  get activeWindow(): WindowProxy | null {
+    return this.stage.activeWindow;
+  }
+
   private setSourceCodeLinkVisible(visible: boolean) {
     if (visible) {
       this.sourceCodeLink?.classList.remove('hide');
@@ -89,59 +82,19 @@ export default class VirusLoader implements VirusLoaderInterface {
     if (sourceCodeEl) sourceCodeEl.style.display = visible ? '' : 'none';
   }
 
-  private removeMixContainer() {
-    document.querySelector('.mixed-virus-container')?.remove();
-  }
-
   loadVirus(name: string) {
-    const generation = ++this._loadGeneration;
-
-    if (this._pendingRevealTimeout !== null) {
-      clearTimeout(this._pendingRevealTimeout);
-      this._pendingRevealTimeout = null;
-    }
-
-    if (this._safetyTimeout !== null) {
-      clearTimeout(this._safetyTimeout);
-      this._safetyTimeout = null;
-    }
-
     this.virusHasKeyboardControl = false;
 
     this.shareControl?.startLoading(
       this.playlist.viruses.includes(name) ? name : null
     );
 
-    if (Math.random() < 0.5) {
-      const tvStatic = new TVStaticLoading();
-      this.loadingAnim = {
-        start: () => tvStatic.show(),
-        stop: () => tvStatic.hide(),
-      };
-    } else {
-      this.loadingAnim = new Flash(this.loadingAnimEl);
-    }
-
     console.log('Loading virus:', name);
-    this.loadingAnim.start();
-    this.loadingAnimStartTime = Date.now();
     this.setSourceCodeLinkVisible(false);
     this.loadingRing.classList.add('loading');
-    this.iframe.style.visibility = 'hidden';
 
     const reloadBtn = document.getElementById('reload');
     if (reloadBtn) reloadBtn.classList.add('spinning');
-
-    this.removeMixContainer();
-
-    this._safetyTimeout = setTimeout(() => {
-      if (generation !== this._loadGeneration) return;
-      this._safetyTimeout = null;
-      const msg = `Safety timeout: forcing loading animation to stop for virus: ${name}`;
-      console.warn(msg);
-      Sentry.captureMessage(msg, 'warning');
-      this._delayedIframeLoaded(generation);
-    }, 5000);
 
     try {
       if (this.playlist.isMixedVirus(name)) {
@@ -153,150 +106,55 @@ export default class VirusLoader implements VirusLoaderInterface {
           mix = this.playlist.getMixById(name);
         }
         if (mix) {
-          this.iframe.style.display = 'none';
-          this.setSourceCodeLinkVisible(false);
-
-          const mixContainer = document.createElement('div');
-          mixContainer.className = 'mixed-virus-container';
-
-          const mixFrame = createStyledIframe();
-          mixFrame.style.visibility = 'hidden';
-          mixFrame.src = `/viruses/lab/?primary=${encodeURIComponent(mix.primary)}&secondary=${encodeURIComponent(mix.secondary)}&ratio=${encodeURIComponent(String(mix.mixRatio))}`;
-
-          this._attachIframeListeners(
-            mixFrame,
-            generation,
-            `mixed virus iframe: ${name}`
-          );
-
-          mixContainer.appendChild(mixFrame);
-          document.body.appendChild(mixContainer);
-
-          if (this.sourceCodeLink)
-            this.sourceCodeLink.href = this.sourceCodeUrl(name);
+          // loadSavedMixes regenerates the playlist and resets its position
+          if (!name.startsWith('premix:')) this.playlist.setCurrentVirus(name);
+          this.stage.show({
+            virus: name,
+            src: `/viruses/lab/?primary=${encodeURIComponent(mix.primary)}&secondary=${encodeURIComponent(mix.secondary)}&ratio=${encodeURIComponent(String(mix.mixRatio))}`,
+            interactive: false,
+          });
         } else {
           console.error('Mix not found for ID:', name);
           Sentry.captureMessage(`Mix not found for ID: ${name}`, 'error');
-          const fallbackVirus = this.playlist.viruses[0] ?? 'random-shapes';
-          this.iframe.src = `/viruses/${fallbackVirus}/`;
-          this.iframe.style.display = 'block';
-          this._attachIframeListeners(
-            this.iframe,
-            generation,
-            `fallback virus iframe (${fallbackVirus}) after mix not found: ${name}`
-          );
+          this.showFallback();
         }
       } else {
-        this.iframe.src = `/viruses/${name}/`;
-        this.iframe.style.display = 'block';
-        this._attachIframeListeners(
-          this.iframe,
-          generation,
-          `virus iframe: ${name}`
-        );
+        this.stage.show({
+          virus: name,
+          src: `/viruses/${name}/`,
+          interactive: true,
+        });
       }
     } catch (error) {
       console.error('Error loading virus:', error);
       Sentry.captureException(error);
-      const fallbackVirus = this.playlist.viruses[0] ?? 'random-shapes';
-      this.iframe.src = `/viruses/${fallbackVirus}/`;
-      this.iframe.style.display = 'block';
-      this._attachIframeListeners(
-        this.iframe,
-        generation,
-        `fallback virus iframe: ${fallbackVirus}`
-      );
+      this.showFallback();
     }
   }
 
-  private _attachIframeListeners(
-    frame: HTMLIFrameElement,
-    generation: number,
-    errorLabel: string
-  ): void {
-    frame.addEventListener(
-      'load',
-      () => {
-        if (generation !== this._loadGeneration) return;
-        if (this._safetyTimeout !== null) {
-          clearTimeout(this._safetyTimeout);
-          this._safetyTimeout = null;
-        }
-        this._delayedIframeLoaded(generation);
-      },
-      { once: true }
-    );
-    frame.addEventListener(
-      'error',
-      (event: Event) => {
-        if (generation !== this._loadGeneration) return;
-        const errorMsg = `Failed to load ${errorLabel}`;
-        console.error(errorMsg, event);
-        Sentry.captureMessage(errorMsg, 'error');
-        if (this._safetyTimeout !== null) {
-          clearTimeout(this._safetyTimeout);
-          this._safetyTimeout = null;
-        }
-        this._delayedIframeLoaded(generation);
-      },
-      { once: true }
-    );
-  }
-
-  private _delayedIframeLoaded(generation: number) {
-    if (generation !== this._loadGeneration) return;
-
-    const minDuration = 500;
-    const elapsed = Date.now() - this.loadingAnimStartTime;
-    if (elapsed >= minDuration) {
-      this._iframeLoaded();
-    } else {
-      this._pendingRevealTimeout = setTimeout(() => {
-        this._pendingRevealTimeout = null;
-        if (generation !== this._loadGeneration) return;
-        this._iframeLoaded();
-      }, minDuration - elapsed);
-    }
-  }
-
-  private _stopLoadingAnim(): void {
-    try {
-      this.loadingAnim.stop();
-    } catch (error) {
-      console.error('Failed to stop loading animation:', error);
-      Sentry.captureException(error);
-      if (this.loadingAnimEl) this.loadingAnimEl.style.display = 'none';
-    }
-    document.querySelectorAll('.tv-static-canvas').forEach(el => {
-      (el as HTMLElement).style.pointerEvents = 'none';
-      el.parentNode?.removeChild(el);
+  /** shows the first virus instead, and makes the playlist and Share point at it */
+  private showFallback() {
+    const fallbackVirus = this.playlist.viruses[0] ?? 'random-shapes';
+    this.playlist.setCurrentVirus(fallbackVirus);
+    this.shareControl?.startLoading(fallbackVirus);
+    this.stage.show({
+      virus: fallbackVirus,
+      src: `/viruses/${fallbackVirus}/`,
+      interactive: true,
     });
   }
 
-  private _iframeLoaded() {
-    try {
-      this._stopLoadingAnim();
-
-      if (!this.playlist.isMixedVirus(this.playlist.current())) {
-        this.setSourceCodeLinkVisible(true);
-      }
-      if (this.sourceCodeLink)
-        this.sourceCodeLink.href = this.sourceCodeUrl(this.playlist.current());
-    } catch (error) {
-      console.error('Error in iframeLoaded:', error);
-      Sentry.captureException(error);
-    } finally {
-      if (this.iframe.style.display !== 'none') {
-        this.iframe.style.visibility = 'visible';
-      }
-      document.querySelectorAll('.mixed-virus-container iframe').forEach(el => {
-        (el as HTMLElement).style.visibility = 'visible';
-      });
-      this.loadingRing.classList.remove('loading');
-      const reloadBtn = document.getElementById('reload');
-      if (reloadBtn) reloadBtn.classList.remove('spinning');
-      this.shareControl?.finishLoading();
+  private onShown() {
+    const current = this.playlist.current();
+    if (!this.playlist.isMixedVirus(current)) {
+      this.setSourceCodeLinkVisible(true);
     }
+    if (this.sourceCodeLink)
+      this.sourceCodeLink.href = this.sourceCodeUrl(current);
+    this.loadingRing.classList.remove('loading');
+    const reloadBtn = document.getElementById('reload');
+    if (reloadBtn) reloadBtn.classList.remove('spinning');
+    this.shareControl?.finishLoading();
   }
 
   sourceCodeUrl(virus: string) {
@@ -312,10 +170,9 @@ export default class VirusLoader implements VirusLoaderInterface {
   }
 
   private skip(direction: 'next' | 'prev') {
-    if (this.isNavigating) return;
+    // arrow keys and orientationchange still reach this with the lab open
+    if (this.isNavigating || this.isLabOpen) return;
     this.isNavigating = true;
-
-    this.removeMixContainer();
 
     const virus =
       direction === 'next' ? this.playlist.next() : this.playlist.prev();
@@ -344,8 +201,6 @@ export default class VirusLoader implements VirusLoaderInterface {
     const randomTime = randomIntBetween(2, 12) * 1000;
 
     this.loadRandomInterval = setInterval(() => {
-      this.removeMixContainer();
-
       const nextVirus = this.playlist.next();
       this.loadVirus(nextVirus);
     }, randomTime);
@@ -380,10 +235,7 @@ export default class VirusLoader implements VirusLoaderInterface {
 
       if (currentMix && currentMix.id) {
         this.loadVirus(`mixed:${currentMix.id}`);
-        const mixId = `mixed:${currentMix.id}`;
-        this.playlist.setCurrentVirus(mixId);
       } else {
-        this.iframe.style.display = 'block';
         this.loadVirus(this.playlist.current());
       }
 
@@ -394,17 +246,16 @@ export default class VirusLoader implements VirusLoaderInterface {
 
       this.startRandomization();
     } else {
-      this.iframe.style.display = 'none';
+      this.stage.clear();
+      // reload and skip previous restart rotation without updating the button
+      this.pauseRandomization();
       const menuEl = document.getElementById('menu');
       if (menuEl) menuEl.style.display = 'none';
       this.hideModals();
 
-      this.removeMixContainer();
-
       const playPauseBtn = document.getElementById('play-pause');
       if (playPauseBtn?.innerText === 'pause') {
         playPauseBtn.innerText = 'play_arrow';
-        clearInterval(this.loadRandomInterval);
       }
 
       const labContainer = document.createElement('div');
@@ -423,10 +274,8 @@ export default class VirusLoader implements VirusLoaderInterface {
   }
 
   reloadCurrent() {
-    if (this.isNavigating) return;
+    if (this.isNavigating || this.isLabOpen) return;
     this.isNavigating = true;
-
-    this.removeMixContainer();
 
     const currentVirus = this.playlist.current();
     console.log('Reloading current virus:', currentVirus);
