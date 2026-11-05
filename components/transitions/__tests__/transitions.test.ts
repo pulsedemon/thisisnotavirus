@@ -14,23 +14,30 @@ describe('pickTransition', () => {
 
   it('picks the cover for the first bucket', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
-    expect(pickTransition('cubes', true)).toBeNull();
+    expect(pickTransition('cubes', true, null)).toBeNull();
   });
 
   it('reaches every generic transition', () => {
     const n = transitions.length + 1;
     const picked = transitions.map((_, i) => {
       vi.spyOn(Math, 'random').mockReturnValue((i + 1) / n);
-      return pickTransition('cubes', true)?.name;
+      return pickTransition('cubes', true, null)?.name;
     });
     expect(picked).toEqual(['blink']);
   });
 
+  it('never runs the previous transition again', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    expect(pickTransition('cubes', true, 'blink')).toBeNull();
+    expect(pickTransition('random-shapes', true, 'blink')?.name).toBe('bury');
+    expect(pickTransition('random-shapes', true, 'bury')?.name).toBe('blink');
+  });
+
   it('offers bury only when random-shapes is next and no overlay is showing', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.99);
-    expect(pickTransition('random-shapes', true)?.name).toBe('bury');
-    expect(pickTransition('cubes', true)?.name).toBe('blink');
-    expect(pickTransition('random-shapes', false)?.name).toBe('blink');
+    expect(pickTransition('random-shapes', true, null)?.name).toBe('bury');
+    expect(pickTransition('cubes', true, null)?.name).toBe('blink');
+    expect(pickTransition('random-shapes', false, null)?.name).toBe('blink');
   });
 });
 
@@ -49,7 +56,7 @@ describe('transitions', () => {
       options: KeyframeAnimationOptions
     ) {
       calls.push({ target: this, keyframes, options });
-      return {} as Animation;
+      return { finished: new Promise(() => undefined) } as Animation;
     } as HTMLElement['animate'];
   }
 

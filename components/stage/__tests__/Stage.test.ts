@@ -9,7 +9,11 @@ const { flashStart, flashStop, tvShow, tvHide, pickTransition } = vi.hoisted(
     tvShow: vi.fn(),
     tvHide: vi.fn(),
     pickTransition: vi.fn(
-      (_incoming: string, _allowOverlay: boolean): Transition | null => null
+      (
+        _incoming: string,
+        _allowOverlay: boolean,
+        _previous: string | null
+      ): Transition | null => null
     ),
   })
 );
@@ -297,7 +301,7 @@ describe('Stage', () => {
       stage.show(load('b'));
       const bSlot = slots()[1];
 
-      expect(pickTransition).toHaveBeenCalledWith('b', true);
+      expect(pickTransition).toHaveBeenCalledWith('b', true, null);
       expect(aSlot.style.visibility).toBe('');
       expect(bSlot.style.visibility).toBe('hidden');
       expect(flashStart).toHaveBeenCalledTimes(1);
@@ -319,6 +323,20 @@ describe('Stage', () => {
       expect(aSlot.isConnected).toBe(false);
       expect(slots()).toEqual([bSlot]);
       expect(onShown).toHaveBeenCalledTimes(2);
+    });
+
+    it('tells pickTransition which transition ran last', () => {
+      showVisible('a');
+      stage.show(load('b'));
+      reveal(slots()[1]);
+      stage.show(load('c'));
+      expect(pickTransition).toHaveBeenLastCalledWith('c', true, 'fake');
+
+      pickTransition.mockReturnValue(null);
+      stage.show(load('d'));
+      reveal(slots()[0]);
+      stage.show(load('e'));
+      expect(pickTransition).toHaveBeenLastCalledWith('e', true, null);
     });
 
     it('waits for every animation before removing the old slot', async () => {
@@ -416,7 +434,7 @@ describe('Stage', () => {
       showVisible('a');
       stage.setKeyboardOwner(true);
       stage.show(load('b'));
-      expect(pickTransition).toHaveBeenLastCalledWith('b', false);
+      expect(pickTransition).toHaveBeenLastCalledWith('b', false, null);
     });
   });
 
@@ -497,7 +515,11 @@ describe('Stage', () => {
       loadOverlay(aSlot);
 
       stage.show(load('random-shapes'));
-      expect(pickTransition).toHaveBeenLastCalledWith('random-shapes', false);
+      expect(pickTransition).toHaveBeenLastCalledWith(
+        'random-shapes',
+        false,
+        'bury'
+      );
     });
 
     it('does not bury a virus that owns the keyboard, even after a skipped load', () => {
@@ -508,7 +530,11 @@ describe('Stage', () => {
       stage.show(load('b'));
 
       stage.show(load('random-shapes'));
-      expect(pickTransition).toHaveBeenLastCalledWith('random-shapes', false);
+      expect(pickTransition).toHaveBeenLastCalledWith(
+        'random-shapes',
+        false,
+        'fake'
+      );
     });
   });
 });

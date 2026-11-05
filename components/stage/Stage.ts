@@ -51,6 +51,7 @@ export default class Stage {
   private pending: PendingLoad | null = null;
   private visible: HTMLDivElement | null = null;
   private running: RunningTransition | null = null;
+  private lastTransition: string | null = null;
 
   /** `onShown` fires once per load that reaches the screen */
   constructor(
@@ -86,8 +87,9 @@ export default class Stage {
 
     const outgoing = this.visible;
     const transition = outgoing
-      ? pickTransition(load.virus, this.canBury(outgoing))
+      ? pickTransition(load.virus, this.canBury(outgoing), this.lastTransition)
       : null;
+    this.lastTransition = transition?.name ?? null;
     if (!transition) {
       outgoing?.remove();
       this.visible = null;

@@ -10,47 +10,142 @@ export type Transition =
       overlay: true;
     };
 
-/**
- * an almond eye opening, as in shell-game: two lid curves meeting in sharp
- * corners. `upper` and `lower` are how far each lid bows from the middle line,
- * in % of height (negative bows down). open lids clear the slot's corners; a
- * shut eye is one curve sagging below the middle.
- */
-function eye(upper: number, lower: number, halfWidth: number): string {
-  const steps = 16;
-  const lid = (bow: number, i: number) => {
-    const t = (2 * i) / steps - 1;
-    return `${50 + t * halfWidth}% ${50 - bow * (1 - t * t)}%`;
-  };
-  const indexes = Array.from({ length: steps + 1 }, (_, i) => i);
-  return `polygon(${[
-    ...indexes.map(i => lid(upper, i)),
-    ...indexes.reverse().map(i => lid(-lower, i)),
-  ].join(', ')})`;
+interface Lids {
+  /** how far each lid bows from the middle line, in % of height; negative bows down */
+  upper: number;
+  lower: number;
+  /** half the corner-to-corner width, in % of width */
+  halfWidth: number;
 }
 
-const EYE_OPEN = { clipPath: eye(100, 100, 75) };
-// the lower lid snaps nearly shut first, so the upper lid does the blinking
-const EYE_LOWER_UP = { clipPath: eye(85, 25, 55) };
-const EYE_SHUT = { clipPath: eye(-15, 15, 40) };
+const STEPS = 16;
+
+/** one lid edge from corner to corner, as polygon points in % */
+function lidEdge(bow: number, halfWidth: number): string[] {
+  return Array.from({ length: STEPS + 1 }, (_, i) => {
+    const t = (2 * i) / STEPS - 1;
+    return `${50 + t * halfWidth}% ${50 - bow * (1 - t * t)}%`;
+  });
+}
+
+/** the almond opening between the lids, as in shell-game's eye */
+function openingPoints({ upper, lower, halfWidth }: Lids): string[] {
+  return [
+    ...lidEdge(upper, halfWidth),
+    ...lidEdge(-lower, halfWidth).reverse(),
+  ];
+}
+
+const opening = (lids: Lids) => `polygon(${openingPoints(lids).join(', ')})`;
+
+/**
+ * everything but the opening. the frame starts and ends on the opening's left
+ * corner line so the evenodd seam between the two rings has no area.
+ */
+function aroundOpening(lids: Lids): string {
+  const y = '50%';
+  const frame = [
+    `-5% ${y}`,
+    '-5% -5%',
+    '105% -5%',
+    '105% 105%',
+    '-5% 105%',
+    `-5% ${y}`,
+  ];
+  return `polygon(evenodd, ${[...frame, ...openingPoints(lids)].join(', ')})`;
+}
+
+/** a strip that starts on a lid edge bowing `bow` and reaches `reach` % further out */
+function lidBand(bow: number, reach: number, halfWidth: number): string {
+  const inner = lidEdge(bow, halfWidth);
+  const outer = lidEdge(bow + reach, halfWidth * 1.06);
+  return `polygon(${[...inner, ...outer.reverse()].join(', ')})`;
+}
+
+// the opening clears the slot's corners when open
+const FULL: Lids = { upper: 100, lower: 100, halfWidth: 75 };
+const EYE: Lids = { upper: 16, lower: 12, halfWidth: 28 };
+// shut lids meet in a curve sagging below the middle
+const SHUT: Lids = { upper: -4, lower: 4, halfWidth: 28 };
+
+// ms: narrow to an eye, shut fast, hold, open slower, widen back
+const TIMELINE: [number, Lids][] = [
+  [0, FULL],
+  [150, EYE],
+  [220, SHUT],
+  [270, SHUT],
+  [380, EYE],
+  [530, FULL],
+];
+const TOTAL = 530;
+
+/**
+ * keyframes for one layer across the whole blink. every layer shares the same
+ * offsets and easing so the cutouts and the skin around them stay lined up.
+ */
+function keyframes(frame: (lids: Lids, at: number) => Keyframe): Keyframe[] {
+  return TIMELINE.map(([at, lids]) => ({
+    ...frame(lids, at),
+    offset: at / TOTAL,
+    easing: 'ease-in-out',
+  }));
+}
+
+const TIMING = { duration: TOTAL };
+
+/** a full-stage layer drawn over both slots for the length of the blink */
+function layer(
+  host: HTMLElement,
+  className: string,
+  frame: (lids: Lids, at: number) => Keyframe
+): Animation {
+  const el = document.createElement('div');
+  el.className = `eye-layer ${className}`;
+  host.appendChild(el);
+  const animation = el.animate(keyframes(frame), TIMING);
+  void animation.finished.then(() => el.remove());
+  return animation;
+}
+
+// the old virus is seen until the lids meet, the new one once they part
+const SHUT_AT = 220;
+const OPEN_AT = 270;
 
 export const transitions: Transition[] = [
   {
     name: 'blink',
-    run: (outgoing, incoming) => [
-      outgoing.animate([EYE_OPEN, { ...EYE_LOWER_UP, offset: 0.3 }, EYE_SHUT], {
-        duration: 90,
-        easing: 'ease-in',
-        fill: 'forwards',
-      }),
-      // shut for 60ms, then the new virus opens the same way in reverse
-      incoming.animate([EYE_SHUT, { ...EYE_LOWER_UP, offset: 0.7 }, EYE_OPEN], {
-        duration: 110,
-        delay: 150,
-        easing: 'ease-out',
-        fill: 'backwards',
-      }),
-    ],
+    run: (outgoing, incoming) => {
+      const host = incoming.parentElement ?? incoming;
+      return [
+        outgoing.animate(
+          keyframes((lids, at) => ({
+            clipPath: opening(at <= SHUT_AT ? lids : SHUT),
+          })),
+          { ...TIMING, fill: 'forwards' }
+        ),
+        incoming.animate(
+          keyframes((lids, at) => ({
+            clipPath: opening(at >= OPEN_AT ? lids : SHUT),
+          })),
+          TIMING
+        ),
+        // shading and a highlight make the virus in the opening read as an eyeball
+        layer(host, 'eye-ball', (lids, at) => ({
+          clipPath: opening(lids),
+          opacity: at === 0 || at === TOTAL ? 0 : 1,
+        })),
+        layer(host, 'eye-skin', lids => ({ clipPath: aroundOpening(lids) })),
+        layer(host, 'eye-crease', lids => ({
+          clipPath: lidBand(lids.upper + 7, 1.5, lids.halfWidth),
+        })),
+        layer(host, 'eye-lashes', lids => ({
+          clipPath: lidBand(lids.upper, 7, lids.halfWidth),
+        })),
+        layer(host, 'eye-lashes eye-lashes--lower', lids => ({
+          clipPath: lidBand(-lids.lower, -3, lids.halfWidth),
+        })),
+      ];
+    },
   },
 ];
 
@@ -59,15 +154,21 @@ export const virusTransitions: Record<string, Transition[]> = {
   'random-shapes': [{ name: 'bury', overlay: true }],
 };
 
-/** null means the loading cover; overlay entries are left out when `allowOverlay` is false */
+/**
+ * null means the loading cover. overlay entries are left out when
+ * `allowOverlay` is false, and the `previous` transition never runs twice in a row.
+ */
 export function pickTransition(
   incoming: string,
-  allowOverlay: boolean
+  allowOverlay: boolean,
+  previous: string | null
 ): Transition | null {
   const pool: (Transition | null)[] = [
     null,
     ...transitions,
     ...(virusTransitions[incoming] ?? []),
-  ].filter(t => allowOverlay || !(t && 'overlay' in t));
+  ].filter(
+    t => !t || (t.name !== previous && (allowOverlay || !('overlay' in t)))
+  );
   return pool[Math.floor(Math.random() * pool.length)];
 }
