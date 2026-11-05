@@ -419,4 +419,96 @@ describe('Stage', () => {
       expect(pickTransition).toHaveBeenLastCalledWith('b', false);
     });
   });
+
+  describe('overlay', () => {
+    beforeEach(() => {
+      pickTransition.mockImplementation((_incoming, allowOverlay) =>
+        allowOverlay ? { name: 'bury', overlay: true } : null
+      );
+    });
+
+    function showVisible(virus: string): HTMLDivElement {
+      stage.show(load(virus));
+      const slot = slots()[slots().length - 1];
+      reveal(slot);
+      return slot;
+    }
+
+    function loadOverlay(slot: HTMLDivElement) {
+      const frames = slot.querySelectorAll('iframe');
+      frames[frames.length - 1].dispatchEvent(new Event('load'));
+      vi.advanceTimersByTime(500);
+    }
+
+    it('adds the incoming frame to the current slot, visible, over the running virus', () => {
+      const aSlot = showVisible('a');
+      const buried = frameOf(aSlot).contentWindow;
+      stage.show(load('random-shapes'));
+
+      const frames = aSlot.querySelectorAll('iframe');
+      // re-inserting the slot would reload the buried virus
+      expect(frames[0].contentWindow).toBe(buried);
+      expect(slots()).toEqual([aSlot]);
+      expect(frames).toHaveLength(2);
+      expect(frames[1].getAttribute('src')).toBe(
+        '/viruses/random-shapes/?overlay'
+      );
+      expect(frames[1].classList.contains('virus-iframe--overlay')).toBe(true);
+      expect(frames[1].classList.contains('virus-iframe--interactive')).toBe(
+        false
+      );
+      expect(aSlot.style.visibility).toBe('');
+      expect(flashStart).toHaveBeenCalledTimes(1);
+      expect(stage.activeWindow).toBe(frames[1].contentWindow);
+
+      frames[1].dispatchEvent(new Event('load'));
+      vi.advanceTimersByTime(500);
+      expect(onShown).toHaveBeenCalledTimes(2);
+      expect(aSlot.querySelectorAll('iframe')).toHaveLength(2);
+    });
+
+    it('removes the buried virus with its overlay on the next load', () => {
+      const aSlot = showVisible('a');
+      stage.show(load('random-shapes'));
+      loadOverlay(aSlot);
+
+      pickTransition.mockReturnValue(null);
+      stage.show(load('c'));
+      expect(aSlot.isConnected).toBe(false);
+      expect(el.querySelectorAll('iframe')).toHaveLength(1);
+    });
+
+    it('discards an unloaded overlay frame but keeps the slot it sat in', () => {
+      const run = vi.fn(() => []);
+      const aSlot = showVisible('a');
+      stage.show(load('random-shapes'));
+
+      pickTransition.mockReturnValue({ name: 'fake', run });
+      stage.show(load('c'));
+      const cSlot = slots()[1];
+      expect(aSlot.isConnected).toBe(true);
+      expect(aSlot.querySelectorAll('iframe')).toHaveLength(1);
+      expect(cSlot.style.visibility).toBe('hidden');
+    });
+
+    it('does not offer a second overlay', () => {
+      const aSlot = showVisible('a');
+      stage.show(load('random-shapes'));
+      loadOverlay(aSlot);
+
+      stage.show(load('random-shapes'));
+      expect(pickTransition).toHaveBeenLastCalledWith('random-shapes', false);
+    });
+
+    it('does not bury a virus that owns the keyboard, even after a skipped load', () => {
+      const run = vi.fn(() => []);
+      showVisible('a');
+      stage.setKeyboardOwner(true);
+      pickTransition.mockReturnValueOnce({ name: 'fake', run });
+      stage.show(load('b'));
+
+      stage.show(load('random-shapes'));
+      expect(pickTransition).toHaveBeenLastCalledWith('random-shapes', false);
+    });
+  });
 });

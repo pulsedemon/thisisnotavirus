@@ -85,11 +85,9 @@ export default class Stage {
     this.dropPending();
 
     const outgoing = this.visible;
-    const picked = outgoing
+    const transition = outgoing
       ? pickTransition(load.virus, this.canBury(outgoing))
       : null;
-    // overlays arrive with the virus that offers one
-    const transition = picked && 'run' in picked ? picked : null;
     if (!transition) {
       outgoing?.remove();
       this.visible = null;
@@ -98,17 +96,25 @@ export default class Stage {
 
     const frame = createStyledIframe();
     frame.title = 'virus';
-    if (load.interactive) frame.classList.add('virus-iframe--interactive');
-
-    const slot = document.createElement('div');
-    slot.className = 'virus-slot';
-    slot.style.visibility = 'hidden';
-    slot.appendChild(frame);
+    let slot: HTMLDivElement;
+    let src = load.src;
+    if (outgoing && transition && 'overlay' in transition) {
+      // drawn over the still-running virus from the first frame, so no hiding;
+      // clicks pass through to the virus underneath
+      frame.classList.add('virus-iframe--overlay');
+      slot = outgoing;
+      src += '?overlay';
+    } else {
+      if (load.interactive) frame.classList.add('virus-iframe--interactive');
+      slot = document.createElement('div');
+      slot.className = 'virus-slot';
+      slot.style.visibility = 'hidden';
+    }
 
     const pending: PendingLoad = {
       frame,
       slot,
-      transition,
+      transition: transition && 'run' in transition ? transition : null,
       startedAt: Date.now(),
       safetyTimer: setTimeout(() => {
         const msg = `Safety timeout: forcing loading animation to stop for virus: ${load.virus}`;
@@ -133,8 +139,9 @@ export default class Stage {
       },
       { once: true }
     );
-    frame.src = load.src;
-    this.el.appendChild(slot);
+    frame.src = src;
+    slot.appendChild(frame);
+    if (!slot.isConnected) this.el.appendChild(slot);
   }
 
   /** removes every slot, stops the cover and timers; later callbacks from earlier loads do nothing */

@@ -23,7 +23,14 @@ describe('pickTransition', () => {
       vi.spyOn(Math, 'random').mockReturnValue((i + 1) / n);
       return pickTransition('cubes', true)?.name;
     });
-    expect(picked).toEqual(['iris', 'blink']);
+    expect(picked).toEqual(['blink']);
+  });
+
+  it('offers bury only when random-shapes is next and no overlay is showing', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    expect(pickTransition('random-shapes', true)?.name).toBe('bury');
+    expect(pickTransition('cubes', true)?.name).toBe('blink');
+    expect(pickTransition('random-shapes', false)?.name).toBe('blink');
   });
 });
 
