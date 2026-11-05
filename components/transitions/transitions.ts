@@ -43,14 +43,13 @@ const opening = (lids: Lids) => `polygon(${openingPoints(lids).join(', ')})`;
  * corner line so the evenodd seam between the two rings has no area.
  */
 function aroundOpening(lids: Lids): string {
-  const y = '50%';
   const frame = [
-    `-5% ${y}`,
+    '-5% 50%',
     '-5% -5%',
     '105% -5%',
     '105% 105%',
     '-5% 105%',
-    `-5% ${y}`,
+    '-5% 50%',
   ];
   return `polygon(evenodd, ${[...frame, ...openingPoints(lids)].join(', ')})`;
 }
@@ -68,16 +67,19 @@ const EYE: Lids = { upper: 16, lower: 12, halfWidth: 28 };
 // shut lids meet in a curve sagging below the middle
 const SHUT: Lids = { upper: -4, lower: 4, halfWidth: 28 };
 
-// ms: narrow to an eye, shut fast, hold, open slower, widen back
+// ms: narrow to an eye, shut fast, hold, open slower, widen back. the old
+// virus is seen until the lids meet, the new one once they part
+const SHUT_AT = 220;
+const OPEN_AT = 270;
+const TOTAL = 530;
 const TIMELINE: [number, Lids][] = [
   [0, FULL],
   [150, EYE],
-  [220, SHUT],
-  [270, SHUT],
+  [SHUT_AT, SHUT],
+  [OPEN_AT, SHUT],
   [380, EYE],
-  [530, FULL],
+  [TOTAL, FULL],
 ];
-const TOTAL = 530;
 
 /**
  * keyframes for one layer across the whole blink. every layer shares the same
@@ -95,57 +97,50 @@ const TIMING = { duration: TOTAL };
 
 /** a full-stage layer drawn over both slots for the length of the blink */
 function layer(
-  host: HTMLElement,
+  incoming: HTMLElement,
   className: string,
   frame: (lids: Lids, at: number) => Keyframe
 ): Animation {
   const el = document.createElement('div');
   el.className = `eye-layer ${className}`;
-  host.appendChild(el);
+  incoming.parentElement?.appendChild(el);
   const animation = el.animate(keyframes(frame), TIMING);
   void animation.finished.then(() => el.remove());
   return animation;
 }
 
-// the old virus is seen until the lids meet, the new one once they part
-const SHUT_AT = 220;
-const OPEN_AT = 270;
-
 export const transitions: Transition[] = [
   {
     name: 'blink',
-    run: (outgoing, incoming) => {
-      const host = incoming.parentElement ?? incoming;
-      return [
-        outgoing.animate(
-          keyframes((lids, at) => ({
-            clipPath: opening(at <= SHUT_AT ? lids : SHUT),
-          })),
-          { ...TIMING, fill: 'forwards' }
-        ),
-        incoming.animate(
-          keyframes((lids, at) => ({
-            clipPath: opening(at >= OPEN_AT ? lids : SHUT),
-          })),
-          TIMING
-        ),
-        // shading and a highlight make the virus in the opening read as an eyeball
-        layer(host, 'eye-ball', (lids, at) => ({
-          clipPath: opening(lids),
-          opacity: at === 0 || at === TOTAL ? 0 : 1,
+    run: (outgoing, incoming) => [
+      outgoing.animate(
+        keyframes((lids, at) => ({
+          clipPath: opening(at <= SHUT_AT ? lids : SHUT),
         })),
-        layer(host, 'eye-skin', lids => ({ clipPath: aroundOpening(lids) })),
-        layer(host, 'eye-crease', lids => ({
-          clipPath: lidBand(lids.upper + 7, 1.5, lids.halfWidth),
+        { ...TIMING, fill: 'forwards' }
+      ),
+      incoming.animate(
+        keyframes((lids, at) => ({
+          clipPath: opening(at >= OPEN_AT ? lids : SHUT),
         })),
-        layer(host, 'eye-lashes', lids => ({
-          clipPath: lidBand(lids.upper, 7, lids.halfWidth),
-        })),
-        layer(host, 'eye-lashes eye-lashes--lower', lids => ({
-          clipPath: lidBand(-lids.lower, -3, lids.halfWidth),
-        })),
-      ];
-    },
+        TIMING
+      ),
+      // shading and a highlight make the virus in the opening read as an eyeball
+      layer(incoming, 'eye-ball', (lids, at) => ({
+        clipPath: opening(lids),
+        opacity: at === 0 || at === TOTAL ? 0 : 1,
+      })),
+      layer(incoming, 'eye-skin', lids => ({ clipPath: aroundOpening(lids) })),
+      layer(incoming, 'eye-crease', lids => ({
+        clipPath: lidBand(lids.upper + 7, 1.5, lids.halfWidth),
+      })),
+      layer(incoming, 'eye-lashes', lids => ({
+        clipPath: lidBand(lids.upper, 7, lids.halfWidth),
+      })),
+      layer(incoming, 'eye-lashes eye-lashes--lower', lids => ({
+        clipPath: lidBand(-lids.lower, -3, lids.halfWidth),
+      })),
+    ],
   },
 ];
 
