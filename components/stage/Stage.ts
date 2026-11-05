@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/browser';
 
 import Flash from '../flash/flash';
 import TVStaticLoading from '../TVStaticLoading';
+import { pickTransition, Transition } from '../transitions/transitions';
 import { createStyledIframe } from '../../utils/iframe';
 
 export interface StageLoad {
@@ -17,11 +18,21 @@ interface Cover {
   stop(): void;
 }
 
+type AnimatedTransition = Extract<Transition, { run: unknown }>;
+
 interface PendingLoad {
   frame: HTMLIFrameElement;
   slot: HTMLDivElement;
+  /** null means the loading cover */
+  transition: AnimatedTransition | null;
   startedAt: number;
   safetyTimer: ReturnType<typeof setTimeout>;
+}
+
+interface RunningTransition {
+  animations: Animation[];
+  outgoing: HTMLDivElement;
+  slot: HTMLDivElement;
 }
 
 const MIN_COVER_MS = 500;
@@ -39,6 +50,7 @@ export default class Stage {
   private cover: Cover | null = null;
   private pending: PendingLoad | null = null;
   private visible: HTMLDivElement | null = null;
+  private running: RunningTransition | null = null;
 
   /** `onShown` fires once per load that reaches the screen */
   constructor(
@@ -69,11 +81,20 @@ export default class Stage {
   }
 
   show(load: StageLoad): void {
+    this.settle();
     this.dropPending();
 
-    this.visible?.remove();
-    this.visible = null;
-    this.startCover();
+    const outgoing = this.visible;
+    const picked = outgoing
+      ? pickTransition(load.virus, this.canBury(outgoing))
+      : null;
+    // overlays arrive with the virus that offers one
+    const transition = picked && 'run' in picked ? picked : null;
+    if (!transition) {
+      outgoing?.remove();
+      this.visible = null;
+      this.startCover();
+    }
 
     const frame = createStyledIframe();
     frame.title = 'virus';
@@ -87,6 +108,7 @@ export default class Stage {
     const pending: PendingLoad = {
       frame,
       slot,
+      transition,
       startedAt: Date.now(),
       safetyTimer: setTimeout(() => {
         const msg = `Safety timeout: forcing loading animation to stop for virus: ${load.virus}`;
@@ -117,6 +139,8 @@ export default class Stage {
 
   /** removes every slot, stops the cover and timers; later callbacks from earlier loads do nothing */
   clear(): void {
+    // a late commit from a cleared transition must not restore its slot
+    this.running = null;
     this.dropPending();
     this.stopCover();
     this.el.querySelectorAll('.virus-slot').forEach(slot => slot.remove());
@@ -137,8 +161,45 @@ export default class Stage {
     this.pending = null;
     this.stopCover();
     p.slot.style.visibility = '';
-    this.visible = p.slot;
     this.onShown();
+
+    const outgoing = this.visible;
+    if (p.transition && outgoing) {
+      // `visible` stays the outgoing slot until commit
+      const r: RunningTransition = {
+        animations: p.transition.run(outgoing, p.slot),
+        outgoing,
+        slot: p.slot,
+      };
+      this.running = r;
+      void Promise.all(r.animations.map(a => a.finished)).then(() =>
+        this.commit(r)
+      );
+    } else {
+      this.visible = p.slot;
+    }
+  }
+
+  /** jumps a running transition to its end so the next load starts from one slot */
+  private settle(): void {
+    const r = this.running;
+    if (!r) return;
+    r.animations.forEach(a => a.finish());
+    // `finished` callbacks wait for a microtask, after show has read `visible`
+    this.commit(r);
+  }
+
+  private commit(r: RunningTransition): void {
+    if (this.running !== r) return;
+    this.running = null;
+    r.outgoing.remove();
+    this.visible = r.slot;
+  }
+
+  /** an overlay stacks one virus on another, never a virus that owns the keyboard */
+  private canBury(slot: HTMLDivElement): boolean {
+    const frames = slot.querySelectorAll('iframe');
+    return frames.length === 1 && !frames[0].dataset.keyboard;
   }
 
   private dropPending(): void {

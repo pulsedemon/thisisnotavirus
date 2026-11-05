@@ -1,12 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Stage, { StageLoad } from '../Stage';
+import type { Transition } from '../../transitions/transitions';
 
-const { flashStart, flashStop, tvShow, tvHide } = vi.hoisted(() => ({
-  flashStart: vi.fn(),
-  flashStop: vi.fn(),
-  tvShow: vi.fn(),
-  tvHide: vi.fn(),
-}));
+const { flashStart, flashStop, tvShow, tvHide, pickTransition } = vi.hoisted(
+  () => ({
+    flashStart: vi.fn(),
+    flashStop: vi.fn(),
+    tvShow: vi.fn(),
+    tvHide: vi.fn(),
+    pickTransition: vi.fn(
+      (_incoming: string, _allowOverlay: boolean): Transition | null => null
+    ),
+  })
+);
+
+vi.mock('../../transitions/transitions', () => ({ pickTransition }));
 
 vi.mock('@sentry/browser', () => ({
   captureException: vi.fn(),
@@ -46,6 +54,7 @@ describe('Stage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    pickTransition.mockReturnValue(null);
     vi.useFakeTimers();
     // >= 0.5 picks the Flash cover
     vi.spyOn(Math, 'random').mockReturnValue(0.6);
@@ -236,5 +245,178 @@ describe('Stage', () => {
     expect(slots()).toHaveLength(0);
     stage.show(load('b'));
     expect(slots()).toHaveLength(1);
+  });
+
+  describe('animated hand-off', () => {
+    interface FakeAnimation {
+      animation: Animation;
+      resolve: () => void;
+      finish: ReturnType<typeof vi.fn>;
+    }
+    let made: FakeAnimation[];
+    let perRun: number;
+    let run: ReturnType<typeof vi.fn>;
+
+    function fakeAnimation(): FakeAnimation {
+      let resolve!: () => void;
+      const finished = new Promise<void>(r => (resolve = r));
+      const finish = vi.fn(() => resolve());
+      const fake = {
+        animation: { finished, finish } as unknown as Animation,
+        resolve,
+        finish,
+      };
+      made.push(fake);
+      return fake;
+    }
+
+    beforeEach(() => {
+      made = [];
+      perRun = 1;
+      run = vi.fn(() =>
+        Array.from({ length: perRun }, () => fakeAnimation().animation)
+      );
+      pickTransition.mockReturnValue({ name: 'fake', run });
+    });
+
+    function showVisible(virus: string): HTMLDivElement {
+      stage.show(load(virus));
+      const slot = slots()[slots().length - 1];
+      reveal(slot);
+      return slot;
+    }
+
+    it('uses the cover on the first load without picking', () => {
+      stage.show(load('a'));
+      expect(pickTransition).not.toHaveBeenCalled();
+      expect(flashStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the outgoing virus visible and skips the cover while the next one loads', () => {
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      const bSlot = slots()[1];
+
+      expect(pickTransition).toHaveBeenCalledWith('b', true);
+      expect(aSlot.style.visibility).toBe('');
+      expect(bSlot.style.visibility).toBe('hidden');
+      expect(flashStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs the transition and removes the old slot when it finishes', async () => {
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      const bSlot = slots()[1];
+      reveal(bSlot);
+
+      expect(run).toHaveBeenCalledWith(aSlot, bSlot);
+      expect(bSlot.style.visibility).toBe('');
+      expect(onShown).toHaveBeenCalledTimes(2);
+      expect(aSlot.isConnected).toBe(true);
+
+      made[0].resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(aSlot.isConnected).toBe(false);
+      expect(slots()).toEqual([bSlot]);
+      expect(onShown).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for every animation before removing the old slot', async () => {
+      perRun = 2;
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      reveal(slots()[1]);
+
+      made[0].resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(aSlot.isConnected).toBe(true);
+      made[1].resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(aSlot.isConnected).toBe(false);
+    });
+
+    it('uses the cover when pickTransition returns null', () => {
+      const aSlot = showVisible('a');
+      pickTransition.mockReturnValue(null);
+      stage.show(load('b'));
+      expect(aSlot.isConnected).toBe(false);
+      expect(flashStart).toHaveBeenCalledTimes(2);
+    });
+
+    it('finishes a running transition when another load starts, and the late finished changes nothing', async () => {
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      const bSlot = slots()[1];
+      reveal(bSlot);
+      const ab = made[0];
+
+      stage.show(load('c'));
+      expect(ab.finish).toHaveBeenCalled();
+      expect(aSlot.isConnected).toBe(false);
+      expect(bSlot.isConnected).toBe(true);
+      expect(run).toHaveBeenCalledTimes(1);
+
+      const cSlot = slots()[1];
+      reveal(cSlot);
+      expect(run).toHaveBeenLastCalledWith(bSlot, cSlot);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(bSlot.isConnected).toBe(true);
+
+      made[1].resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(slots()).toEqual([cSlot]);
+    });
+
+    it('keeps the visible virus when an unrevealed hand-off is superseded', () => {
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      const bSlot = slots()[1];
+      stage.show(load('c'));
+      expect(bSlot.isConnected).toBe(false);
+      expect(aSlot.isConnected).toBe(true);
+      expect(slots()).toHaveLength(2);
+    });
+
+    it('runs the transition once when load arrives after the safety timeout', () => {
+      showVisible('a');
+      stage.show(load('b'));
+      const bFrame = frameOf(slots()[1]);
+      vi.advanceTimersByTime(5000);
+      bFrame.dispatchEvent(new Event('load'));
+      vi.advanceTimersByTime(500);
+      expect(run).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts from an empty stage after clear mid-transition', async () => {
+      showVisible('a');
+      stage.show(load('b'));
+      reveal(slots()[1]);
+
+      stage.clear();
+      made[0].resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(slots()).toHaveLength(0);
+
+      pickTransition.mockClear();
+      stage.show(load('d'));
+      expect(pickTransition).not.toHaveBeenCalled();
+      expect(slots()).toHaveLength(1);
+    });
+
+    it('marks only the newest iframe as keyboard owner', () => {
+      const aSlot = showVisible('a');
+      stage.show(load('b'));
+      const bFrame = frameOf(slots()[1]);
+      stage.setKeyboardOwner(true);
+      expect(bFrame.dataset.keyboard).toBe('true');
+      expect(frameOf(aSlot).dataset.keyboard).toBeUndefined();
+    });
+
+    it('does not offer an overlay over a virus that owns the keyboard', () => {
+      showVisible('a');
+      stage.setKeyboardOwner(true);
+      stage.show(load('b'));
+      expect(pickTransition).toHaveBeenLastCalledWith('b', false);
+    });
   });
 });
