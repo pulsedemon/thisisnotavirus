@@ -18,13 +18,10 @@ interface Cover {
   stop(): void;
 }
 
-type AnimatedTransition = Extract<Transition, { run: unknown }>;
-
 interface PendingLoad {
-  frame: HTMLIFrameElement;
   slot: HTMLDivElement;
   /** null means the loading cover */
-  transition: AnimatedTransition | null;
+  transition: Transition | null;
   startedAt: number;
   safetyTimer: ReturnType<typeof setTimeout>;
 }
@@ -72,23 +69,12 @@ export default class Stage {
     return frames[frames.length - 1]?.contentWindow ?? null;
   }
 
-  /** marks the newest iframe as owning the keyboard, the only window whose messages main.ts accepts */
-  setKeyboardOwner(enabled: boolean): void {
-    const frames = this.el.querySelectorAll('iframe');
-    const newest = frames[frames.length - 1];
-    if (!newest) return;
-    if (enabled) newest.dataset.keyboard = 'true';
-    else delete newest.dataset.keyboard;
-  }
-
   show(load: StageLoad): void {
     this.settle();
     this.dropPending();
 
     const outgoing = this.visible;
-    const transition = outgoing
-      ? pickTransition(load.virus, this.canBury(outgoing), this.lastTransition)
-      : null;
+    const transition = outgoing ? pickTransition(this.lastTransition) : null;
     this.lastTransition = transition?.name ?? null;
     if (!transition) {
       outgoing?.remove();
@@ -98,25 +84,15 @@ export default class Stage {
 
     const frame = createStyledIframe();
     frame.title = 'virus';
-    let slot: HTMLDivElement;
-    let src = load.src;
-    if (outgoing && transition && 'overlay' in transition) {
-      // drawn over the still-running virus from the first frame, so no hiding;
-      // clicks pass through to the virus underneath
-      frame.classList.add('virus-iframe--overlay');
-      slot = outgoing;
-      src += '?overlay';
-    } else {
-      if (load.interactive) frame.classList.add('virus-iframe--interactive');
-      slot = document.createElement('div');
-      slot.className = 'virus-slot';
-      slot.style.visibility = 'hidden';
-    }
+    if (load.interactive) frame.classList.add('virus-iframe--interactive');
+
+    const slot = document.createElement('div');
+    slot.className = 'virus-slot';
+    slot.style.visibility = 'hidden';
 
     const pending: PendingLoad = {
-      frame,
       slot,
-      transition: transition && 'run' in transition ? transition : null,
+      transition,
       startedAt: Date.now(),
       safetyTimer: setTimeout(() => {
         const msg = `Safety timeout: forcing loading animation to stop for virus: ${load.virus}`;
@@ -141,9 +117,9 @@ export default class Stage {
       },
       { once: true }
     );
-    frame.src = src;
+    frame.src = load.src;
     slot.appendChild(frame);
-    if (!slot.isConnected) this.el.appendChild(slot);
+    this.el.appendChild(slot);
   }
 
   /** removes every slot, stops the cover and timers; later callbacks from earlier loads do nothing */
@@ -205,19 +181,12 @@ export default class Stage {
     this.visible = r.slot;
   }
 
-  /** an overlay stacks one virus on another, never a virus that owns the keyboard */
-  private canBury(slot: HTMLDivElement): boolean {
-    const frames = slot.querySelectorAll('iframe');
-    return frames.length === 1 && !frames[0].dataset.keyboard;
-  }
-
   private dropPending(): void {
     const p = this.pending;
     if (!p) return;
     this.pending = null;
     clearTimeout(p.safetyTimer);
-    if (p.slot === this.visible) p.frame.remove();
-    else p.slot.remove();
+    p.slot.remove();
     this.stopCover();
   }
 

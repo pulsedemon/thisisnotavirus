@@ -9,11 +9,7 @@ const { flashStart, flashStop, tvShow, tvHide, pickTransition } = vi.hoisted(
     tvShow: vi.fn(),
     tvHide: vi.fn(),
     pickTransition: vi.fn(
-      (
-        _incoming: string,
-        _allowOverlay: boolean,
-        _previous: string | null
-      ): Transition | null => null
+      (_previous: string | null): Transition | null => null
     ),
   })
 );
@@ -213,16 +209,6 @@ describe('Stage', () => {
     expect(flashStart).not.toHaveBeenCalled();
   });
 
-  it('marks and unmarks the newest iframe as keyboard owner', () => {
-    stage.show(load('a'));
-    const [aSlot] = slots();
-    reveal(aSlot);
-    stage.setKeyboardOwner(true);
-    expect(frameOf(aSlot).dataset.keyboard).toBe('true');
-    stage.setKeyboardOwner(false);
-    expect(frameOf(aSlot).dataset.keyboard).toBeUndefined();
-  });
-
   it('points activeWindow at the newest iframe', () => {
     stage.show(load('a'));
     reveal(slots()[0]);
@@ -301,7 +287,7 @@ describe('Stage', () => {
       stage.show(load('b'));
       const bSlot = slots()[1];
 
-      expect(pickTransition).toHaveBeenCalledWith('b', true, null);
+      expect(pickTransition).toHaveBeenCalledWith(null);
       expect(aSlot.style.visibility).toBe('');
       expect(bSlot.style.visibility).toBe('hidden');
       expect(flashStart).toHaveBeenCalledTimes(1);
@@ -330,13 +316,13 @@ describe('Stage', () => {
       stage.show(load('b'));
       reveal(slots()[1]);
       stage.show(load('c'));
-      expect(pickTransition).toHaveBeenLastCalledWith('c', true, 'fake');
+      expect(pickTransition).toHaveBeenLastCalledWith('fake');
 
       pickTransition.mockReturnValue(null);
       stage.show(load('d'));
       reveal(slots()[0]);
       stage.show(load('e'));
-      expect(pickTransition).toHaveBeenLastCalledWith('e', true, null);
+      expect(pickTransition).toHaveBeenLastCalledWith(null);
     });
 
     it('waits for every animation before removing the old slot', async () => {
@@ -419,122 +405,6 @@ describe('Stage', () => {
       stage.show(load('d'));
       expect(pickTransition).not.toHaveBeenCalled();
       expect(slots()).toHaveLength(1);
-    });
-
-    it('marks only the newest iframe as keyboard owner', () => {
-      const aSlot = showVisible('a');
-      stage.show(load('b'));
-      const bFrame = frameOf(slots()[1]);
-      stage.setKeyboardOwner(true);
-      expect(bFrame.dataset.keyboard).toBe('true');
-      expect(frameOf(aSlot).dataset.keyboard).toBeUndefined();
-    });
-
-    it('does not offer an overlay over a virus that owns the keyboard', () => {
-      showVisible('a');
-      stage.setKeyboardOwner(true);
-      stage.show(load('b'));
-      expect(pickTransition).toHaveBeenLastCalledWith('b', false, null);
-    });
-  });
-
-  describe('overlay', () => {
-    beforeEach(() => {
-      pickTransition.mockImplementation((_incoming, allowOverlay) =>
-        allowOverlay ? { name: 'bury', overlay: true } : null
-      );
-    });
-
-    function showVisible(virus: string): HTMLDivElement {
-      stage.show(load(virus));
-      const slot = slots()[slots().length - 1];
-      reveal(slot);
-      return slot;
-    }
-
-    function loadOverlay(slot: HTMLDivElement) {
-      const frames = slot.querySelectorAll('iframe');
-      frames[frames.length - 1].dispatchEvent(new Event('load'));
-      vi.advanceTimersByTime(500);
-    }
-
-    it('adds the incoming frame to the current slot, visible, over the running virus', () => {
-      const aSlot = showVisible('a');
-      const buried = frameOf(aSlot).contentWindow;
-      stage.show(load('random-shapes'));
-
-      const frames = aSlot.querySelectorAll('iframe');
-      // re-inserting the slot would reload the buried virus
-      expect(frames[0].contentWindow).toBe(buried);
-      expect(slots()).toEqual([aSlot]);
-      expect(frames).toHaveLength(2);
-      expect(frames[1].getAttribute('src')).toBe(
-        '/viruses/random-shapes/?overlay'
-      );
-      expect(frames[1].classList.contains('virus-iframe--overlay')).toBe(true);
-      expect(frames[1].classList.contains('virus-iframe--interactive')).toBe(
-        false
-      );
-      expect(aSlot.style.visibility).toBe('');
-      expect(flashStart).toHaveBeenCalledTimes(1);
-      expect(stage.activeWindow).toBe(frames[1].contentWindow);
-
-      frames[1].dispatchEvent(new Event('load'));
-      vi.advanceTimersByTime(500);
-      expect(onShown).toHaveBeenCalledTimes(2);
-      expect(aSlot.querySelectorAll('iframe')).toHaveLength(2);
-    });
-
-    it('removes the buried virus with its overlay on the next load', () => {
-      const aSlot = showVisible('a');
-      stage.show(load('random-shapes'));
-      loadOverlay(aSlot);
-
-      pickTransition.mockReturnValue(null);
-      stage.show(load('c'));
-      expect(aSlot.isConnected).toBe(false);
-      expect(el.querySelectorAll('iframe')).toHaveLength(1);
-    });
-
-    it('discards an unloaded overlay frame but keeps the slot it sat in', () => {
-      const run = vi.fn(() => []);
-      const aSlot = showVisible('a');
-      stage.show(load('random-shapes'));
-
-      pickTransition.mockReturnValue({ name: 'fake', run });
-      stage.show(load('c'));
-      const cSlot = slots()[1];
-      expect(aSlot.isConnected).toBe(true);
-      expect(aSlot.querySelectorAll('iframe')).toHaveLength(1);
-      expect(cSlot.style.visibility).toBe('hidden');
-    });
-
-    it('does not offer a second overlay', () => {
-      const aSlot = showVisible('a');
-      stage.show(load('random-shapes'));
-      loadOverlay(aSlot);
-
-      stage.show(load('random-shapes'));
-      expect(pickTransition).toHaveBeenLastCalledWith(
-        'random-shapes',
-        false,
-        'bury'
-      );
-    });
-
-    it('does not bury a virus that owns the keyboard, even after a skipped load', () => {
-      const run = vi.fn(() => []);
-      showVisible('a');
-      stage.setKeyboardOwner(true);
-      pickTransition.mockReturnValueOnce({ name: 'fake', run });
-      stage.show(load('b'));
-
-      stage.show(load('random-shapes'));
-      expect(pickTransition).toHaveBeenLastCalledWith(
-        'random-shapes',
-        false,
-        'fake'
-      );
     });
   });
 });

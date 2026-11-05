@@ -1,14 +1,8 @@
-export type Transition =
-  | {
-      name: string;
-      /** animates `incoming` over `outgoing`; the caller removes `outgoing` once every animation finishes */
-      run(outgoing: HTMLElement, incoming: HTMLElement): Animation[];
-    }
-  | {
-      name: string;
-      /** the incoming iframe joins the outgoing slot and draws over the still-running virus */
-      overlay: true;
-    };
+export interface Transition {
+  name: string;
+  /** animates `incoming` over `outgoing`; the caller removes `outgoing` once every animation finishes */
+  run(outgoing: HTMLElement, incoming: HTMLElement): Animation[];
+}
 
 interface Lids {
   /** how far each lid bows from the middle line, in % of height; negative bows down */
@@ -144,26 +138,8 @@ export const transitions: Transition[] = [
   },
 ];
 
-/** extra transitions offered only when the incoming virus is the key */
-export const virusTransitions: Record<string, Transition[]> = {
-  'random-shapes': [{ name: 'bury', overlay: true }],
-};
-
-/**
- * null means the loading cover. overlay entries are left out when
- * `allowOverlay` is false, and the `previous` transition never runs twice in a row.
- */
-export function pickTransition(
-  incoming: string,
-  allowOverlay: boolean,
-  previous: string | null
-): Transition | null {
-  const pool: (Transition | null)[] = [
-    null,
-    ...transitions,
-    ...(virusTransitions[incoming] ?? []),
-  ].filter(
-    t => !t || (t.name !== previous && (allowOverlay || !('overlay' in t)))
-  );
+/** null means the loading cover; the `previous` transition never runs twice in a row */
+export function pickTransition(previous: string | null): Transition | null {
+  const pool = [null, ...transitions].filter(t => !t || t.name !== previous);
   return pool[Math.floor(Math.random() * pool.length)];
 }

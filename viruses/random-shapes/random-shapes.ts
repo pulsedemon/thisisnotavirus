@@ -19,11 +19,8 @@ class RandomBlocks {
   bgColors = ['black', 'aqua', 'red'];
 
   constructor() {
-    // ?overlay leaves the page transparent so the shapes pile up on the virus underneath
-    if (!new URLSearchParams(location.search).has('overlay')) {
-      document.body.style.backgroundColor =
-        this.bgColors[randomIntBetween(0, this.bgColors.length)];
-    }
+    document.body.style.backgroundColor =
+      this.bgColors[randomIntBetween(0, this.bgColors.length)];
     this.canvas = document.createElement('canvas');
     this.canvasCtx = this.canvas.getContext('2d')!;
     this.container.appendChild(this.canvas);

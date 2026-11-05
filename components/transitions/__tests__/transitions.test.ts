@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { pickTransition, Transition, transitions } from '../transitions';
+import { pickTransition, transitions } from '../transitions';
 
 interface AnimateCall {
   target: Element;
@@ -14,30 +14,21 @@ describe('pickTransition', () => {
 
   it('picks the cover for the first bucket', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
-    expect(pickTransition('cubes', true, null)).toBeNull();
+    expect(pickTransition(null)).toBeNull();
   });
 
   it('reaches every generic transition', () => {
     const n = transitions.length + 1;
     const picked = transitions.map((_, i) => {
       vi.spyOn(Math, 'random').mockReturnValue((i + 1) / n);
-      return pickTransition('cubes', true, null)?.name;
+      return pickTransition(null)?.name;
     });
     expect(picked).toEqual(['blink']);
   });
 
   it('never runs the previous transition again', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.99);
-    expect(pickTransition('cubes', true, 'blink')).toBeNull();
-    expect(pickTransition('random-shapes', true, 'blink')?.name).toBe('bury');
-    expect(pickTransition('random-shapes', true, 'bury')?.name).toBe('blink');
-  });
-
-  it('offers bury only when random-shapes is next and no overlay is showing', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.99);
-    expect(pickTransition('random-shapes', true, null)?.name).toBe('bury');
-    expect(pickTransition('cubes', true, null)?.name).toBe('blink');
-    expect(pickTransition('random-shapes', false, null)?.name).toBe('blink');
+    expect(pickTransition('blink')).toBeNull();
   });
 });
 
@@ -60,11 +51,7 @@ describe('transitions', () => {
     } as HTMLElement['animate'];
   }
 
-  const animated = transitions.filter(
-    (t): t is Extract<Transition, { run: unknown }> => 'run' in t
-  );
-
-  it.each(animated.map(t => [t.name, t] as const))(
+  it.each(transitions.map(t => [t.name, t] as const))(
     '%s releases the incoming slot and holds the outgoing one at its end',
     (_name, transition) => {
       record();
