@@ -67,7 +67,7 @@ window.addEventListener('message', event => {
   if (event.origin !== window.location.origin) return;
   if (event.source !== vl.activeWindow) return;
   if (isKeyboardControlMessage(event.data)) {
-    vl.virusHasKeyboardControl = event.data.enabled;
+    vl.setKeyboardControl(event.data.enabled);
   }
 });
 

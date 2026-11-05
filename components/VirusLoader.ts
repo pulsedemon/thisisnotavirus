@@ -72,6 +72,11 @@ export default class VirusLoader implements VirusLoaderInterface {
     return this.stage.activeWindow;
   }
 
+  setKeyboardControl(enabled: boolean): void {
+    this.virusHasKeyboardControl = enabled;
+    this.stage.setKeyboardOwner(enabled);
+  }
+
   private setSourceCodeLinkVisible(visible: boolean) {
     if (visible) {
       this.sourceCodeLink?.classList.remove('hide');

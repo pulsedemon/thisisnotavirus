@@ -4,6 +4,12 @@ export interface Transition {
   run(outgoing: HTMLElement, incoming: HTMLElement): Animation[];
 }
 
+/** the incoming iframe joins the outgoing slot and draws over the still-running virus */
+export interface Overlay {
+  name: string;
+  overlay: true;
+}
+
 interface Lids {
   /** how far each lid bows from the middle line, in % of height; negative bows down */
   upper: number;
@@ -138,8 +144,23 @@ export const transitions: Transition[] = [
   },
 ];
 
-/** null means the loading cover; the `previous` transition never runs twice in a row */
-export function pickTransition(previous: string | null): Transition | null {
-  const pool = [null, ...transitions].filter(t => !t || t.name !== previous);
+/** overlays offered only when the incoming virus is the key */
+const virusOverlays: Record<string, Overlay[]> = {
+  'random-shapes': [{ name: 'bury', overlay: true }],
+};
+
+/**
+ * null means the loading cover. the `previous` transition never runs twice in
+ * a row, and overlays are left out when `allowOverlay` is false.
+ */
+export function pickTransition(
+  previous: string | null,
+  incoming: string,
+  allowOverlay: boolean
+): Transition | Overlay | null {
+  const overlays = allowOverlay ? (virusOverlays[incoming] ?? []) : [];
+  const pool = [null, ...transitions, ...overlays].filter(
+    t => !t || t.name !== previous
+  );
   return pool[Math.floor(Math.random() * pool.length)];
 }
