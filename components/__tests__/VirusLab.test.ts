@@ -80,18 +80,18 @@ describe('VirusLab', () => {
 
   describe('constructor', () => {
     it("should set container className to 'virus-lab'", () => {
-      new VirusLab(container, playlist, true);
+      new VirusLab(container, playlist);
       expect(container.className).toBe('virus-lab');
     });
 
     it('should create primary and secondary iframes', () => {
-      new VirusLab(container, playlist, true);
+      new VirusLab(container, playlist);
       const iframes = container.querySelectorAll('iframe');
       expect(iframes.length).toBe(2);
     });
 
     it('should set initial mix to current and next virus', () => {
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
       const currentVirus = playlist.viruses[0]; // shuffle is identity
       const nextVirus = playlist.viruses[1];
 
@@ -107,7 +107,7 @@ describe('VirusLab', () => {
 
   describe('applyMix', () => {
     it('should set iframe src URLs for primary and secondary viruses', () => {
-      new VirusLab(container, playlist, true);
+      new VirusLab(container, playlist);
 
       const iframes = container.querySelectorAll('iframe');
       const primaryVirus = playlist.viruses[0];
@@ -118,7 +118,7 @@ describe('VirusLab', () => {
     });
 
     it('should set mix blend mode and opacity on secondary iframe', () => {
-      new VirusLab(container, playlist, true);
+      new VirusLab(container, playlist);
 
       const iframes = container.querySelectorAll('iframe');
       const secondaryIframe = iframes[1];
@@ -130,7 +130,7 @@ describe('VirusLab', () => {
 
   describe('saveMix', () => {
     it('should save a new mix to localStorage', () => {
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       (priv(lab).saveMix as () => void)();
 
@@ -154,7 +154,7 @@ describe('VirusLab', () => {
       };
       loadSavedMixesMock.mockReturnValue([existingMix]);
 
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       // saveMix calls loadSavedMixesFromStorage again to check for duplicates
       loadSavedMixesMock.mockReturnValue([existingMix]);
@@ -175,7 +175,7 @@ describe('VirusLab', () => {
     it('should handle storage failure', () => {
       saveMixesMock.mockReturnValue(false);
 
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       (priv(lab).saveMix as () => void)();
 
@@ -189,7 +189,7 @@ describe('VirusLab', () => {
 
     it('should auto-remove the temporary message after 2 seconds', () => {
       saveMixesMock.mockReturnValue(false);
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       (priv(lab).saveMix as () => void)();
 
@@ -201,7 +201,7 @@ describe('VirusLab', () => {
 
   describe('loadMix', () => {
     it('should update current mix and apply it', () => {
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       const mix = {
         primary: 'doors',
@@ -217,7 +217,7 @@ describe('VirusLab', () => {
       expect(iframes[1].style.opacity).toBe('0.7');
     });
 
-    it('should sync cached control refs when loading a saved mix in interactive mode', () => {
+    it('should sync cached control refs when loading a saved mix', () => {
       const lab = new VirusLab(container, playlist);
 
       const mix = {
@@ -275,7 +275,7 @@ describe('VirusLab', () => {
 
   describe('getCurrentMix', () => {
     it('should return a copy of current mix with id', () => {
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       const mix = {
         primary: 'sphere',
@@ -293,7 +293,7 @@ describe('VirusLab', () => {
     });
 
     it('should return undefined if mix has no id', () => {
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       // The initial mix has no id
       const result = lab.getCurrentMix();
@@ -309,7 +309,7 @@ describe('VirusLab', () => {
       ];
       loadSavedMixesMock.mockReturnValue(savedMixes);
 
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
 
       (priv(lab).deleteMix as (id: number) => void)(1);
 
@@ -324,7 +324,7 @@ describe('VirusLab', () => {
       ];
       loadSavedMixesMock.mockReturnValue(savedMixes);
 
-      const lab = new VirusLab(container, playlist, true);
+      const lab = new VirusLab(container, playlist);
       saveMixesMock.mockReturnValue(false);
 
       (priv(lab).deleteMix as (id: number) => void)(1);
@@ -333,40 +333,6 @@ describe('VirusLab', () => {
       const errorMessage = container.querySelector('.save-message.error');
       expect(errorMessage).not.toBeNull();
       expect(errorMessage!.textContent).toBe('Failed to delete mix.');
-    });
-  });
-
-  describe('cleanup', () => {
-    it('should clear cached control refs on cleanup', () => {
-      const lab = new VirusLab(container, playlist);
-
-      lab.cleanup();
-
-      expect(priv(lab).primarySelect).toBeNull();
-      expect(priv(lab).secondarySelect).toBeNull();
-      expect(priv(lab).mixRatioInput).toBeNull();
-    });
-
-    it('should remove event listeners and iframes', () => {
-      const lab = new VirusLab(container, playlist, true);
-
-      const iframesBefore = container.querySelectorAll('iframe');
-      expect(iframesBefore.length).toBe(2);
-
-      lab.cleanup();
-
-      const iframesAfter = container.querySelectorAll('iframe');
-      expect(iframesAfter.length).toBe(0);
-    });
-
-    it('should clear container', () => {
-      const lab = new VirusLab(container, playlist, true);
-
-      expect(container.childNodes.length).toBeGreaterThan(0);
-
-      lab.cleanup();
-
-      expect(container.childNodes.length).toBe(0);
     });
   });
 });

@@ -15,20 +15,13 @@ export default class VirusLab {
   private primaryIframe: HTMLIFrameElement;
   private secondaryIframe: HTMLIFrameElement;
   private savedMixes: VirusMix[] = [];
-  private displayOnly: boolean;
   private primarySelect: HTMLSelectElement | null = null;
   private secondarySelect: HTMLSelectElement | null = null;
   private mixRatioInput: HTMLInputElement | null = null;
-  private eventListeners: {
-    element: HTMLElement;
-    type: string;
-    handler: EventListener;
-  }[] = [];
 
-  constructor(container: HTMLElement, playlist: Playlist, displayOnly = false) {
+  constructor(container: HTMLElement, playlist: Playlist) {
     this.container = container;
     this.playlist = playlist;
-    this.displayOnly = displayOnly;
 
     this.container.className = 'virus-lab';
 
@@ -49,24 +42,8 @@ export default class VirusLab {
     };
 
     this.loadSavedMixes();
-
-    if (!this.displayOnly) {
-      this.initializeUI();
-    }
+    this.initializeUI();
     this.applyMix();
-  }
-
-  cleanup() {
-    this.eventListeners.forEach(({ element, type, handler }) => {
-      element.removeEventListener(type, handler);
-    });
-    this.eventListeners = [];
-
-    this.primarySelect = null;
-    this.secondarySelect = null;
-    this.mixRatioInput = null;
-
-    this.container.textContent = '';
   }
 
   private loadSavedMixes() {
@@ -110,40 +87,23 @@ export default class VirusLab {
     const primarySelect = this.primarySelect!;
     const secondarySelect = this.secondarySelect!;
     const mixRatioInput = this.mixRatioInput!;
-    const saveButton = document.getElementById('save-mix');
 
-    const primaryHandler = () => {
+    primarySelect.addEventListener('change', () => {
       this.currentMix.primary = primarySelect.value;
       this.applyMix();
-    };
-    const secondaryHandler = () => {
+    });
+    secondarySelect.addEventListener('change', () => {
       this.currentMix.secondary = secondarySelect.value;
       this.applyMix();
-    };
-    const mixRatioHandler = () => {
+    });
+    mixRatioInput.addEventListener('input', () => {
       this.currentMix.mixRatio = parseFloat(mixRatioInput.value);
       this.secondaryIframe.style.mixBlendMode = 'screen';
       this.secondaryIframe.style.opacity = this.currentMix.mixRatio.toString();
-    };
-    const saveHandler = () => this.saveMix();
-
-    primarySelect.addEventListener('change', primaryHandler);
-    secondarySelect.addEventListener('change', secondaryHandler);
-    mixRatioInput.addEventListener('input', mixRatioHandler);
-    saveButton?.addEventListener('click', saveHandler);
-
-    this.eventListeners.push(
-      { element: primarySelect, type: 'change', handler: primaryHandler },
-      { element: secondarySelect, type: 'change', handler: secondaryHandler },
-      { element: mixRatioInput, type: 'input', handler: mixRatioHandler }
-    );
-    if (saveButton) {
-      this.eventListeners.push({
-        element: saveButton,
-        type: 'click',
-        handler: saveHandler,
-      });
-    }
+    });
+    document
+      .getElementById('save-mix')
+      ?.addEventListener('click', () => this.saveMix());
   }
 
   private populateVirusSelects() {
@@ -242,12 +202,9 @@ export default class VirusLab {
   loadMix(mix: VirusMix) {
     this.currentMix = { ...mix };
 
-    if (!this.displayOnly) {
-      if (this.primarySelect) this.primarySelect.value = mix.primary;
-      if (this.secondarySelect) this.secondarySelect.value = mix.secondary;
-      if (this.mixRatioInput)
-        this.mixRatioInput.value = mix.mixRatio.toString();
-    }
+    if (this.primarySelect) this.primarySelect.value = mix.primary;
+    if (this.secondarySelect) this.secondarySelect.value = mix.secondary;
+    if (this.mixRatioInput) this.mixRatioInput.value = mix.mixRatio.toString();
 
     this.applyMix();
   }
