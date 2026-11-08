@@ -93,31 +93,22 @@
     </div>
     <script type="module">
       import Playlist from "../../components/Playlist";
-
-      // only registered viruses, so a param like ../../foo can't load another same-origin page
-      const { viruses } = new Playlist();
+      import { mixSources } from "./lab";
 
       const urlParams = new URLSearchParams(window.location.search);
-      const primary = urlParams.get("primary");
-      const secondary = urlParams.get("secondary");
+      const sources = mixSources(urlParams, new Playlist().viruses);
       const ratio = parseFloat(urlParams.get("ratio") || "0.5");
 
       const primaryFrame = document.getElementById("primary-virus");
       const secondaryFrame = document.getElementById("secondary-virus");
 
-      if (
-        !primary ||
-        !viruses.includes(primary) ||
-        !secondary ||
-        !viruses.includes(secondary)
-      ) {
+      if (!sources) {
         document.body.textContent = "invalid mix";
         document.body.style.visibility = "visible";
         throw new Error("lab: invalid primary/secondary params");
       }
 
-      primaryFrame.src = `/viruses/${primary}/`;
-      secondaryFrame.src = `/viruses/${secondary}/`;
+      [primaryFrame.src, secondaryFrame.src] = sources;
 
       // Apply mix ratio
       secondaryFrame.style.opacity = ratio.toString();

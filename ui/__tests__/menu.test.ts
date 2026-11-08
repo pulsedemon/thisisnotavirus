@@ -77,6 +77,20 @@ describe('menu', () => {
       expect(menu.style.inset).not.toBe(originalInset);
     });
 
+    it('moves to a new position on every teleport', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      const menu = document.getElementById('menu')!;
+      const insets: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        teleportMenu();
+        vi.advanceTimersByTime(700);
+        insets.push(menu.style.inset);
+      }
+
+      expect(insets[1]).not.toBe(insets[0]);
+      expect(insets[2]).not.toBe(insets[1]);
+    });
+
     it('should add/remove teleporting class', () => {
       const menu = document.getElementById('menu')!;
 
@@ -100,15 +114,14 @@ describe('menu', () => {
       vi.useRealTimers();
     });
 
-    it('mutates document.title on tick', () => {
-      document.title = 'thisisnotavirus';
+    it('shuffles document.title on tick', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      document.title = 'abc';
       const stop = shuffleTitle();
 
       vi.advanceTimersByTime(200);
-      // After one tick the title should have been shuffled
-      // (it could theoretically stay the same, but with 15 chars that's extremely unlikely)
-      expect(typeof document.title).toBe('string');
-      expect(document.title.length).toBe('thisisnotavirus'.length);
+      expect(document.title).not.toBe('abc');
+      expect([...document.title].sort().join('')).toBe('abc');
 
       stop();
     });
