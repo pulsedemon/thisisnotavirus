@@ -33,8 +33,7 @@ interface RunningTransition {
 }
 
 const MIN_COVER_MS = 500;
-// sized for crane-game's cold WASM load, which can pass 5s
-const SAFETY_TIMEOUT_MS = 12000;
+const SAFETY_TIMEOUT_MS = 5000;
 
 /**
  * owns what is on screen: one `.virus-slot` per load, the loading cover,

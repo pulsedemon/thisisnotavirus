@@ -115,10 +115,10 @@ describe('Stage', () => {
     expect(onShown).toHaveBeenCalledTimes(1);
   });
 
-  it('forces the reveal and reports it after 12 seconds without a load', async () => {
+  it('forces the reveal and reports it after 5 seconds without a load', async () => {
     const Sentry = await import('@sentry/browser');
     stage.show(load('a'));
-    vi.advanceTimersByTime(11999);
+    vi.advanceTimersByTime(4999);
     expect(onShown).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
     expect(onShown).toHaveBeenCalledTimes(1);
@@ -132,7 +132,7 @@ describe('Stage', () => {
     const Sentry = await import('@sentry/browser');
     stage.show(load('a'));
     frameOf(slots()[0]).dispatchEvent(new Event('load'));
-    vi.advanceTimersByTime(12000);
+    vi.advanceTimersByTime(5000);
     expect(vi.mocked(Sentry.captureMessage)).not.toHaveBeenCalled();
   });
 
@@ -151,7 +151,7 @@ describe('Stage', () => {
   it('reveals once when load arrives after the safety timeout', () => {
     stage.show(load('a'));
     const frame = frameOf(slots()[0]);
-    vi.advanceTimersByTime(12000);
+    vi.advanceTimersByTime(5000);
     frame.dispatchEvent(new Event('load'));
     frame.dispatchEvent(new Event('error'));
     vi.advanceTimersByTime(500);
@@ -192,7 +192,7 @@ describe('Stage', () => {
     expect(onShown).not.toHaveBeenCalled();
 
     // only b's safety timeout is left
-    vi.advanceTimersByTime(12000);
+    vi.advanceTimersByTime(5000);
     const safety = vi
       .mocked(Sentry.captureMessage)
       .mock.calls.filter(call => String(call[0]).includes('Safety timeout'));
@@ -223,7 +223,7 @@ describe('Stage', () => {
     stage.clear();
     expect(flashStop).toHaveBeenCalledTimes(1);
     frame.dispatchEvent(new Event('load'));
-    vi.advanceTimersByTime(12000);
+    vi.advanceTimersByTime(5000);
     expect(onShown).not.toHaveBeenCalled();
     expect(slots()).toHaveLength(0);
   });
@@ -385,7 +385,7 @@ describe('Stage', () => {
       showVisible('a');
       stage.show(load('b'));
       const bFrame = frameOf(slots()[1]);
-      vi.advanceTimersByTime(12000);
+      vi.advanceTimersByTime(5000);
       bFrame.dispatchEvent(new Event('load'));
       vi.advanceTimersByTime(500);
       expect(run).toHaveBeenCalledTimes(1);
