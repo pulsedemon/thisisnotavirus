@@ -77,18 +77,18 @@ describe('menu', () => {
       expect(menu.style.inset).not.toBe(originalInset);
     });
 
-    it('moves to a new position on every teleport', () => {
+    it('moves again when clicked mid-teleport', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0);
       const menu = document.getElementById('menu')!;
-      const insets: string[] = [];
-      for (let i = 0; i < 3; i++) {
-        teleportMenu();
-        vi.advanceTimersByTime(700);
-        insets.push(menu.style.inset);
-      }
 
-      expect(insets[1]).not.toBe(insets[0]);
-      expect(insets[2]).not.toBe(insets[1]);
+      teleportMenu();
+      vi.advanceTimersByTime(100);
+      teleportMenu();
+      vi.advanceTimersByTime(200);
+      const first = menu.style.inset;
+      vi.advanceTimersByTime(100);
+
+      expect(menu.style.inset).not.toBe(first);
     });
 
     it('should add/remove teleporting class', () => {

@@ -1,7 +1,7 @@
 // Shared magic numbers for VirusLoader and friends.
 
-/** Debounce window for skipNext/skipPrev/reload to dampen
- *  double-clicks and rapid key presses. */
+/** After skipNext/skipPrev/reloadCurrent runs, repeat calls are dropped for
+ *  this long, so double-clicks and held keys act once. */
 export const NAVIGATION_LOCK_MS = 300;
 
 /** Random rotation interval bounds in seconds; the max is exclusive. */

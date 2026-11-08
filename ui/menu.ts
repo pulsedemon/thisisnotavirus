@@ -41,15 +41,15 @@ export function teleportMenu(): void {
   const menu = document.getElementById('menu');
   if (!menu) return;
 
-  // style.inset serializes differently across browsers, so track the position by index
   const candidates = MENU_POSITIONS.map((_, i) => i).filter(
     i => i !== currentMenuPositionIdx
   );
   const nextIdx = candidates[randomInt(candidates.length)];
+  // set now, not when the inset applies, so a second click mid-teleport still moves the menu
+  currentMenuPositionIdx = nextIdx;
 
   menu.classList.add(animationClassName);
   setTimeout(() => {
-    currentMenuPositionIdx = nextIdx;
     menu.style.inset = MENU_POSITIONS[nextIdx];
     setTimeout(() => {
       menu.classList.remove(animationClassName);
