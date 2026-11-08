@@ -506,7 +506,7 @@ export class VirusThumbnailOverlay {
     this.currentFocusIndex = index;
   }
 
-  /** tighter than native `loading="lazy"`, which Chrome starts ~1250px offscreen */
+  /** loads each thumbnail once it scrolls into view; Chrome's native `loading="lazy"` starts ~1250px early */
   private setupIframeLazyLoad(): void {
     const iframes = Array.from(
       this.overlay.querySelectorAll<HTMLIFrameElement>('iframe[data-src]')
@@ -523,17 +523,14 @@ export class VirusThumbnailOverlay {
       }
     };
 
-    this.iframeObserver = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          const iframe = entry.target as HTMLIFrameElement;
-          assignSafeSrc(iframe);
-          this.iframeObserver?.unobserve(iframe);
-        });
-      },
-      { root: this.overlay, rootMargin: '100px' }
-    );
+    this.iframeObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const iframe = entry.target as HTMLIFrameElement;
+        assignSafeSrc(iframe);
+        this.iframeObserver?.unobserve(iframe);
+      });
+    });
 
     iframes.forEach(iframe => this.iframeObserver?.observe(iframe));
   }
