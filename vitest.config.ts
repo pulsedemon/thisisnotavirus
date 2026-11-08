@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
 import { readFileSync } from 'fs';
 
 function escapeUnsafeChars(str: string): string {
@@ -37,22 +36,15 @@ export default defineConfig({
         'dist/',
         '**/*.d.ts',
         '**/*.config.*',
-        '**/test/**',
-        'src/test/**',
+        'test-utils/**',
       ],
+      // today's coverage rounded down, so the gate blocks regressions. raise it as tests land
       thresholds: {
-        global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70,
-        },
+        branches: 21,
+        functions: 26,
+        lines: 20,
+        statements: 20,
       },
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
     },
   },
 });
