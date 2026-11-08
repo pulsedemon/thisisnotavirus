@@ -4,7 +4,7 @@
  *  double-clicks and rapid key presses. */
 export const NAVIGATION_LOCK_MS = 300;
 
-/** Inclusive bounds for the random rotation interval, in seconds. */
+/** Random rotation interval bounds in seconds; the max is exclusive. */
 export const RANDOMIZATION_MIN_S = 2;
 export const RANDOMIZATION_MAX_S = 12;
 
