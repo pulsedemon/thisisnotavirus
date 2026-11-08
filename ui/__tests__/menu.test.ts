@@ -100,16 +100,9 @@ describe('menu', () => {
       vi.useRealTimers();
     });
 
-    it('returns a handle with interval and stop', () => {
-      const handle = shuffleTitle();
-      expect(handle.interval).toBeDefined();
-      expect(typeof handle.stop).toBe('function');
-      handle.stop();
-    });
-
     it('mutates document.title on tick', () => {
       document.title = 'thisisnotavirus';
-      const handle = shuffleTitle();
+      const stop = shuffleTitle();
 
       vi.advanceTimersByTime(200);
       // After one tick the title should have been shuffled
@@ -117,14 +110,14 @@ describe('menu', () => {
       expect(typeof document.title).toBe('string');
       expect(document.title.length).toBe('thisisnotavirus'.length);
 
-      handle.stop();
+      stop();
     });
 
     it('restores the original title on stop', () => {
       document.title = 'thisisnotavirus';
-      const handle = shuffleTitle();
+      const stop = shuffleTitle();
       vi.advanceTimersByTime(200);
-      handle.stop();
+      stop();
       expect(document.title).toBe('thisisnotavirus');
     });
   });

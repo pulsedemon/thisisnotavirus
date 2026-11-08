@@ -209,11 +209,11 @@ const iconEl = document.getElementById('icon');
 if (iconEl) iconEl.onclick = () => teleportMenu();
 
 // Title shuffle effect
-let shuffleTitleHandle: ReturnType<typeof shuffleTitle> | undefined;
+let stopShuffleTitle: (() => void) | undefined;
 setTimeout(function () {
-  shuffleTitleHandle = shuffleTitle();
+  stopShuffleTitle = shuffleTitle();
 }, 5000);
 
 window.addEventListener('beforeunload', () => {
-  shuffleTitleHandle?.stop();
+  stopShuffleTitle?.();
 });

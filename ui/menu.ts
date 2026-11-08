@@ -33,7 +33,7 @@ const MENU_POSITIONS = [
   'auto 0px 0px auto',
 ] as const;
 
-// Default position matches the menu's initial inset in index.html (top-right).
+// the menu starts top-right
 let currentMenuPositionIdx = 1;
 
 export function teleportMenu(): void {
@@ -41,9 +41,7 @@ export function teleportMenu(): void {
   const menu = document.getElementById('menu');
   if (!menu) return;
 
-  // Pick any index other than the current one. Tracking by index
-  // avoids fragile string-match against style.inset, whose
-  // serialization differs across browsers.
+  // style.inset serializes differently across browsers, so track the position by index
   const candidates = MENU_POSITIONS.map((_, i) => i).filter(
     i => i !== currentMenuPositionIdx
   );
@@ -61,12 +59,8 @@ export function teleportMenu(): void {
   safeGtag('event', 'v_icon_click');
 }
 
-export interface ShuffleTitleHandle {
-  interval: ReturnType<typeof setInterval>;
-  stop: () => void;
-}
-
-export function shuffleTitle(): ShuffleTitleHandle {
+/** returns a stop function that also restores the title */
+export function shuffleTitle(): () => void {
   const originalTitle = document.title;
   let intervalCounter = 0;
   const interval = setInterval(function () {
@@ -78,11 +72,8 @@ export function shuffleTitle(): ShuffleTitleHandle {
     document.title = shuffle(document.title.split('')).join('');
   }, 200);
 
-  return {
-    interval,
-    stop: () => {
-      clearInterval(interval);
-      document.title = originalTitle;
-    },
+  return () => {
+    clearInterval(interval);
+    document.title = originalTitle;
   };
 }
