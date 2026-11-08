@@ -18,7 +18,6 @@ vi.mock('../../utils/misc', () => ({
   isMobile: vi.fn(() => false),
 }));
 
-import Playlist from '../Playlist';
 import {
   VirusThumbnailOverlay,
   showVirusThumbnailOverlay,
@@ -27,7 +26,12 @@ import {
 let onSelectSpy: ReturnType<typeof vi.fn>;
 let onCloseSpy: ReturnType<typeof vi.fn>;
 let mockVirusLoader: VirusLoaderInterface;
-let testPlaylist: Playlist;
+interface IOEntry {
+  isIntersecting: boolean;
+  target: Element;
+}
+let intersect: (entries: IOEntry[]) => void;
+let observed: Element[];
 
 beforeEach(() => {
   // jsdom doesn't implement scrollIntoView
@@ -44,13 +48,31 @@ beforeEach(() => {
     toggleLab: vi.fn(),
     pauseRandomization: vi.fn(),
   };
-  testPlaylist = new Playlist();
+  observed = [];
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      constructor(cb: typeof intersect) {
+        intersect = cb;
+      }
+      observe(el: Element) {
+        observed.push(el);
+      }
+      unobserve() {
+        /* no-op */
+      }
+      disconnect() {
+        /* no-op */
+      }
+    }
+  );
 });
 
 afterEach(() => {
   document.getElementById('virus-thumbnail-overlay')?.remove();
   document.body.style.overflow = '';
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 function createOverlay(
@@ -60,7 +82,6 @@ function createOverlay(
     onSelect: onSelectSpy,
     onClose: onCloseSpy,
     virusLoader,
-    playlist: testPlaylist,
   });
 }
 
@@ -128,106 +149,38 @@ describe('VirusThumbnailOverlay', () => {
       });
     });
 
-    it('reflects mixes added to the live playlist without reload', () => {
-      // Mutating the live playlist's savedMixes after construction
-      // and before opening the overlay should make the new mix visible.
-      testPlaylist.savedMixes = [
-        { primary: 'sphere', secondary: 'uzumaki', mixRatio: 0.5, id: 42 },
-      ];
-      createOverlay();
-      const items = getThumbnailItems();
-      const mixedItem = items.find(
-        el => el.getAttribute('data-virus') === 'mixed:42'
-      );
-      expect(mixedItem).toBeDefined();
-    });
-
     it('lazy-loads thumbnail iframes via IntersectionObserver', () => {
-      interface IOEntry {
-        isIntersecting: boolean;
-        target: Element;
-      }
-      type IOCallback = (entries: IOEntry[]) => void;
-      const observed: Element[] = [];
-      let lastCallback: IOCallback | null = null;
-      class FakeIO {
-        constructor(cb: IOCallback) {
-          lastCallback = cb;
-        }
-        observe(el: Element) {
-          observed.push(el);
-        }
-        unobserve() {
-          /* no-op */
-        }
-        disconnect() {
-          /* no-op */
-        }
-      }
-      const originalIO = (
-        window as unknown as { IntersectionObserver?: unknown }
-      ).IntersectionObserver;
-      (
-        window as unknown as { IntersectionObserver: unknown }
-      ).IntersectionObserver = FakeIO;
-
       createOverlay();
       const iframes = Array.from(
         getOverlayEl()?.querySelectorAll('iframe') ?? []
       );
-      // Before intersection, src is unset; data-src holds the URL
       iframes.forEach(iframe => {
         expect(iframe.getAttribute('src')).toBeNull();
         expect(iframe.getAttribute('data-src')).toContain('/viruses/');
       });
-      expect(observed.length).toBe(iframes.length);
+      expect(observed).toEqual(iframes);
 
-      // Simulate intersection
-      lastCallback!(iframes.map(target => ({ isIntersecting: true, target })));
+      intersect(iframes.map(target => ({ isIntersecting: true, target })));
       iframes.forEach(iframe => {
         expect(iframe.getAttribute('src')).toContain('/viruses/');
         expect(iframe.getAttribute('data-src')).toBeNull();
       });
-
-      // Restore
-      if (originalIO === undefined) {
-        delete (window as unknown as { IntersectionObserver?: unknown })
-          .IntersectionObserver;
-      } else {
-        (
-          window as unknown as { IntersectionObserver: unknown }
-        ).IntersectionObserver = originalIO;
-      }
     });
 
-    it('rejects tampered data-src that does not match the safe virus path', () => {
-      // If playlist.viruses is ever poisoned, the lazy-loader must drop
-      // anything that doesn't match `/viruses/<slug>/`. Driven via the
-      // IntersectionObserver-undefined fallback so it runs synchronously.
-      const originalIO = (
-        window as unknown as { IntersectionObserver?: unknown }
-      ).IntersectionObserver;
-      delete (window as unknown as { IntersectionObserver?: unknown })
-        .IntersectionObserver;
-
-      testPlaylist.viruses = ['sphere', '../etc/passwd', 'sphere/?x=<script>'];
-
+    it('drops a data-src that is not a /viruses/<slug>/ path', () => {
       createOverlay();
-      const overlay = getOverlayEl();
-      const iframes = Array.from(overlay?.querySelectorAll('iframe') ?? []);
-      // Exactly one iframe (sphere) should have a src; the others were dropped.
-      const withSrc = iframes.filter(f => f.getAttribute('src'));
-      expect(withSrc).toHaveLength(1);
-      expect(withSrc[0].getAttribute('src')).toBe('/viruses/sphere/');
-      iframes.forEach(iframe => {
-        expect(iframe.getAttribute('data-src')).toBeNull();
-      });
+      const [tampered, intact] = Array.from(
+        getOverlayEl()?.querySelectorAll('iframe') ?? []
+      );
+      const intactSrc = intact.getAttribute('data-src');
+      tampered.setAttribute('data-src', '/viruses/../etc/');
 
-      if (originalIO !== undefined) {
-        (
-          window as unknown as { IntersectionObserver: unknown }
-        ).IntersectionObserver = originalIO;
-      }
+      intersect(
+        [tampered, intact].map(target => ({ isIntersecting: true, target }))
+      );
+
+      expect(tampered.getAttribute('src')).toBeNull();
+      expect(intact.getAttribute('src')).toBe(intactSrc);
     });
 
     it('sets document.body.style.overflow to hidden', () => {
@@ -473,7 +426,6 @@ describe('VirusThumbnailOverlay', () => {
         onSelect: onSelectSpy,
         onClose: onCloseSpy,
         virusLoader: mockVirusLoader,
-        playlist: testPlaylist,
       });
 
       expect(instance).toBeInstanceOf(VirusThumbnailOverlay);

@@ -36,10 +36,6 @@ export function createThumbnailButton(
   document.body.appendChild(thumbBtn);
 
   thumbBtn.onclick = () => {
-    // Refresh saved mixes before opening so newly saved lab mixes
-    // appear immediately (the overlay now reads from the live playlist
-    // rather than constructing its own).
-    playlist.loadSavedMixes();
     showVirusThumbnailOverlay({
       onSelect: virus => {
         const playPauseBtn = document.getElementById('play-pause');
@@ -53,7 +49,6 @@ export function createThumbnailButton(
         // No-op for now
       },
       virusLoader: virusLoader,
-      playlist,
     });
   };
 

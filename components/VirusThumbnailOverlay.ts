@@ -80,7 +80,6 @@ interface VirusThumbnailOverlayOptions {
   onSelect: (virus: string) => void;
   onClose: () => void;
   virusLoader?: VirusLoaderInterface;
-  playlist: Playlist;
 }
 
 export class VirusThumbnailOverlay {
@@ -117,8 +116,8 @@ export class VirusThumbnailOverlay {
     const existing = document.getElementById('virus-thumbnail-overlay');
     if (existing) existing.remove();
 
-    // Re-use the live Playlist so newly saved mixes show without reload.
-    const playlist = options.playlist;
+    // a fresh Playlist sees newly saved mixes without resetting the live one's position
+    const playlist = new Playlist();
     const viruses = playlist.viruses.map(virus => ({
       value: virus,
       label: formatVirusName(virus),
@@ -166,9 +165,6 @@ export class VirusThumbnailOverlay {
     // Add overlay to DOM
     document.body.appendChild(this.overlay);
 
-    // Lazy-load iframe srcs only when their thumbnail intersects the
-    // viewport. Without this, every virus iframe (three.js/rapier)
-    // boots simultaneously on overlay open.
     this.setupIframeLazyLoad();
 
     // Prevent body scroll when overlay is open
@@ -510,17 +506,14 @@ export class VirusThumbnailOverlay {
     this.currentFocusIndex = index;
   }
 
+  /** tighter than native `loading="lazy"`, which Chrome starts ~1250px offscreen */
   private setupIframeLazyLoad(): void {
     const iframes = Array.from(
       this.overlay.querySelectorAll<HTMLIFrameElement>('iframe[data-src]')
     );
     if (iframes.length === 0) return;
 
-    // Strict pattern check: src must look like `/viruses/<slug>/` where
-    // <slug> is lowercase kebab. Rejects anything containing `..`, `//`,
-    // scheme characters, or HTML metacharacters before it ever reaches
-    // iframe.src — satisfies CodeQL's "DOM text reinterpreted as HTML"
-    // and stops a tampered data-src from navigating off-origin.
+    // data-src is read back from the DOM, so only a `/viruses/<slug>/` path may reach iframe.src
     const SAFE_VIRUS_PATH = /^\/viruses\/[a-z][a-z0-9-]*\/$/;
     const assignSafeSrc = (iframe: HTMLIFrameElement): void => {
       const src = iframe.getAttribute('data-src');
@@ -529,13 +522,6 @@ export class VirusThumbnailOverlay {
         iframe.src = src;
       }
     };
-
-    // IntersectionObserver isn't available in every test environment.
-    // Fall back to immediate src assignment so jsdom-only tests still work.
-    if (typeof IntersectionObserver === 'undefined') {
-      iframes.forEach(assignSafeSrc);
-      return;
-    }
 
     this.iframeObserver = new IntersectionObserver(
       entries => {
