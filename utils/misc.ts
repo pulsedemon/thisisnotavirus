@@ -32,24 +32,19 @@ export function isMobile(): boolean {
 export function _resetIsMobileCache(): void {
   _isMobileCache = null;
 }
-export const browserName = usparser.getResult().browser.name;
 
 export function preloadImage(url: string) {
   const img = new Image();
   img.src = url;
 }
 
-export function shuffle(array: string[]): string[] {
+export function shuffle<T>(array: T[]): T[] {
   let currentIndex = array.length,
     randomIndex;
 
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
+  while (currentIndex !== 0) {
     randomIndex = randomInt(currentIndex);
     currentIndex--;
-
-    // And swap it with the current element.
     [array[currentIndex], array[randomIndex]] = [
       array[randomIndex],
       array[currentIndex],
@@ -75,9 +70,7 @@ export function draggable(el: HTMLElement): () => void {
       e instanceof MouseEvent ? e.clientY : e.changedTouches[0].clientY;
     const clientX =
       e instanceof MouseEvent ? e.clientX : e.changedTouches[0].clientX;
-    // getComputedStyle returns "auto" for unset positions, which
-    // parseInt's to NaN. Fall back to 0 so the first drag doesn't
-    // snap the element to NaN-land.
+    // computed left/top is "auto" until the element has been positioned
     const left = parseInt(window.getComputedStyle(target).left) || 0;
     const top = parseInt(window.getComputedStyle(target).top) || 0;
     const offsetX = clientX - left;
@@ -114,10 +107,6 @@ export function draggable(el: HTMLElement): () => void {
     el.removeEventListener(downEvent, downHandler);
     if (currentReset) currentReset();
   };
-}
-
-export function stripTags(str: string) {
-  return str.replace(/(<([^>]+)>)/gi, '');
 }
 
 export function formatVirusName(name: string) {

@@ -15,17 +15,5 @@
     "types": ["vite/client"]
   },
   "exclude": ["node_modules", "build", "dist", "coverage"],
-  "include": [
-    "main.ts",
-    "ascii.ts",
-    "components/**/*.ts",
-    "ui/**/*.ts",
-    "utils/**/*.ts",
-    "viruses/**/*.ts",
-    "types/**/*.ts",
-    "test-utils/**/*.ts",
-    "vitest.setup.ts",
-    "vite.config.ts",
-    "vitest.config.ts"
-  ]
+  "include": ["."]
 }

@@ -4,19 +4,16 @@
 
 :root {
   --color-primary: #00ffff;
-  --color-primary-dark: #00cccc;
   --color-accent: #ff00ff;
   --color-bg: #000;
   --color-surface: #2a2a2a;
-  --z-base: 0;
   --z-overlay: 100;
   --z-floating-btn: 2000;
   --z-modal: 9999;
-  // Controls sit above modal intentionally — menu/source-code remain accessible over modals
+  // keep menu and source controls accessible over modals.
   --z-controls: 10000;
 }
 
-// Global hide class
 .hide {
   display: none !important;
 }
@@ -47,19 +44,59 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-#container {
-  width: 100vw;
-  height: 100vh;
+#stage,
+.virus-slot {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
-.mixed-virus-container {
+// the blink transition's eye, drawn over the virus slots
+.eye-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.eye-ball {
+  background:
+    radial-gradient(
+      circle at 40% 38%,
+      rgb(255 255 255 / 75%) 0 0.8%,
+      transparent 1.6%
+    ),
+    radial-gradient(
+      ellipse 30% 22% at 50% 50%,
+      transparent 55%,
+      rgb(20 0 0 / 60%)
+    );
+}
+
+.eye-skin {
+  background:
+    radial-gradient(
+      ellipse 34% 26% at 50% 50%,
+      rgb(60 20 10 / 70%),
+      transparent 70%
+    ),
+    radial-gradient(ellipse at 50% 45%, #e2ab8d, #b97a5e 45%, #5a3022);
+}
+
+.eye-crease {
+  background: rgb(80 35 20 / 55%);
+}
+
+.eye-lashes {
+  // lashes fan outward from the middle of the lid
+  background:
+    repeating-linear-gradient(118deg, #0d0604 0 3px, transparent 3px 8px) left /
+      50% 100% no-repeat,
+    repeating-linear-gradient(62deg, #0d0604 0 3px, transparent 3px 8px) right /
+      50% 100% no-repeat;
+
+  &--lower {
+    opacity: 0.7;
+  }
 }
 
 #virus-lab {
@@ -99,11 +136,14 @@ body {
     mix-blend-mode: screen;
     z-index: 1;
   }
-}
 
-#container.virus-iframe {
-  position: absolute;
-  pointer-events: auto;
+  &--interactive {
+    pointer-events: auto;
+  }
+
+  &--overlay {
+    background: transparent;
+  }
 }
 
 #menu {
@@ -137,11 +177,26 @@ body {
     margin-right: 10px;
   }
 
-  span {
+  span,
+  #share-virus {
     padding: 0 5px;
 
     &:hover {
       color: var(--color-primary);
+    }
+  }
+
+  #share-virus {
+    box-sizing: content-box;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+
+    &[aria-disabled='true'] {
+      cursor: default;
+      color: inherit;
+      opacity: 0.4;
     }
   }
 
@@ -181,6 +236,23 @@ body {
       text-shadow: -1px 0 red;
       animation: glitch-effect 2s infinite linear alternate-reverse;
     }
+  }
+}
+
+.share-status {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-controls);
+  color: var(--color-primary);
+  font-size: 14px;
+  line-height: 1.4;
+  pointer-events: none;
+
+  &:not(:empty) {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
   }
 }
 
@@ -254,10 +326,6 @@ body {
   }
 }
 
-.grecaptcha-badge {
-  display: none !important;
-}
-
 .lds-ring {
   display: none;
   position: relative;
@@ -325,16 +393,6 @@ body {
     top: 3px;
     left: 1px;
   }
-}
-
-#intro {
-  position: fixed;
-  top: 6px;
-  left: 65px;
-  color: white;
-  font-family: sans-serif;
-  font-size: 40px;
-  text-shadow: var(--color-primary) 1px 0 10px;
 }
 
 .lab-button {

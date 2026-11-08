@@ -3,7 +3,6 @@ import {
   isMobile,
   _resetIsMobileCache,
   shuffle,
-  stripTags,
   formatVirusName,
   preloadImage,
   draggable,
@@ -198,38 +197,6 @@ describe('Misc Utilities', () => {
     });
   });
 
-  describe('stripTags', () => {
-    it('should strip HTML tags from a string', () => {
-      expect(stripTags('<p>Hello</p>')).toBe('Hello');
-    });
-
-    it('should handle nested tags', () => {
-      expect(stripTags('<div><span>Text</span></div>')).toBe('Text');
-    });
-
-    it('should handle tags with attributes', () => {
-      expect(stripTags('<a href="http://example.com">Link</a>')).toBe('Link');
-    });
-
-    it('should return empty string for tags with no content', () => {
-      expect(stripTags('<br/><hr/>')).toBe('');
-    });
-
-    it('should return the same string if no tags present', () => {
-      expect(stripTags('No tags here')).toBe('No tags here');
-    });
-
-    it('should handle empty string', () => {
-      expect(stripTags('')).toBe('');
-    });
-
-    it('should strip multiple tags', () => {
-      expect(stripTags('<b>Bold</b> and <i>Italic</i>')).toBe(
-        'Bold and Italic'
-      );
-    });
-  });
-
   describe('formatVirusName', () => {
     it('should replace dashes with spaces and capitalize words', () => {
       expect(formatVirusName('random-shapes')).toBe('Random Shapes');
@@ -289,7 +256,6 @@ describe('Misc Utilities', () => {
 
     it('does not set top/left to NaN when starting position is auto', () => {
       const el = document.createElement('div');
-      // Default styles → computed top/left = "auto" in jsdom
       document.body.appendChild(el);
 
       const cleanup = draggable(el);
@@ -302,18 +268,15 @@ describe('Misc Utilities', () => {
       el.dispatchEvent(down);
 
       const move = new MouseEvent('mousemove', {
-        clientX: 120,
-        clientY: 70,
+        clientX: 130,
+        clientY: 60,
         bubbles: true,
       });
       window.dispatchEvent(move);
 
-      expect(el.style.top).not.toBe('');
-      expect(el.style.left).not.toBe('');
-      expect(el.style.top).not.toContain('NaN');
-      expect(el.style.left).not.toContain('NaN');
-      expect(Number.isFinite(parseInt(el.style.top))).toBe(true);
-      expect(Number.isFinite(parseInt(el.style.left))).toBe(true);
+      // moved by the drag delta from an assumed 0,0
+      expect(el.style.left).toBe('30px');
+      expect(el.style.top).toBe('10px');
 
       cleanup();
       el.remove();

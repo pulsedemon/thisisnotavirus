@@ -60,19 +60,10 @@ console.log(
 const playlist = new Playlist();
 const vl = new VirusLoader(playlist);
 
-// Resolve the active virus iframe's window (main container or lab mix)
-function getActiveIframeWindow(): WindowProxy | null {
-  const mixedContainer = document.querySelector('.mixed-virus-container');
-  const activeIframe = mixedContainer
-    ? mixedContainer.querySelector('iframe')
-    : (document.getElementById('container') as HTMLIFrameElement | null);
-  return activeIframe?.contentWindow ?? null;
-}
-
 // Keyboard control messages from iframe viruses
 window.addEventListener('message', event => {
   if (event.origin !== window.location.origin) return;
-  if (event.source !== getActiveIframeWindow()) return;
+  if (event.source !== vl.activeWindow) return;
   if (isKeyboardControlMessage(event.data)) {
     vl.virusHasKeyboardControl = event.data.enabled;
   }
@@ -158,7 +149,7 @@ if (infoBtnEl) infoBtnEl.onclick = () => toggleInfo();
 function forwardKeyboardEventToIframe(event: KeyboardEvent, eventType: string) {
   if (!vl.virusHasKeyboardControl) return;
 
-  const activeWindow = getActiveIframeWindow();
+  const activeWindow = vl.activeWindow;
   if (activeWindow) {
     activeWindow.postMessage(
       {
