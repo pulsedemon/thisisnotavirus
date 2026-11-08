@@ -92,28 +92,10 @@
       <iframe id="secondary-virus"></iframe>
     </div>
     <script type="module">
-      // Keep in sync with components/Playlist.ts `viruses` array.
-      // Validates URL params so path traversal can't point the inner
-      // iframes at arbitrary same-origin resources.
-      const ALLOWED_VIRUSES = new Set([
-        "random-shapes",
-        "sphere",
-        "uzumaki",
-        "random-characters",
-        "buttons",
-        "faces",
-        "doors",
-        "emoji",
-        "cubes",
-        "static",
-        "shitstorm",
-        "void",
-        "crane-game",
-        "sky",
-        "tick-tock",
-        "the-room-remembers",
-        "shell-game",
-      ]);
+      import Playlist from "../../components/Playlist";
+
+      // only registered viruses, so a param like ../../foo can't load another same-origin page
+      const { viruses } = new Playlist();
 
       const urlParams = new URLSearchParams(window.location.search);
       const primary = urlParams.get("primary");
@@ -125,9 +107,9 @@
 
       if (
         !primary ||
-        !ALLOWED_VIRUSES.has(primary) ||
+        !viruses.includes(primary) ||
         !secondary ||
-        !ALLOWED_VIRUSES.has(secondary)
+        !viruses.includes(secondary)
       ) {
         document.body.textContent = "invalid mix";
         document.body.style.visibility = "visible";

@@ -36,7 +36,7 @@ Direct hits on `/viruses/<name>` are redirected to `/?virus=<name>` in dev (see 
 
 ### Virus Lab
 
-`viruses/lab/` is a static HTML mixer that loads two virus iframes and blends them with `mix-blend-mode: screen`. The `?primary=` and `?secondary=` URL params must be in the allowlist hardcoded at the top of `viruses/lab/index.html` — keep that list in sync with `Playlist.viruses`. A drift test in `viruses/lab/__tests__/` enforces it.
+`viruses/lab/` loads two virus iframes and blends them with `mix-blend-mode: screen`. It only accepts `?primary=` and `?secondary=` values registered in `Playlist.viruses`.
 
 ## How to Add a New Virus
 
@@ -44,8 +44,7 @@ Direct hits on `/viruses/<name>` are redirected to `/?virus=<name>` in dev (see 
 2. Add an `index.html` file as the entry point
 3. Write your animation (TypeScript, CSS, whatever you want)
 4. Add the virus name to the `viruses` array in `components/Playlist.ts`
-5. Add it to the `ALLOWED_VIRUSES` set in `viruses/lab/index.html` if it should be mixable
-6. Run `yarn dev` and navigate to test it
+5. Run `yarn dev` and navigate to test it
 
 ## Installation
 
