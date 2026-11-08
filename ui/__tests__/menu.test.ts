@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { toggleInfo, hideInfo, teleportMenu, shuffleTitle } from '../menu';
+import { toggleInfo, hideInfo, shuffleTitle } from '../menu';
 
 vi.mock('../../utils/gtag', () => ({
   safeGtag: vi.fn(),
@@ -59,8 +59,13 @@ describe('menu', () => {
   });
 
   describe('teleportMenu', () => {
-    beforeEach(() => {
+    let teleportMenu: typeof import('../menu').teleportMenu;
+
+    // menu.ts keeps the current position in module state, so start each test from top-right
+    beforeEach(async () => {
       vi.useFakeTimers();
+      vi.resetModules();
+      ({ teleportMenu } = await import('../menu'));
     });
 
     afterEach(() => {
