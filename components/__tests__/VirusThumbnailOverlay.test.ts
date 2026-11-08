@@ -32,6 +32,7 @@ interface IOEntry {
 }
 let intersect: (entries: IOEntry[]) => void;
 let observed: Element[];
+let disconnected: boolean;
 
 beforeEach(() => {
   // jsdom doesn't implement scrollIntoView
@@ -49,6 +50,7 @@ beforeEach(() => {
     pauseRandomization: vi.fn(),
   };
   observed = [];
+  disconnected = false;
   vi.stubGlobal(
     'IntersectionObserver',
     class {
@@ -62,7 +64,7 @@ beforeEach(() => {
         /* no-op */
       }
       disconnect() {
-        /* no-op */
+        disconnected = true;
       }
     }
   );
@@ -167,6 +169,19 @@ describe('VirusThumbnailOverlay', () => {
       });
     });
 
+    it('leaves a thumbnail unloaded while it is offscreen', () => {
+      createOverlay();
+      const [iframe] = Array.from(
+        getOverlayEl()?.querySelectorAll('iframe') ?? []
+      );
+      const dataSrc = iframe.getAttribute('data-src');
+
+      intersect([{ isIntersecting: false, target: iframe }]);
+
+      expect(iframe.getAttribute('src')).toBeNull();
+      expect(iframe.getAttribute('data-src')).toBe(dataSrc);
+    });
+
     it('drops a data-src that is not a /viruses/<slug>/ path', () => {
       createOverlay();
       const [tampered, intact] = Array.from(
@@ -190,6 +205,11 @@ describe('VirusThumbnailOverlay', () => {
   });
 
   describe('destroy', () => {
+    it('stops observing thumbnails', () => {
+      createOverlay().destroy();
+      expect(disconnected).toBe(true);
+    });
+
     it('removes overlay from DOM', () => {
       const overlay = createOverlay();
       expect(getOverlayEl()).not.toBeNull();

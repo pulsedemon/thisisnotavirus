@@ -523,16 +523,16 @@ export class VirusThumbnailOverlay {
       }
     };
 
-    this.iframeObserver = new IntersectionObserver(entries => {
+    const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         const iframe = entry.target as HTMLIFrameElement;
         assignSafeSrc(iframe);
-        this.iframeObserver?.unobserve(iframe);
+        observer.unobserve(iframe);
       });
     });
-
-    iframes.forEach(iframe => this.iframeObserver?.observe(iframe));
+    iframes.forEach(iframe => observer.observe(iframe));
+    this.iframeObserver = observer;
   }
 
   destroy(): void {
