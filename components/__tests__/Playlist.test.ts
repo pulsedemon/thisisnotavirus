@@ -119,7 +119,7 @@ describe('Playlist', () => {
       const lastItem = playlist.playlist[batchSize - 1];
 
       // Mock shuffle to return the last item first, creating a would-be duplicate
-      vi.mocked(shuffle).mockImplementationOnce((arr: string[]) => {
+      vi.mocked(shuffle).mockImplementationOnce((arr: unknown[]) => {
         const idx = arr.indexOf(lastItem);
         if (idx > 0) {
           [arr[0], arr[idx]] = [arr[idx], arr[0]];
