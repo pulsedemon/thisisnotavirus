@@ -1,6 +1,6 @@
 import './void.scss';
 import * as THREE from 'three';
-import { randomIntBetween, randomBool } from '../../utils/random';
+import { randomBool, randomFloat, randomIntBetween } from '../../utils/random';
 
 const CONSTANTS = {
   CORE_RADIUS: 35,
@@ -266,8 +266,8 @@ class Void {
         CONSTANTS.SPAWN_RADIUS_MIN,
         CONSTANTS.SPAWN_RADIUS_MAX
       );
-      const sphericalTheta = randomIntBetween(0, Math.PI * 2);
-      const sphericalPhi = randomIntBetween(0, Math.PI);
+      const sphericalTheta = randomFloat(0, Math.PI * 2);
+      const sphericalPhi = randomFloat(0, Math.PI);
 
       particlePositions[i * 3] =
         spawnRadius * Math.sin(sphericalPhi) * Math.cos(sphericalTheta);
@@ -278,17 +278,17 @@ class Void {
       const colorVariant = randomIntBetween(0, COLOR_VARIANT_COUNT);
 
       if (colorVariant < DEEP_RED_CORRUPTION_THRESHOLD) {
-        particleColors[i * 3] = randomIntBetween(0.7, 1.0);
-        particleColors[i * 3 + 1] = randomIntBetween(0.0, 0.2);
-        particleColors[i * 3 + 2] = randomIntBetween(0.0, 0.3);
+        particleColors[i * 3] = randomFloat(0.7, 1.0);
+        particleColors[i * 3 + 1] = randomFloat(0.0, 0.2);
+        particleColors[i * 3 + 2] = randomFloat(0.0, 0.3);
       } else if (colorVariant < DARK_PURPLE_MALEVOLENCE_THRESHOLD) {
-        particleColors[i * 3] = randomIntBetween(0.4, 0.8);
-        particleColors[i * 3 + 1] = randomIntBetween(0.0, 0.2);
-        particleColors[i * 3 + 2] = randomIntBetween(0.4, 0.9);
+        particleColors[i * 3] = randomFloat(0.4, 0.8);
+        particleColors[i * 3 + 1] = randomFloat(0.0, 0.2);
+        particleColors[i * 3 + 2] = randomFloat(0.4, 0.9);
       } else {
-        particleColors[i * 3] = randomIntBetween(0.1, 0.4);
-        particleColors[i * 3 + 1] = randomIntBetween(0.0, 0.1);
-        particleColors[i * 3 + 2] = randomIntBetween(0.0, 0.1);
+        particleColors[i * 3] = randomFloat(0.1, 0.4);
+        particleColors[i * 3 + 1] = randomFloat(0.0, 0.1);
+        particleColors[i * 3 + 2] = randomFloat(0.0, 0.1);
       }
     }
 
@@ -404,17 +404,17 @@ class Void {
       const material = new THREE.MeshBasicMaterial({
         color: i % 2 === 0 ? 0x440000 : 0x660000,
         transparent: true,
-        opacity: randomIntBetween(0.4, 0.8),
+        opacity: randomFloat(0.4, 0.8),
         wireframe: randomBool(),
       });
 
       const tentacle = new THREE.Mesh(geometry, material);
       tentacle.userData = {
         baseAngle: (i / 12) * Math.PI * 2,
-        writheSpeed: randomIntBetween(0.01, 0.05),
+        writheSpeed: randomFloat(0.01, 0.05),
         corruptionLevel: 0,
-        chaosPhase: randomIntBetween(0, Math.PI * 2),
-        thrashIntensity: randomIntBetween(0.5, 2.0),
+        chaosPhase: randomFloat(0, Math.PI * 2),
+        thrashIntensity: randomFloat(0.5, 2.0),
         originalPoints: points.map(p => p.clone()),
       } as TentacleUserData;
 
@@ -444,7 +444,7 @@ class Void {
 
       eye.userData = {
         originalAngle: angle,
-        blinkPhase: randomIntBetween(0, Math.PI * 2),
+        blinkPhase: randomFloat(0, Math.PI * 2),
         watchIntensity: 0,
         lastBlink: 0,
       } as EyeUserData;
@@ -500,8 +500,8 @@ class Void {
         .array as Float32Array;
       for (let i = 0; i < positions.length / 3; i++) {
         const radius = randomIntBetween(60, 300);
-        const theta = randomIntBetween(0, Math.PI * 2);
-        const phi = randomIntBetween(0, Math.PI);
+        const theta = randomFloat(0, Math.PI * 2);
+        const phi = randomFloat(0, Math.PI);
         positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
         positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
         positions[i * 3 + 2] = radius * Math.cos(phi);
@@ -667,11 +667,11 @@ class Void {
       .array as Float32Array;
 
     for (let i = 0; i < positions.length; i += 3) {
-      const force = randomIntBetween(1.0, 4.0);
+      const force = randomFloat(1.0, 4.0);
       const direction = new THREE.Vector3(
-        randomIntBetween(-1, 1),
-        randomIntBetween(-1, 1),
-        randomIntBetween(-1, 1)
+        randomFloat(-1, 1),
+        randomFloat(-1, 1),
+        randomFloat(-1, 1)
       ).normalize();
 
       positions[i] += direction.x * force;
@@ -788,8 +788,8 @@ class Void {
           .array as Float32Array;
         for (let i = 0; i < positions.length / 3; i++) {
           const radius = randomIntBetween(60, 300);
-          const theta = randomIntBetween(0, Math.PI * 2);
-          const phi = randomIntBetween(0, Math.PI);
+          const theta = randomFloat(0, Math.PI * 2);
+          const phi = randomFloat(0, Math.PI);
           positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
           positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
           positions[i * 3 + 2] = radius * Math.cos(phi);
