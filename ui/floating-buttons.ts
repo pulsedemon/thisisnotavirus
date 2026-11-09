@@ -38,15 +38,13 @@ export function createThumbnailButton(
   thumbBtn.onclick = () => {
     showVirusThumbnailOverlay({
       onSelect: virus => {
-        const playPauseBtn = document.getElementById('play-pause');
-        if (playPauseBtn) playPauseBtn.innerText = 'play_arrow';
         virusLoader.pauseRandomization();
         playlist.loadSavedMixes();
         playlist.setCurrentVirus(virus);
         virusLoader.loadVirus(virus);
       },
       onClose: () => {
-        // No-op for now
+        // closing without a pick leaves rotation as it was
       },
       virusLoader: virusLoader,
     });
