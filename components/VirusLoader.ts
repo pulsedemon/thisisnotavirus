@@ -54,9 +54,7 @@ export default class VirusLoader implements VirusLoaderInterface {
     if (virusParam && playlist.viruses.includes(virusParam)) {
       playlist.setCurrentVirus(virusParam);
       this.loadVirus(virusParam);
-      const playPauseEl = document.getElementById('play-pause');
-      if (playPauseEl) playPauseEl.innerText = 'play_arrow';
-      clearInterval(this.loadRandomInterval);
+      this.pauseRandomization();
       window.history.replaceState({}, '', window.location.pathname);
     } else {
       this.loadVirus(playlist.current());
@@ -195,8 +193,10 @@ export default class VirusLoader implements VirusLoaderInterface {
     return this.virusLab !== null;
   }
 
+  /** owns the button's `play_arrow` state so it can't disagree with a stopped rotation. */
   pauseRandomization(): void {
     clearInterval(this.loadRandomInterval);
+    this.showPlayPause('play_arrow');
   }
 
   /**
@@ -213,8 +213,18 @@ export default class VirusLoader implements VirusLoaderInterface {
       this.loadVirus(nextVirus);
     }, randomTime);
 
+    this.showPlayPause('pause');
+  }
+
+  /** the icon names the action, so the label has to follow it for screen readers. */
+  private showPlayPause(icon: 'pause' | 'play_arrow') {
     const playPauseBtn = document.getElementById('play-pause');
-    if (playPauseBtn) playPauseBtn.innerText = 'pause';
+    if (!playPauseBtn) return;
+    playPauseBtn.innerText = icon;
+    playPauseBtn.setAttribute(
+      'aria-label',
+      icon === 'pause' ? 'Pause' : 'Play'
+    );
   }
 
   private hideModals() {
@@ -255,11 +265,6 @@ export default class VirusLoader implements VirusLoaderInterface {
       const menuEl = document.getElementById('menu');
       if (menuEl) menuEl.style.display = 'none';
       this.hideModals();
-
-      const playPauseBtn = document.getElementById('play-pause');
-      if (playPauseBtn?.innerText === 'pause') {
-        playPauseBtn.innerText = 'play_arrow';
-      }
 
       const labContainer = document.createElement('div');
       labContainer.id = 'virus-lab';

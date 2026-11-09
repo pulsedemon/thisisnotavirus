@@ -574,6 +574,22 @@ describe('VirusLoader', () => {
       expect(stageShow).not.toHaveBeenCalled();
     });
 
+    it('labels the button for the action its icon shows', () => {
+      const playlist = createPlaylist();
+      const vl = createVirusLoader(playlist);
+      const button = document.getElementById('play-pause')!;
+
+      button.innerText = 'pause';
+      button.setAttribute('aria-label', 'Pause');
+      vl.pauseRandomization();
+      expect(button.innerText).toBe('play_arrow');
+      expect(button.getAttribute('aria-label')).toBe('Play');
+
+      vl.startRandomization();
+      expect(button.innerText).toBe('pause');
+      expect(button.getAttribute('aria-label')).toBe('Pause');
+    });
+
     it('should load next virus on interval tick', () => {
       const playlist = createPlaylist();
       const nextSpy = vi
