@@ -491,37 +491,40 @@ async function installRoutes(
       held.push(route);
       return;
     }
-    const patch = opts.patches.find(
+    const patches = opts.patches.filter(
       p => url.startsWith(BASE) && p.url === pathOf(url)
     );
-    if (!patch) {
+    if (patches.length === 0) {
       await route.continue();
       return;
     }
-    requested.add(patch);
-    if (patch.hang) {
+    for (const patch of patches) requested.add(patch);
+    if (patches.some(p => p.hang)) {
       network.exemptRequest(request);
       return;
     }
-    if (patch.body !== undefined || patch.path !== undefined) {
+    const replacement = patches.find(
+      p => p.body !== undefined || p.path !== undefined
+    );
+    if (replacement) {
       await route.fulfill({
-        body: patch.body ?? readFileSync(patch.path!),
-        contentType: patch.contentType,
+        body: replacement.body ?? readFileSync(replacement.path!),
+        contentType: replacement.contentType,
       });
       return;
     }
     const response = await route.fetch();
-    const text = await response.text();
-    const count = text.split(patch.find ?? '').length - 1;
-    if (patch.find === undefined || count !== 1) {
-      failures.push(`patch for ${patch.url} matched ${count} times`);
-      await route.fulfill({ response });
-      return;
+    let text = await response.text();
+    // edits apply in file order, each to the text the previous one left
+    for (const patch of patches) {
+      const count = text.split(patch.find ?? '').length - 1;
+      if (patch.find === undefined || count !== 1) {
+        failures.push(`patch for ${patch.url} matched ${count} times`);
+        continue;
+      }
+      text = text.replace(patch.find, () => patch.replace ?? '');
     }
-    await route.fulfill({
-      response,
-      body: text.replace(patch.find, () => patch.replace ?? ''),
-    });
+    await route.fulfill({ response, body: text });
   });
   return requested;
 }
