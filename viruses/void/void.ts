@@ -781,44 +781,6 @@ class Void {
     animateBurst();
   }
 
-  handleKeyPress(key: string) {
-    switch (key.toLowerCase()) {
-      case ' ': {
-        const positions = this.particles.geometry.attributes.position
-          .array as Float32Array;
-        for (let i = 0; i < positions.length / 3; i++) {
-          const radius = randomIntBetween(60, 300);
-          const theta = randomFloat(0, Math.PI * 2);
-          const phi = randomFloat(0, Math.PI);
-          positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-          positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-          positions[i * 3 + 2] = radius * Math.cos(phi);
-        }
-        this.flowingSphere.scale.setScalar(1);
-        break;
-      }
-      case 'r': {
-        const colors = this.particles.geometry.attributes.color
-          .array as Float32Array;
-        for (let i = 0; i < colors.length; i += 3) {
-          colors[i] = Math.random();
-          colors[i + 1] = Math.random();
-          colors[i + 2] = Math.random();
-        }
-        this.particles.geometry.attributes.color.needsUpdate = true;
-        break;
-      }
-      case 'w': {
-        const material = this.flowingSphere.material as THREE.MeshBasicMaterial;
-        material.wireframe = !material.wireframe;
-        break;
-      }
-      case 'f':
-        this.currentTime += 100;
-        break;
-    }
-  }
-
   updateParticles() {
     const positions = this.particles.geometry.attributes.position
       .array as Float32Array;

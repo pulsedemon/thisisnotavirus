@@ -9,7 +9,6 @@ declare module 'nipplejs' {
       event: string,
       callback: (evt: unknown, data: JoystickData) => void
     ): void;
-    destroy(): void;
   }
 
   export interface JoystickData {
@@ -54,7 +53,6 @@ export class ControlPanel {
   private virtualStartButton?: HTMLElement;
   private onJoystickMove?: (direction: { x: number; y: number }) => void;
   private onStartButtonPress?: () => void;
-  private onCameraControlsChange?: (enabled: boolean) => void;
 
   constructor(cabinetSize: { width: number; height: number; depth: number }) {
     this.controlPanel = new THREE.Group();
@@ -181,16 +179,6 @@ export class ControlPanel {
   // Public method to get the control panel group
   getControlPanel(): THREE.Group {
     return this.controlPanel;
-  }
-
-  // Public method to get the joystick stick group for animation
-  getJoystickStickGroup(): THREE.Group {
-    return this.joystickStickGroup;
-  }
-
-  // Public method to get the joystick group for positioning
-  getJoystickGroup(): THREE.Group {
-    return this.joystickGroup;
   }
 
   // Public method to set the control panel position
@@ -400,14 +388,6 @@ export class ControlPanel {
         this.animateStartButton();
       }
     });
-
-    canvas.addEventListener('mouseup', () => {
-      // No joystick dragging to handle
-    });
-
-    canvas.addEventListener('mouseleave', () => {
-      // No joystick dragging to handle
-    });
   }
 
   // Handle mouse interaction with 3D control panel (hover states only)
@@ -493,10 +473,6 @@ export class ControlPanel {
     this.onStartButtonPress = callback;
   }
 
-  setCameraControlsCallback(callback: (enabled: boolean) => void): void {
-    this.onCameraControlsChange = callback;
-  }
-
   // Update joystick visual based on keyboard input
   updateJoystickFromKeyboard(keys: {
     w?: boolean;
@@ -517,17 +493,5 @@ export class ControlPanel {
 
     // Use the same code path as virtual joystick (only updates visual, not game state)
     this.updateJoystickVisual(direction);
-  }
-
-  // Cleanup method
-  destroy(): void {
-    if (this.nippleJoystick) {
-      this.nippleJoystick.destroy();
-    }
-
-    const mobileControls = document.getElementById('mobile-controls');
-    if (mobileControls) {
-      mobileControls.remove();
-    }
   }
 }

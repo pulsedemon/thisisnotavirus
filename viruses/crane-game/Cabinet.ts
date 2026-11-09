@@ -19,8 +19,7 @@ export class Cabinet {
     physicsManager: PhysicsManager,
     config: typeof GAME_CONFIG,
     onJoystickMove?: (direction: { x: number; y: number }) => void,
-    onStartButtonPress?: () => void,
-    onCameraControlsChange?: (enabled: boolean) => void
+    onStartButtonPress?: () => void
   ) {
     this.physicsManager = physicsManager;
     this.cabinetSize = config.cabinet;
@@ -35,9 +34,6 @@ export class Cabinet {
     }
     if (onStartButtonPress) {
       this.controlPanel.setStartButtonCallback(onStartButtonPress);
-    }
-    if (onCameraControlsChange) {
-      this.controlPanel.setCameraControlsCallback(onCameraControlsChange);
     }
 
     this.createCabinet();
