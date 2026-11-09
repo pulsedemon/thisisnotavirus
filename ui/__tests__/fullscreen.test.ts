@@ -101,14 +101,16 @@ describe('initFullscreen', () => {
     const { initFullscreen } = await import('../fullscreen');
     initFullscreen();
 
-    const btn = document.getElementById('fullscreen');
-    btn?.click();
-    await Promise.resolve();
-    await Promise.resolve();
+    try {
+      const btn = document.getElementById('fullscreen');
+      btn?.click();
+      await Promise.resolve();
+      await Promise.resolve();
 
-    expect(fakeRequest).toHaveBeenCalledTimes(1);
-    expect(fakeRequest.mock.contexts[0]).toBe(doc);
-
-    docAsAny.requestFullscreen = original;
+      expect(fakeRequest).toHaveBeenCalledTimes(1);
+      expect(fakeRequest.mock.contexts[0]).toBe(doc);
+    } finally {
+      docAsAny.requestFullscreen = original;
+    }
   });
 });

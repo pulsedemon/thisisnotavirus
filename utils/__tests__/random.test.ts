@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   randomBool,
   randomInt,
@@ -8,6 +8,10 @@ import {
 } from '../random';
 
 describe('Random Utility', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe('randomBool', () => {
     it('should return a boolean value', () => {
       const result = randomBool();
@@ -74,7 +78,6 @@ describe('Random Utility', () => {
     it('never returns max', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0.999999);
       expect(randomIntBetween(2, 5)).toBe(4);
-      vi.restoreAllMocks();
     });
   });
 

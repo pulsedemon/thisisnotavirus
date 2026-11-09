@@ -23,37 +23,37 @@ vi.mock('ua-parser-js', () => {
 });
 
 describe('Misc Utilities', () => {
+  let originalNavigator: Navigator;
+  let originalInnerWidth: number;
+  let hadOntouchstart: boolean;
+
+  beforeEach(() => {
+    _resetIsMobileCache();
+    originalNavigator = window.navigator;
+    originalInnerWidth = window.innerWidth;
+    hadOntouchstart = 'ontouchstart' in window;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      value: originalInnerWidth,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(window, 'navigator', {
+      value: originalNavigator,
+      writable: true,
+      configurable: true,
+    });
+    if (hadOntouchstart && !('ontouchstart' in window)) {
+      (window as unknown as Record<string, unknown>).ontouchstart = null;
+    } else if (!hadOntouchstart && 'ontouchstart' in window) {
+      delete (window as unknown as Record<string, unknown>).ontouchstart;
+    }
+    vi.restoreAllMocks();
+  });
+
   describe('isMobile', () => {
-    let originalNavigator: Navigator;
-    let originalInnerWidth: number;
-    let hadOntouchstart: boolean;
-
-    beforeEach(() => {
-      _resetIsMobileCache();
-      originalNavigator = window.navigator;
-      originalInnerWidth = window.innerWidth;
-      hadOntouchstart = 'ontouchstart' in window;
-    });
-
-    afterEach(() => {
-      Object.defineProperty(window, 'innerWidth', {
-        value: originalInnerWidth,
-        writable: true,
-        configurable: true,
-      });
-      Object.defineProperty(window, 'navigator', {
-        value: originalNavigator,
-        writable: true,
-        configurable: true,
-      });
-      if (hadOntouchstart && !('ontouchstart' in window)) {
-        (window as unknown as Record<string, unknown>).ontouchstart = null;
-      } else if (!hadOntouchstart && 'ontouchstart' in window) {
-        delete (window as unknown as Record<string, unknown>).ontouchstart;
-      }
-      vi.restoreAllMocks();
-    });
-
     it('should return true when screen is small and has touch', () => {
       Object.defineProperty(window, 'innerWidth', {
         value: 375,
@@ -237,7 +237,6 @@ describe('Misc Utilities', () => {
 
   describe('draggable', () => {
     beforeEach(() => {
-      _resetIsMobileCache();
       Object.defineProperty(window, 'innerWidth', {
         value: 1920,
         writable: true,
