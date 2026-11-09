@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Mock } from 'vitest';
 import Stage, { StageLoad } from '../Stage';
 import type { Transition } from '../../transitions/transitions';
 
@@ -41,7 +42,7 @@ function load(virus: string): StageLoad {
 
 describe('Stage', () => {
   let el: HTMLDivElement;
-  let onShown: ReturnType<typeof vi.fn>;
+  let onShown: Mock<() => void>;
   let stage: Stage;
 
   const slots = () => [...el.querySelectorAll<HTMLDivElement>('.virus-slot')];
@@ -241,11 +242,11 @@ describe('Stage', () => {
     interface FakeAnimation {
       animation: Animation;
       resolve: () => void;
-      finish: ReturnType<typeof vi.fn>;
+      finish: Mock<() => void>;
     }
     let made: FakeAnimation[];
     let perRun: number;
-    let run: ReturnType<typeof vi.fn>;
+    let run: Mock<Transition['run']>;
 
     function fakeAnimation(): FakeAnimation {
       let resolve!: () => void;

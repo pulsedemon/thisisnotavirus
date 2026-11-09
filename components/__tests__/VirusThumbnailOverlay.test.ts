@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { VirusLoaderInterface } from '../../types/VirusLoaderInterface';
 
 vi.mock('../../utils/gtag', () => ({
@@ -23,8 +24,8 @@ import {
   showVirusThumbnailOverlay,
 } from '../VirusThumbnailOverlay';
 
-let onSelectSpy: ReturnType<typeof vi.fn>;
-let onCloseSpy: ReturnType<typeof vi.fn>;
+let onSelectSpy: Mock<(virus: string) => void>;
+let onCloseSpy: Mock<() => void>;
 let mockVirusLoader: VirusLoaderInterface;
 interface IOEntry {
   isIntersecting: boolean;
