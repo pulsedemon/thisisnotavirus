@@ -52,7 +52,8 @@
     "test": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "flash-check": "node scripts/flash-check/capture.ts"
   },
   "lint-staged": {
     "*.ts": [
