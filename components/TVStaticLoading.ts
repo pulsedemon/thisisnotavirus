@@ -1,5 +1,3 @@
-// TVStaticLoading.js - Refactored for DRYness and maintainability
-
 export interface TVStaticConfig {
   bufferW?: number;
   bufferH?: number;
@@ -25,7 +23,6 @@ export default class TVStaticLoading {
   private config: Required<TVStaticConfig>;
   private watermark = {
     fade: 0,
-    clickCount: 0,
     baseAlpha: 0.18,
     revealAlpha: 0.7,
     step: 0.1,
@@ -374,7 +371,6 @@ export default class TVStaticLoading {
   }
 
   private _onUserReveal = () => {
-    this.watermark.clickCount++;
     this.watermark.fade = Math.min(
       1,
       this.watermark.fade + this.watermark.step
@@ -395,7 +391,6 @@ export default class TVStaticLoading {
         this.watermark.fade - this.config.fadeSpeed
       );
       if (this.watermark.fade === 0) {
-        this.watermark.clickCount = 0;
         this.watermark.currentWord = '';
       }
     }
@@ -468,7 +463,6 @@ export default class TVStaticLoading {
     this._effect = null;
     this._effectProgress = 0;
     this.watermark.fade = 0;
-    this.watermark.clickCount = 0;
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
   }
 }
