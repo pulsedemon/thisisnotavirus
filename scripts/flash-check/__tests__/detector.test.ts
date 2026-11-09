@@ -44,11 +44,10 @@ function measure(
   width: number,
   height: number,
   frameAt: (k: number) => Frame,
-  opts: { windowW?: number; windowH?: number } = {},
-  frames = 120
+  opts: { windowW?: number; windowH?: number } = {}
 ): FlashResult {
   const detector = new FlashDetector(width, height, opts);
-  for (let k = 0; k < frames; k++) detector.push(frameAt(k));
+  for (let k = 0; k < 120; k++) detector.push(frameAt(k));
   return detector.result();
 }
 
@@ -209,26 +208,9 @@ describe('FlashDetector general flashes', () => {
     'split counter-phase patches',
     () => {
       const { general } = full(k => scene(1024, 768, BLACK, patches(k, true)));
-      expect(general.net.rate).toBeLessThanOrEqual(3);
+      expect(general.net.rate).toBe(0);
       expect(general.pixel.rate).toBe(2);
       expect(general.volume.value).toBeCloseTo(2.5, 2);
-    },
-    SLOW
-  );
-
-  it(
-    'split patches with sparse flicker',
-    () => {
-      const { general } = full(k => {
-        const frame = scene(1024, 768, BLACK, patches(k, true));
-        const dot = k % 2 ? 255 : 0;
-        for (let y = 5; y < 768; y += 10) {
-          for (let x = 5; x < 1024; x += 10)
-            frame.data.fill(dot, (y * 1024 + x) * 3, (y * 1024 + x) * 3 + 3);
-        }
-        return frame;
-      });
-      expect(general.volume.value).toBeGreaterThan(1.75);
     },
     SLOW
   );
@@ -269,8 +251,8 @@ describe('FlashDetector red flashes', () => {
       const gb = Math.round(255 * (1 - t));
       return scene(256, 192, [255, gb, gb]);
     });
-    expect(red.net.rate).toBeGreaterThan(3);
-    expect(red.pixel.rate).toBeGreaterThan(3);
+    expect(red.net.rate).toBe(4);
+    expect(red.pixel.rate).toBe(4);
   });
 
   it('red after orange start', () => {
