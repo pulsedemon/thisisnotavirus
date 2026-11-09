@@ -8,7 +8,7 @@ export interface Frame {
 export interface Measure {
   /** flashes/s, in 0.5 steps */
   rate: number;
-  /** window fraction at the worst point */
+  /** largest window fraction over the run */
   area: number;
   atFrame: number;
   window: { x: number; y: number };
@@ -295,7 +295,7 @@ class TransitionStats {
   }
 }
 
-/** screens RGB frames for WCAG 2.3.1 general and red flashes; see the flash audit plan for the method */
+/** screens RGB frames for WCAG 2.3.1 general and red flashes */
 export class FlashDetector {
   private readonly width: number;
   private readonly height: number;
@@ -481,43 +481,35 @@ export class FlashDetector {
   }
 
   private updateVolumes(f: number): void {
-    const windowPixels = this.ww * this.wh;
-    const general = maxWindowSum(
+    this.generalVolume = this.maxVolume(
       this.general.counts,
-      this.width,
-      this.height,
-      this.ww,
-      this.wh,
-      this.sat
+      this.generalVolume,
+      f
     );
-    const generalValue = general.sum / windowPixels;
-    if (generalValue > this.generalVolume.value) {
-      this.generalVolume = {
-        value: generalValue,
-        atFrame: f,
-        window: { x: general.x, y: general.y },
-      };
-    }
     for (let p = 0; p < this.n; p++) {
       this.redLevel[p] =
         this.satFrames[p] > 0 ? this.pathUnits[p] / PATH_SCALE / 0.2 : 0;
     }
-    const red = maxWindowSum(
-      this.redLevel,
+    this.redVolume = this.maxVolume(this.redLevel, this.redVolume, f);
+  }
+
+  private maxVolume(
+    values: ArrayLike<number>,
+    current: Volume,
+    f: number
+  ): Volume {
+    const best = maxWindowSum(
+      values,
       this.width,
       this.height,
       this.ww,
       this.wh,
       this.sat
     );
-    const redValue = red.sum / windowPixels;
-    if (redValue > this.redVolume.value) {
-      this.redVolume = {
-        value: redValue,
-        atFrame: f,
-        window: { x: red.x, y: red.y },
-      };
-    }
+    const value = best.sum / (this.ww * this.wh);
+    return value > current.value
+      ? { value, atFrame: f, window: { x: best.x, y: best.y } }
+      : current;
   }
 
   result(): FlashResult {
