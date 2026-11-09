@@ -43,7 +43,8 @@ const SATURATED_BIT = 0x8000;
 const D65_U = 0.1978;
 const D65_V = 0.4683;
 
-const LINEAR = new Float32Array(256);
+/** sRGB byte to linear light */
+export const LINEAR = new Float32Array(256);
 for (let i = 0; i < 256; i++) {
   const c = i / 255;
   LINEAR[i] = c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
