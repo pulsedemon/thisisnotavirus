@@ -59,15 +59,15 @@ describe('VirusLab', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
 
-    // Create a Playlist instance (shuffle is mocked so order is predictable)
+    // shuffle is mocked and random picks take the first candidate, so the
+    // seeded mix is viruses[0] and viruses[1]
+    vi.spyOn(Math, 'random').mockReturnValue(0);
     playlist = new Playlist();
 
-    // Get mock references
     const savedMixesModule = await import('../../utils/savedMixes');
     loadSavedMixesMock = savedMixesModule.loadSavedMixes as Mock;
     saveMixesMock = savedMixesModule.saveMixes as Mock;
 
-    // Reset mocks
     loadSavedMixesMock.mockReturnValue([]);
     saveMixesMock.mockReturnValue(true);
   });
@@ -76,6 +76,7 @@ describe('VirusLab', () => {
     vi.useRealTimers();
     document.body.textContent = '';
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('constructor', () => {
@@ -90,18 +91,31 @@ describe('VirusLab', () => {
       expect(iframes.length).toBe(2);
     });
 
-    it('should set initial mix to current and next virus', () => {
+    it('should seed the current virus with a different random one, without advancing the playlist', () => {
       const lab = new VirusLab(container, playlist);
-      const currentVirus = playlist.viruses[0]; // shuffle is identity
-      const nextVirus = playlist.viruses[1];
 
-      // The iframes should be set to the current and next viruses
       const iframes = container.querySelectorAll('iframe');
-      expect(iframes[0].src).toContain(`/viruses/${currentVirus}/`);
-      expect(iframes[1].src).toContain(`/viruses/${nextVirus}/`);
+      expect(iframes[0].src).toContain('/viruses/random-shapes/');
+      expect(iframes[1].src).toContain('/viruses/sphere/');
+      expect(playlist.current()).toBe('random-shapes');
 
-      // getCurrentMix returns undefined since no id is set
       expect(lab.getCurrentMix()).toBeUndefined();
+    });
+
+    it('should seed two registered viruses when the current entry is a mix', () => {
+      playlist.setCurrentVirus('premix:sphere-uzumaki');
+      new VirusLab(container, playlist);
+
+      const iframes = container.querySelectorAll('iframe');
+      expect(iframes[0].src).toContain('/viruses/random-shapes/');
+      expect(iframes[1].src).toContain('/viruses/sphere/');
+      expect(
+        (document.getElementById('primary-virus') as HTMLSelectElement).value
+      ).toBe('random-shapes');
+      expect(
+        (document.getElementById('secondary-virus') as HTMLSelectElement).value
+      ).toBe('sphere');
+      expect(playlist.current()).toBe('premix:sphere-uzumaki');
     });
   });
 
@@ -161,10 +175,8 @@ describe('VirusLab', () => {
 
       (priv(lab).saveMix as () => void)();
 
-      // Should NOT call saveMixes because it's a duplicate
       expect(saveMixesMock).not.toHaveBeenCalled();
 
-      // Should show error message
       const errorMessage = container.querySelector('.save-message.error');
       expect(errorMessage).not.toBeNull();
       expect(errorMessage!.textContent).toBe(
