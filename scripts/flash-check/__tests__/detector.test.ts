@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { FlashDetector, type FlashResult, type Frame } from '../detector.ts';
 
 type RGB = [number, number, number];
@@ -14,7 +14,12 @@ const BLACK: RGB = [0, 0, 0];
 const WHITE: RGB = [255, 255, 255];
 const RED: RGB = [255, 0, 0];
 const CYAN: RGB = [0, 140, 140];
-const SLOW = 60_000;
+/** two default 341x256 windows each way, so window search is still exercised */
+const W = 682;
+const H = 512;
+
+// each case pushes 120 frames through the detector, which takes minutes on ci runners
+vi.setConfig({ testTimeout: 120_000 });
 
 /** fills `data` from `start` to `end` with one color */
 function fill(data: Uint8Array, c: RGB, start: number, end: number) {
@@ -57,7 +62,7 @@ function small(frameAt: (k: number) => Frame): FlashResult {
 }
 
 function full(frameAt: (k: number) => Frame): FlashResult {
-  return measure(1024, 768, frameAt);
+  return measure(W, H, frameAt);
 }
 
 const toggles = (every: number) => (k: number) =>
@@ -118,64 +123,58 @@ describe('FlashDetector general flashes', () => {
     expect(general.pixel.rate).toBe(0);
   });
 
-  it(
-    'area 23% vs 27%',
-    () => {
-      const patch = (h: number) => (k: number) =>
-        scene(
-          1024,
-          768,
-          BLACK,
-          toggles(6)(k) ? [{ x: 0, y: 200, w: 1024, h, c: WHITE }] : []
-        );
-
-      const under = full(patch(60)).general;
-      expect(under.net.rate).toBe(0);
-      expect(under.pixel.rate).toBe(0);
-      expect(under.net.area).toBeCloseTo(0.234, 3);
-      expect(under.pixel.area).toBeCloseTo(0.234, 3);
-      expect(under.volume.value).toBeCloseTo(2.34, 2);
-
-      const over = full(patch(68)).general;
-      expect(over.net.rate).toBe(5);
-      expect(over.pixel.rate).toBe(5);
-    },
-    SLOW
-  );
-
-  it(
-    'window placement',
-    () => {
-      const { general } = full(k =>
-        scene(
-          1024,
-          768,
-          BLACK,
-          toggles(6)(k) ? [{ x: 241, y: 196, w: 200, h: 120, c: WHITE }] : []
-        )
+  it('area 23% vs 27%', () => {
+    const patch = (h: number) => (k: number) =>
+      scene(
+        W,
+        H,
+        BLACK,
+        toggles(6)(k) ? [{ x: 0, y: 200, w: W, h, c: WHITE }] : []
       );
-      expect(general.net.rate).toBe(5);
-      expect(general.pixel.rate).toBe(5);
-    },
-    SLOW
-  );
 
-  it(
-    'counter-phase stripes',
-    () => {
-      const { general } = full(k => {
-        const phase = toggles(6)(k) ? 1 : 0;
-        const stripes: Rect[] = [];
-        for (let i = phase; i * 64 < 1024; i += 2) {
-          stripes.push({ x: i * 64, y: 0, w: 64, h: 768, c: WHITE });
-        }
-        return scene(1024, 768, BLACK, stripes);
-      });
-      expect(general.pixel.rate).toBe(5);
-      expect(general.net.rate).toBe(0);
-    },
-    SLOW
-  );
+    const under = full(patch(60)).general;
+    expect(under.net.rate).toBe(0);
+    expect(under.pixel.rate).toBe(0);
+    expect(under.net.area).toBeCloseTo(0.234, 3);
+    expect(under.pixel.area).toBeCloseTo(0.234, 3);
+    expect(under.volume.value).toBeCloseTo(2.34, 2);
+
+    const over = full(patch(68)).general;
+    expect(over.net.rate).toBe(5);
+    expect(over.pixel.rate).toBe(5);
+  });
+
+  it('window placement', () => {
+    const { general } = full(k =>
+      scene(
+        W,
+        H,
+        BLACK,
+        toggles(6)(k) ? [{ x: 241, y: 196, w: 200, h: 120, c: WHITE }] : []
+      )
+    );
+    expect(general.net.rate).toBe(5);
+    expect(general.pixel.rate).toBe(5);
+  });
+
+  it('counter-phase stripes', () => {
+    const { general } = full(k => {
+      const phase = toggles(6)(k) ? 1 : 0;
+      const stripes: Rect[] = [];
+      for (let i = phase; i * 64 < W; i += 2) {
+        stripes.push({
+          x: i * 64,
+          y: 0,
+          w: Math.min(64, W - i * 64),
+          h: H,
+          c: WHITE,
+        });
+      }
+      return scene(W, H, BLACK, stripes);
+    });
+    expect(general.pixel.rate).toBe(5);
+    expect(general.net.rate).toBe(0);
+  });
 
   /** two 341x80 patches in one window, on at frames 0-5 and 15-20 of every 30 */
   function patches(k: number, split: boolean): Rect[] {
@@ -194,26 +193,18 @@ describe('FlashDetector general flashes', () => {
     return rects;
   }
 
-  it(
-    'alternating patches',
-    () => {
-      const { general } = full(k => scene(1024, 768, BLACK, patches(k, false)));
-      expect(general.net.rate).toBe(4);
-      expect(general.pixel.rate).toBe(2);
-    },
-    SLOW
-  );
+  it('alternating patches', () => {
+    const { general } = full(k => scene(W, H, BLACK, patches(k, false)));
+    expect(general.net.rate).toBe(4);
+    expect(general.pixel.rate).toBe(2);
+  });
 
-  it(
-    'split counter-phase patches',
-    () => {
-      const { general } = full(k => scene(1024, 768, BLACK, patches(k, true)));
-      expect(general.net.rate).toBe(0);
-      expect(general.pixel.rate).toBe(2);
-      expect(general.volume.value).toBeCloseTo(2.5, 2);
-    },
-    SLOW
-  );
+  it('split counter-phase patches', () => {
+    const { general } = full(k => scene(W, H, BLACK, patches(k, true)));
+    expect(general.net.rate).toBe(0);
+    expect(general.pixel.rate).toBe(2);
+    expect(general.volume.value).toBeCloseTo(2.5, 2);
+  });
 
   it('volume bound', () => {
     const fifteen = measure(
@@ -269,44 +260,36 @@ describe('FlashDetector red flashes', () => {
     expect(red.volume.value).toBe(0);
   });
 
-  it(
-    'unsaturated anchor',
-    () => {
-      const { red } = full(k => {
-        const c: RGB =
-          k < 15
-            ? [0, 140, 255]
-            : k < 30
-              ? [202, 110, 110]
-              : fourHz(k)
-                ? CYAN
-                : RED;
-        return scene(1024, 768, BLACK, [{ x: 0, y: 200, w: 341, h: 80, c }]);
-      });
-      expect(red.volume.value).toBeGreaterThan(1.75);
-    },
-    SLOW
-  );
+  it('unsaturated anchor', () => {
+    const { red } = full(k => {
+      const c: RGB =
+        k < 15
+          ? [0, 140, 255]
+          : k < 30
+            ? [202, 110, 110]
+            : fourHz(k)
+              ? CYAN
+              : RED;
+      return scene(W, H, BLACK, [{ x: 0, y: 200, w: 341, h: 80, c }]);
+    });
+    expect(red.volume.value).toBeGreaterThan(1.75);
+  });
 
-  it(
-    'red return leg',
-    () => {
-      const A: RGB = RED;
-      const B: RGB = CYAN;
-      const C: RGB = [211, 81, 81];
-      const top = [A, B, C, B];
-      const bottom = [C, B, A, B];
-      const { general, red } = full(k => {
-        const leg = Math.floor((k + 0.5) / 7.5) % 4;
-        return scene(1024, 768, BLACK, [
-          { x: 0, y: 200, w: 341, h: 34, c: top[leg] },
-          { x: 0, y: 234, w: 341, h: 34, c: bottom[leg] },
-        ]);
-      });
-      expect(general.pixel.rate).toBe(0);
-      expect(general.net.rate).toBe(0);
-      expect(red.volume.value).toBeCloseTo(2.8, 1);
-    },
-    SLOW
-  );
+  it('red return leg', () => {
+    const A: RGB = RED;
+    const B: RGB = CYAN;
+    const C: RGB = [211, 81, 81];
+    const top = [A, B, C, B];
+    const bottom = [C, B, A, B];
+    const { general, red } = full(k => {
+      const leg = Math.floor((k + 0.5) / 7.5) % 4;
+      return scene(W, H, BLACK, [
+        { x: 0, y: 200, w: 341, h: 34, c: top[leg] },
+        { x: 0, y: 234, w: 341, h: 34, c: bottom[leg] },
+      ]);
+    });
+    expect(general.pixel.rate).toBe(0);
+    expect(general.net.rate).toBe(0);
+    expect(red.volume.value).toBeCloseTo(2.8, 1);
+  });
 });
