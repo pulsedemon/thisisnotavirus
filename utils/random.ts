@@ -2,6 +2,7 @@ export function randomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
+/** max is exclusive, so `randomIntBetween(0, array.length)` is a valid index */
 export function randomIntBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min) + min);
 }

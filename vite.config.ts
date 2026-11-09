@@ -1,21 +1,9 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { glob } from 'glob';
-import { readFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-
-function escapeUnsafeChars(str: string): string {
-  return str.replace(/[<>/\u2028\u2029]/g, ch => {
-    const map: Record<string, string> = {
-      '<': '\\u003C',
-      '>': '\\u003E',
-      '/': '\\u002F',
-      '\u2028': '\\u2028',
-      '\u2029': '\\u2029',
-    };
-    return map[ch] ?? ch;
-  });
-}
+import { handlebarsLoader } from './build-utils/handlebars-loader';
 
 export default defineConfig(() => {
   const virusTargets = glob.sync('viruses/*/').flatMap(dir => {
@@ -126,20 +114,8 @@ export default defineConfig(() => {
           ...virusTargets,
         ],
       }),
-      // Custom plugin to handle .hbs files
-      {
-        name: 'handlebars-loader',
-        transform(code: string, id: string) {
-          if (id.endsWith('.hbs')) {
-            const template = readFileSync(id, 'utf-8');
-            return {
-              code: `export default function() { return ${escapeUnsafeChars(JSON.stringify(template))}; }`,
-              map: null,
-            };
-          }
-          return null;
-        },
-      },
+      // Custom plugin to handle .hbs files (shared with vitest.config.ts)
+      handlebarsLoader(),
     ],
 
     // Development server configuration

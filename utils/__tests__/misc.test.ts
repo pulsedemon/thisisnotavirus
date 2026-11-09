@@ -5,6 +5,7 @@ import {
   shuffle,
   formatVirusName,
   preloadImage,
+  draggable,
 } from '../misc';
 
 // Mock ua-parser-js
@@ -22,37 +23,37 @@ vi.mock('ua-parser-js', () => {
 });
 
 describe('Misc Utilities', () => {
+  let originalNavigator: Navigator;
+  let originalInnerWidth: number;
+  let hadOntouchstart: boolean;
+
+  beforeEach(() => {
+    _resetIsMobileCache();
+    originalNavigator = window.navigator;
+    originalInnerWidth = window.innerWidth;
+    hadOntouchstart = 'ontouchstart' in window;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      value: originalInnerWidth,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(window, 'navigator', {
+      value: originalNavigator,
+      writable: true,
+      configurable: true,
+    });
+    if (hadOntouchstart && !('ontouchstart' in window)) {
+      (window as unknown as Record<string, unknown>).ontouchstart = null;
+    } else if (!hadOntouchstart && 'ontouchstart' in window) {
+      delete (window as unknown as Record<string, unknown>).ontouchstart;
+    }
+    vi.restoreAllMocks();
+  });
+
   describe('isMobile', () => {
-    let originalNavigator: Navigator;
-    let originalInnerWidth: number;
-    let hadOntouchstart: boolean;
-
-    beforeEach(() => {
-      _resetIsMobileCache();
-      originalNavigator = window.navigator;
-      originalInnerWidth = window.innerWidth;
-      hadOntouchstart = 'ontouchstart' in window;
-    });
-
-    afterEach(() => {
-      Object.defineProperty(window, 'innerWidth', {
-        value: originalInnerWidth,
-        writable: true,
-        configurable: true,
-      });
-      Object.defineProperty(window, 'navigator', {
-        value: originalNavigator,
-        writable: true,
-        configurable: true,
-      });
-      if (hadOntouchstart && !('ontouchstart' in window)) {
-        (window as unknown as Record<string, unknown>).ontouchstart = null;
-      } else if (!hadOntouchstart && 'ontouchstart' in window) {
-        delete (window as unknown as Record<string, unknown>).ontouchstart;
-      }
-      vi.restoreAllMocks();
-    });
-
     it('should return true when screen is small and has touch', () => {
       Object.defineProperty(window, 'innerWidth', {
         value: 375,
@@ -231,6 +232,53 @@ describe('Misc Utilities', () => {
 
     it('should not throw when called with an empty string', () => {
       expect(() => preloadImage('')).not.toThrow();
+    });
+  });
+
+  describe('draggable', () => {
+    beforeEach(() => {
+      Object.defineProperty(window, 'innerWidth', {
+        value: 1920,
+        writable: true,
+        configurable: true,
+      });
+      // Force desktop branch
+      Object.defineProperty(window, 'navigator', {
+        value: { ...window.navigator, userAgent: 'desktop', maxTouchPoints: 0 },
+        writable: true,
+        configurable: true,
+      });
+      if ('ontouchstart' in window) {
+        delete (window as unknown as Record<string, unknown>).ontouchstart;
+      }
+    });
+
+    it('does not set top/left to NaN when starting position is auto', () => {
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+
+      const cleanup = draggable(el);
+
+      const down = new MouseEvent('mousedown', {
+        clientX: 100,
+        clientY: 50,
+        bubbles: true,
+      });
+      el.dispatchEvent(down);
+
+      const move = new MouseEvent('mousemove', {
+        clientX: 130,
+        clientY: 60,
+        bubbles: true,
+      });
+      window.dispatchEvent(move);
+
+      // moved by the drag delta from an assumed 0,0
+      expect(el.style.left).toBe('30px');
+      expect(el.style.top).toBe('10px');
+
+      cleanup();
+      el.remove();
     });
   });
 });

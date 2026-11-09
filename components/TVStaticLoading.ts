@@ -119,7 +119,8 @@ export default class TVStaticLoading {
       if (!this.watermark.currentWord) {
         const randomIndex = Math.floor(Math.random() * this.WORDS.length);
         this.watermark.currentWord = this.WORDS[randomIndex];
-        console.log(`Your fortune: "${this.watermark.currentWord}" `);
+        if (import.meta.env.DEV)
+          console.log(`Your fortune: "${this.watermark.currentWord}" `);
       }
       const randomWord = this.watermark.currentWord;
 

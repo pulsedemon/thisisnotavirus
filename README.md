@@ -30,6 +30,14 @@ sass/                → Global SCSS styles
 
 Each virus lives in its own `viruses/<name>/` directory with an `index.html` entry point that gets loaded into an iframe by the main app.
 
+### URL routing
+
+Direct hits on `/viruses/<name>`, other than `lab`, are redirected to `/?virus=<name>` in dev (see `vite.config.ts`) so the parent shell always frames the virus. Iframe loads bypass the redirect via `sec-fetch-dest`.
+
+### Virus Lab
+
+`viruses/lab/` loads two virus iframes and blends them with `mix-blend-mode: screen`. It only accepts `?primary=` and `?secondary=` values registered in `Playlist.viruses`.
+
 ## How to Add a New Virus
 
 1. Create a new directory: `viruses/your-virus-name/`

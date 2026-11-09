@@ -5,6 +5,11 @@ import Stage from './stage/Stage';
 import VirusLab from './VirusLab';
 import { VirusLoaderInterface } from '../types/VirusLoaderInterface';
 import { randomIntBetween } from '../utils/random';
+import {
+  NAVIGATION_LOCK_MS,
+  RANDOMIZATION_MAX_S,
+  RANDOMIZATION_MIN_S,
+} from './constants';
 import { safeGtag } from '../utils/gtag';
 import { createLabButton, createThumbnailButton } from '../ui/floating-buttons';
 import { createShareControl } from '../ui/share';
@@ -89,7 +94,7 @@ export default class VirusLoader implements VirusLoaderInterface {
       this.playlist.viruses.includes(name) ? name : null
     );
 
-    console.log('Loading virus:', name);
+    if (import.meta.env.DEV) console.log('Loading virus:', name);
     this.setSourceCodeLinkVisible(false);
     this.loadingRing.classList.add('loading');
 
@@ -176,13 +181,14 @@ export default class VirusLoader implements VirusLoaderInterface {
 
     const virus =
       direction === 'next' ? this.playlist.next() : this.playlist.prev();
-    console.log(`Skipping to ${direction} virus:`, virus);
+    if (import.meta.env.DEV)
+      console.log(`Skipping to ${direction} virus:`, virus);
     this.loadVirus(virus);
     this.startRandomization();
 
     setTimeout(() => {
       this.isNavigating = false;
-    }, 300);
+    }, NAVIGATION_LOCK_MS);
   }
 
   get isLabOpen(): boolean {
@@ -198,7 +204,8 @@ export default class VirusLoader implements VirusLoaderInterface {
    */
   startRandomization() {
     clearInterval(this.loadRandomInterval);
-    const randomTime = randomIntBetween(2, 12) * 1000;
+    const randomTime =
+      randomIntBetween(RANDOMIZATION_MIN_S, RANDOMIZATION_MAX_S) * 1000;
 
     this.loadRandomInterval = setInterval(() => {
       const nextVirus = this.playlist.next();
@@ -230,8 +237,6 @@ export default class VirusLoader implements VirusLoaderInterface {
         labButton.title = 'Virus Lab';
       }
       safeGtag('event', 'close_lab');
-
-      clearInterval(this.loadRandomInterval);
 
       if (currentMix && currentMix.id) {
         this.loadVirus(`mixed:${currentMix.id}`);
@@ -278,12 +283,13 @@ export default class VirusLoader implements VirusLoaderInterface {
     this.isNavigating = true;
 
     const currentVirus = this.playlist.current();
-    console.log('Reloading current virus:', currentVirus);
+    if (import.meta.env.DEV)
+      console.log('Reloading current virus:', currentVirus);
     this.loadVirus(currentVirus);
     this.startRandomization();
 
     setTimeout(() => {
       this.isNavigating = false;
-    }, 300);
+    }, NAVIGATION_LOCK_MS);
   }
 }

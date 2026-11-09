@@ -26,6 +26,13 @@ import {
 let onSelectSpy: ReturnType<typeof vi.fn>;
 let onCloseSpy: ReturnType<typeof vi.fn>;
 let mockVirusLoader: VirusLoaderInterface;
+interface IOEntry {
+  isIntersecting: boolean;
+  target: Element;
+}
+let intersect: (entries: IOEntry[]) => void;
+let observed: Element[];
+let disconnected: boolean;
 
 beforeEach(() => {
   // jsdom doesn't implement scrollIntoView
@@ -42,12 +49,32 @@ beforeEach(() => {
     toggleLab: vi.fn(),
     pauseRandomization: vi.fn(),
   };
+  observed = [];
+  disconnected = false;
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      constructor(cb: typeof intersect) {
+        intersect = cb;
+      }
+      observe(el: Element) {
+        observed.push(el);
+      }
+      unobserve() {
+        /* no-op */
+      }
+      disconnect() {
+        disconnected = true;
+      }
+    }
+  );
 });
 
 afterEach(() => {
   document.getElementById('virus-thumbnail-overlay')?.remove();
   document.body.style.overflow = '';
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 function createOverlay(
@@ -124,6 +151,53 @@ describe('VirusThumbnailOverlay', () => {
       });
     });
 
+    it('lazy-loads thumbnail iframes via IntersectionObserver', () => {
+      createOverlay();
+      const iframes = Array.from(
+        getOverlayEl()?.querySelectorAll('iframe') ?? []
+      );
+      iframes.forEach(iframe => {
+        expect(iframe.getAttribute('src')).toBeNull();
+        expect(iframe.getAttribute('data-src')).toContain('/viruses/');
+      });
+      expect(observed).toEqual(iframes);
+
+      intersect(iframes.map(target => ({ isIntersecting: true, target })));
+      iframes.forEach(iframe => {
+        expect(iframe.getAttribute('src')).toContain('/viruses/');
+        expect(iframe.getAttribute('data-src')).toBeNull();
+      });
+    });
+
+    it('leaves a thumbnail unloaded while it is offscreen', () => {
+      createOverlay();
+      const [iframe] = Array.from(
+        getOverlayEl()?.querySelectorAll('iframe') ?? []
+      );
+      const dataSrc = iframe.getAttribute('data-src');
+
+      intersect([{ isIntersecting: false, target: iframe }]);
+
+      expect(iframe.getAttribute('src')).toBeNull();
+      expect(iframe.getAttribute('data-src')).toBe(dataSrc);
+    });
+
+    it('drops a data-src that is not a /viruses/<slug>/ path', () => {
+      createOverlay();
+      const [tampered, intact] = Array.from(
+        getOverlayEl()?.querySelectorAll('iframe') ?? []
+      );
+      const intactSrc = intact.getAttribute('data-src');
+      tampered.setAttribute('data-src', '/viruses/../etc/');
+
+      intersect(
+        [tampered, intact].map(target => ({ isIntersecting: true, target }))
+      );
+
+      expect(tampered.getAttribute('src')).toBeNull();
+      expect(intact.getAttribute('src')).toBe(intactSrc);
+    });
+
     it('sets document.body.style.overflow to hidden', () => {
       createOverlay();
       expect(document.body.style.overflow).toBe('hidden');
@@ -131,6 +205,11 @@ describe('VirusThumbnailOverlay', () => {
   });
 
   describe('destroy', () => {
+    it('stops observing thumbnails', () => {
+      createOverlay().destroy();
+      expect(disconnected).toBe(true);
+    });
+
     it('removes overlay from DOM', () => {
       const overlay = createOverlay();
       expect(getOverlayEl()).not.toBeNull();

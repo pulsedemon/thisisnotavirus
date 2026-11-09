@@ -335,4 +335,28 @@ describe('VirusLab', () => {
       expect(errorMessage!.textContent).toBe('Failed to delete mix.');
     });
   });
+
+  describe('updateSavedMixesList XSS regression', () => {
+    it('should not execute HTML embedded in mix.name from localStorage', () => {
+      const malicious = {
+        primary: 'sphere',
+        secondary: 'uzumaki',
+        mixRatio: 0.5,
+        id: 1,
+        name: '<img src=x onerror="window.__xssFired=true">',
+      };
+      loadSavedMixesMock.mockReturnValue([malicious]);
+      const w = window as Window & { __xssFired?: boolean };
+      delete w.__xssFired;
+
+      new VirusLab(container, playlist);
+
+      expect(w.__xssFired).toBeUndefined();
+
+      const label = container.querySelector('.saved-mix span');
+      expect(label).not.toBeNull();
+      expect(label!.textContent).toBe(malicious.name);
+      expect(container.querySelector('.saved-mix img')).toBeNull();
+    });
+  });
 });

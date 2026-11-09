@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { toggleInfo, hideInfo, teleportMenu, shuffleTitle } from '../menu';
+import { toggleInfo, hideInfo, shuffleTitle } from '../menu';
 
 vi.mock('../../utils/gtag', () => ({
   safeGtag: vi.fn(),
@@ -59,8 +59,13 @@ describe('menu', () => {
   });
 
   describe('teleportMenu', () => {
-    beforeEach(() => {
+    let teleportMenu: typeof import('../menu').teleportMenu;
+
+    // menu.ts keeps the current position in module state, so start each test from top-right
+    beforeEach(async () => {
       vi.useFakeTimers();
+      vi.resetModules();
+      ({ teleportMenu } = await import('../menu'));
     });
 
     afterEach(() => {
@@ -75,6 +80,20 @@ describe('menu', () => {
       vi.advanceTimersByTime(300);
 
       expect(menu.style.inset).not.toBe(originalInset);
+    });
+
+    it('moves again when clicked mid-teleport', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      const menu = document.getElementById('menu')!;
+
+      teleportMenu();
+      vi.advanceTimersByTime(100);
+      teleportMenu();
+      vi.advanceTimersByTime(200);
+      const first = menu.style.inset;
+      vi.advanceTimersByTime(100);
+
+      expect(menu.style.inset).not.toBe(first);
     });
 
     it('should add/remove teleporting class', () => {
@@ -100,23 +119,24 @@ describe('menu', () => {
       vi.useRealTimers();
     });
 
-    it('should return an interval ID', () => {
-      const intervalId = shuffleTitle();
-      expect(intervalId).toBeDefined();
-      clearInterval(intervalId);
-    });
-
-    it('should mutate document.title', () => {
-      document.title = 'thisisnotavirus';
-      const intervalId = shuffleTitle();
+    it('shuffles document.title on tick', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      document.title = 'abc';
+      const stop = shuffleTitle();
 
       vi.advanceTimersByTime(200);
-      // After one tick the title should have been shuffled
-      // (it could theoretically stay the same, but with 15 chars that's extremely unlikely)
-      expect(typeof document.title).toBe('string');
-      expect(document.title.length).toBe('thisisnotavirus'.length);
+      expect(document.title).not.toBe('abc');
+      expect([...document.title].sort().join('')).toBe('abc');
 
-      clearInterval(intervalId);
+      stop();
+    });
+
+    it('restores the original title on stop', () => {
+      document.title = 'thisisnotavirus';
+      const stop = shuffleTitle();
+      vi.advanceTimersByTime(200);
+      stop();
+      expect(document.title).toBe('thisisnotavirus');
     });
   });
 });
