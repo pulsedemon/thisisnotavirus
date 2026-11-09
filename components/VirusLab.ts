@@ -1,6 +1,7 @@
 import { VirusMix } from '../types/VirusMix';
 import { createStyledIframe } from '../utils/iframe';
 import { formatVirusName } from '../utils/misc';
+import { randomItem } from '../utils/random';
 import {
   loadSavedMixes as loadSavedMixesFromStorage,
   saveMixes,
@@ -27,7 +28,7 @@ export default class VirusLab {
 
     this.primaryIframe = createStyledIframe();
     this.secondaryIframe = createStyledIframe(true);
-    this.secondaryIframe.style.opacity = '0.5'; // Default opacity
+    this.secondaryIframe.style.opacity = '0.5';
 
     this.primaryIframe.style.pointerEvents = 'none';
     this.secondaryIframe.style.pointerEvents = 'none';
@@ -35,9 +36,13 @@ export default class VirusLab {
     this.container.appendChild(this.primaryIframe);
     this.container.appendChild(this.secondaryIframe);
 
+    // the playlist also holds mix ids, which can't be mixed again
+    const { viruses } = this.playlist;
+    const current = this.playlist.current();
+    const primary = viruses.includes(current) ? current : randomItem(viruses);
     this.currentMix = {
-      primary: this.playlist.current(),
-      secondary: this.playlist.next(),
+      primary,
+      secondary: randomItem(viruses.filter(virus => virus !== primary)),
       mixRatio: 0.5,
     };
 
@@ -55,7 +60,6 @@ export default class VirusLab {
     controls.className = 'virus-lab-controls';
     controls.innerHTML = controlsTemplate();
 
-    // Ensure controls are interactive and properly positioned
     controls.style.pointerEvents = 'auto';
     controls.style.zIndex = '1000';
     controls.style.position = 'absolute';
@@ -124,11 +128,9 @@ export default class VirusLab {
   }
 
   private applyMix() {
-    // Load both viruses
     this.primaryIframe.src = `/viruses/${this.currentMix.primary}/`;
     this.secondaryIframe.src = `/viruses/${this.currentMix.secondary}/`;
 
-    // Set initial opacity and ensure mix-blend-mode is set
     this.secondaryIframe.style.mixBlendMode = 'screen';
     this.secondaryIframe.style.opacity = this.currentMix.mixRatio.toString();
   }
@@ -136,7 +138,6 @@ export default class VirusLab {
   private saveMix() {
     const savedMixes = loadSavedMixesFromStorage();
 
-    // Check for duplicates
     const isDuplicate = savedMixes.some(
       (mix: VirusMix) =>
         mix.primary === this.currentMix.primary &&
@@ -215,11 +216,7 @@ export default class VirusLab {
   }
 
   getCurrentMix(): VirusMix | undefined {
-    // Return a copy of the current mix, ensuring it has an ID
-    if (this.currentMix && this.currentMix.id) {
-      return { ...this.currentMix };
-    }
-    return undefined;
+    return this.currentMix.id ? { ...this.currentMix } : undefined;
   }
 
   private showTemporaryMessage(text: string, isError = false): void {
