@@ -35,7 +35,7 @@ interface Patch {
 
 interface InputEvent {
   atMs: number;
-  type: 'click' | 'key' | 'select' | 'range' | 'scroll' | 'mouse';
+  type: 'click' | 'key' | 'select' | 'range' | 'scroll' | 'mouse' | 'viewport';
   selector?: string;
   x?: number;
   y?: number;
@@ -591,6 +591,12 @@ function schedule(
         });
         break;
       }
+      case 'viewport':
+        // stands in for fullscreen, which a dispatched click can't enter; screenshots stay clipped
+        at(e.atMs, page =>
+          page.setViewportSize({ width: e.to!.x, height: e.to!.y })
+        );
+        break;
       case 'scroll':
         at(e.atMs, page =>
           page.locator(sel).evaluate((el, top) => {
