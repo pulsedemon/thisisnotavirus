@@ -314,7 +314,9 @@ function parse() {
     const [id, seed] = pair.split('=');
     seedBy[id] = Number(seed);
   }
-  const measureFrom = Number(values['measure-from']);
+  // `paint` starts measuring at the step after the first frame that differs from step 0
+  const measureFrom =
+    values['measure-from'] === 'paint' ? null : Number(values['measure-from']);
   return {
     url: new URL(values.path, BASE).href,
     steps: Math.round(Number(values.seconds) * 60),
@@ -322,10 +324,10 @@ function parse() {
     out: values.out,
     measureFrom,
     keepFactor: values['keep-frames'] ? Number(values['keep-frames']) : 0,
-    keepFrom: values['keep-from'] ? Number(values['keep-from']) : measureFrom,
-    keepUntil: values['keep-seconds']
-      ? Number(values['keep-from'] ?? measureFrom) +
-        Number(values['keep-seconds']) * 1000
+    /** null keeps from the measure start */
+    keepFrom: values['keep-from'] ? Number(values['keep-from']) : null,
+    keepMs: values['keep-seconds']
+      ? Number(values['keep-seconds']) * 1000
       : Infinity,
     patches: values.patch
       ? (JSON.parse(readFileSync(values.patch, 'utf8')) as Patch[])
@@ -722,6 +724,7 @@ async function capture(opts: Options): Promise<number> {
 
     const actions = schedule(opts.inputs);
     const detector = new FlashDetector(WIDTH, HEIGHT);
+    let measureStart = opts.measureFrom ?? Infinity;
     let measuredFromStep = -1;
     let uniform: number[] | null = null;
     let measuredUniform = true;
@@ -801,10 +804,15 @@ async function capture(opts: Options): Promise<number> {
         log.push({ step, type: 'shot', realMs: performance.now() - realStart });
       }
       const frame: Frame = decodePng(Buffer.from(shot.data, 'base64'));
-      hashes.push(
-        createHash('sha1').update(frame.data).digest('hex').slice(0, 12)
-      );
-      if (t >= opts.measureFrom) {
+      const hash = createHash('sha1')
+        .update(frame.data)
+        .digest('hex')
+        .slice(0, 12);
+      hashes.push(hash);
+      if (measureStart === Infinity && step > 0 && hash !== hashes[0]) {
+        measureStart = stepMs(step + 1);
+      }
+      if (t >= measureStart) {
         if (measuredFromStep < 0) measuredFromStep = step;
         detector.push(frame);
         if (measuredUniform) {
@@ -817,7 +825,8 @@ async function capture(opts: Options): Promise<number> {
           }
         }
       }
-      if (opts.keepFactor > 0 && t >= opts.keepFrom && t < opts.keepUntil) {
+      const keepFrom = opts.keepFrom ?? measureStart;
+      if (opts.keepFactor > 0 && t >= keepFrom && t < keepFrom + opts.keepMs) {
         const kept =
           opts.keepFactor > 1 ? downsample(frame, opts.keepFactor) : frame;
         writeFileSync(
