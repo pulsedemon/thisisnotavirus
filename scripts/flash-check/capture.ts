@@ -10,7 +10,7 @@ import {
   type Request,
   type Route,
 } from 'playwright-core';
-import { FlashDetector, type Frame } from './detector.ts';
+import { FlashDetector } from './detector.ts';
 import { decodePng, downsample, encodePng } from './frames.ts';
 
 const BASE = 'http://localhost:5190';
@@ -456,10 +456,6 @@ async function decodeImages(page: Page, network: Network): Promise<void> {
   );
 }
 
-function pathOf(url: string): string {
-  return new URL(url).pathname;
-}
-
 async function installRoutes(
   context: BrowserContext,
   opts: Options,
@@ -473,7 +469,7 @@ async function installRoutes(
   await context.route('**/*', async route => {
     const request = route.request();
     const url = request.url();
-    const { hostname } = new URL(url);
+    const { hostname, pathname } = new URL(url);
     if (ANALYTICS.some(h => hostname === h || hostname.endsWith(`.${h}`))) {
       network.exemptRequest(request);
       log.push({ type: 'aborted', url });
@@ -492,7 +488,7 @@ async function installRoutes(
       return;
     }
     const patches = opts.patches.filter(
-      p => url.startsWith(BASE) && p.url === pathOf(url)
+      p => url.startsWith(BASE) && p.url === pathname
     );
     if (patches.length === 0) {
       await route.continue();
@@ -517,8 +513,12 @@ async function installRoutes(
     let text = await response.text();
     // edits apply in file order, each to the text the previous one left
     for (const patch of patches) {
-      const count = text.split(patch.find ?? '').length - 1;
-      if (patch.find === undefined || count !== 1) {
+      if (patch.find === undefined) {
+        failures.push(`patch for ${patch.url} has no find`);
+        continue;
+      }
+      const count = text.split(patch.find).length - 1;
+      if (count !== 1) {
         failures.push(`patch for ${patch.url} matched ${count} times`);
         continue;
       }
@@ -566,7 +566,7 @@ function schedule(
         );
         break;
       case 'range': {
-        // one `step` per frame toward the target, spread over durationMs
+        // one `step` per move toward the target, moves spread evenly over durationMs
         const target = Number(e.value);
         at(e.atMs, async page => {
           const { value, step } = await page.locator(sel).evaluate(el => ({
@@ -697,7 +697,6 @@ async function capture(opts: Options): Promise<number> {
     );
 
     const page = await context.newPage();
-    const origin = new URL(BASE).origin;
     page.on('pageerror', e => failures.push(`pageerror: ${e.message}`));
     page.on('console', msg => {
       if (msg.type() !== 'error') return;
@@ -708,7 +707,7 @@ async function capture(opts: Options): Promise<number> {
       const url = new URL(r.url());
       if (
         r.status() >= 400 &&
-        url.origin === origin &&
+        url.origin === BASE &&
         url.pathname !== '/favicon.ico'
       ) {
         failures.push(`${r.status()} ${r.url()}`);
@@ -767,7 +766,7 @@ async function capture(opts: Options): Promise<number> {
           )
         );
       }
-      if (opts.holdSecondary > 0 && step === opts.holdSecondary) {
+      if (step === opts.holdSecondary) {
         for (const route of held.splice(0)) await route.continue();
       }
       for (let i = 0; i < actions.length; i++) {
@@ -812,7 +811,7 @@ async function capture(opts: Options): Promise<number> {
       if (opts.realClock) {
         log.push({ step, type: 'shot', realMs: performance.now() - realStart });
       }
-      const frame: Frame = decodePng(Buffer.from(shot.data, 'base64'));
+      const frame = decodePng(Buffer.from(shot.data, 'base64'));
       const hash = createHash('sha1')
         .update(frame.data)
         .digest('hex')
