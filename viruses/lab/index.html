@@ -104,6 +104,7 @@
 
       if (!sources) {
         document.body.textContent = "invalid mix";
+        document.body.style.color = "#fff";
         document.body.style.visibility = "visible";
         throw new Error("lab: invalid primary/secondary params");
       }

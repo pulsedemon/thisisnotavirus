@@ -32,7 +32,7 @@ Each virus lives in its own `viruses/<name>/` directory with an `index.html` ent
 
 ### URL routing
 
-Direct hits on `/viruses/<name>` are redirected to `/?virus=<name>` in dev (see `vite.config.ts`) so the parent shell always frames the virus. Iframe loads bypass the redirect via `sec-fetch-dest`.
+Direct hits on `/viruses/<name>`, other than `lab`, are redirected to `/?virus=<name>` in dev (see `vite.config.ts`) so the parent shell always frames the virus. Iframe loads bypass the redirect via `sec-fetch-dest`.
 
 ### Virus Lab
 
