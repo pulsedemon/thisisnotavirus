@@ -447,6 +447,20 @@ describe('VirusLoader', () => {
       expect(lastShown().src).toBe('/viruses/prev-virus/');
     });
 
+    it('resumes rotation and shows pause when skipping back while paused', () => {
+      const playlist = createPlaylist();
+      const vl = createVirusLoader(playlist);
+      document.getElementById('play-pause')!.innerText = 'play_arrow';
+      vl.pauseRandomization();
+
+      vl.skipPrev();
+      stageShow.mockClear();
+      vi.advanceTimersByTime(5000);
+
+      expect(stageShow).toHaveBeenCalledOnce();
+      expect(document.getElementById('play-pause')!.innerText).toBe('pause');
+    });
+
     it('should debounce rapid skip calls', () => {
       const playlist = createPlaylist();
       const nextSpy = vi.spyOn(playlist, 'next').mockReturnValue('next-virus');
@@ -494,33 +508,24 @@ describe('VirusLoader', () => {
       expect(labContainer).toBeNull();
     });
 
-    it('should resume randomization when closing lab', () => {
+    it('resumes rotation and shows pause when closing lab', () => {
       const playlist = createPlaylist();
       const vl = createVirusLoader(playlist);
+      document.getElementById('play-pause')!.innerText = 'pause';
 
       vl.toggleLab();
-      vl.toggleLab();
-
-      expect(priv(vl).loadRandomInterval).toBeDefined();
-    });
-
-    it('stops rotation when the lab opens after pause and reload', () => {
-      const playlist = createPlaylist();
-      const vl = createVirusLoader(playlist);
-      document.getElementById('play-pause')!.innerText = 'play_arrow';
-      vl.pauseRandomization();
-      vl.reloadCurrent();
-
       vl.toggleLab();
       stageShow.mockClear();
-      vi.advanceTimersByTime(12000);
+      vi.advanceTimersByTime(5000);
 
-      expect(stageShow).not.toHaveBeenCalled();
+      expect(stageShow).toHaveBeenCalledOnce();
+      expect(document.getElementById('play-pause')!.innerText).toBe('pause');
     });
 
     it('ignores skip and reload while the lab is open', () => {
       const playlist = createPlaylist();
       const vl = createVirusLoader(playlist);
+      document.getElementById('play-pause')!.innerText = 'pause';
 
       vl.toggleLab();
       stageShow.mockClear();
@@ -532,6 +537,9 @@ describe('VirusLoader', () => {
       vi.advanceTimersByTime(12000);
 
       expect(stageShow).not.toHaveBeenCalled();
+      expect(document.getElementById('play-pause')!.innerText).toBe(
+        'play_arrow'
+      );
     });
 
     it('makes the fallback current when the lab closes on a deleted mix', () => {
@@ -564,15 +572,6 @@ describe('VirusLoader', () => {
       vi.advanceTimersByTime(15000);
 
       expect(stageShow).not.toHaveBeenCalled();
-    });
-
-    it('should set interval on start', () => {
-      const playlist = createPlaylist();
-      const vl = createVirusLoader(playlist);
-
-      vl.pauseRandomization();
-      vl.startRandomization();
-      expect(priv(vl).loadRandomInterval).toBeDefined();
     });
 
     it('should load next virus on interval tick', () => {
@@ -625,6 +624,20 @@ describe('VirusLoader', () => {
       vl.reloadCurrent();
 
       expect(currentSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('resumes rotation and shows pause when reloading while paused', () => {
+      const playlist = createPlaylist();
+      const vl = createVirusLoader(playlist);
+      document.getElementById('play-pause')!.innerText = 'play_arrow';
+      vl.pauseRandomization();
+
+      vl.reloadCurrent();
+      stageShow.mockClear();
+      vi.advanceTimersByTime(5000);
+
+      expect(stageShow).toHaveBeenCalledOnce();
+      expect(document.getElementById('play-pause')!.innerText).toBe('pause');
     });
   });
 

@@ -200,7 +200,8 @@ export default class VirusLoader implements VirusLoaderInterface {
   }
 
   /**
-   * keep one random rotation interval until the next call.
+   * keep one random rotation interval until the next call. owns the button's
+   * `pause` state so it can't disagree with a running rotation.
    */
   startRandomization() {
     clearInterval(this.loadRandomInterval);
@@ -211,6 +212,9 @@ export default class VirusLoader implements VirusLoaderInterface {
       const nextVirus = this.playlist.next();
       this.loadVirus(nextVirus);
     }, randomTime);
+
+    const playPauseBtn = document.getElementById('play-pause');
+    if (playPauseBtn) playPauseBtn.innerText = 'pause';
   }
 
   private hideModals() {
@@ -244,15 +248,9 @@ export default class VirusLoader implements VirusLoaderInterface {
         this.loadVirus(this.playlist.current());
       }
 
-      const playPauseBtn = document.getElementById('play-pause');
-      if (playPauseBtn && playPauseBtn.innerText === 'play_arrow') {
-        playPauseBtn.innerText = 'pause';
-      }
-
       this.startRandomization();
     } else {
       this.stage.clear();
-      // reload and skip previous restart rotation without updating the button
       this.pauseRandomization();
       const menuEl = document.getElementById('menu');
       if (menuEl) menuEl.style.display = 'none';

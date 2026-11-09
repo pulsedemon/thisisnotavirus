@@ -92,7 +92,6 @@ function togglePlayPause() {
       animation_name: playlist.current(),
     });
   } else {
-    playPauseBtn.innerText = 'pause';
     safeGtag('event', 'play');
     vl.skipNext();
   }
@@ -101,13 +100,6 @@ function togglePlayPause() {
 const playPauseEl = document.getElementById('play-pause');
 if (playPauseEl) playPauseEl.onclick = togglePlayPause;
 
-function resumePlayback() {
-  const playButton = document.getElementById('play-pause');
-  if (playButton && playButton.innerText === 'play_arrow') {
-    playButton.innerText = 'pause';
-  }
-}
-
 const skipNextBtn = document.getElementById('skip-next');
 if (skipNextBtn)
   skipNextBtn.onclick = () => {
@@ -115,7 +107,6 @@ if (skipNextBtn)
       animation_name: playlist.current(),
     });
     vl.skipNext();
-    resumePlayback();
   };
 
 const reloadBtn = document.getElementById('reload');
@@ -190,7 +181,6 @@ document.addEventListener('keyup', e => {
   if (e.key === 'ArrowRight') {
     safeGtag('event', 'skip_next_keyboard');
     vl.skipNext();
-    resumePlayback();
   } else if (e.key === 'ArrowLeft') {
     safeGtag('event', 'skip_prev_keyboard');
     vl.skipPrev();
