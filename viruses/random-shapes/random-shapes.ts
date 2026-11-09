@@ -7,9 +7,6 @@ import {
 class RandomBlocks {
   screenWidth!: number;
   screenHeight!: number;
-  locations: string[] = [];
-  count = 0;
-  blocksAppended = 0;
   canvas!: HTMLCanvasElement;
   maybe = randomBool();
 
@@ -59,18 +56,11 @@ class RandomBlocks {
     const randomYNumber = this.randomYAxis(size);
 
     const position: number[] = [randomXNumber, randomYNumber];
-    if (!~this.locations.indexOf(position.join(''))) {
-      if (this.maybe) {
-        this.triangle(position);
-      } else {
-        this.addSquare(position);
-      }
+    if (this.maybe) {
+      this.triangle(position);
+    } else {
+      this.addSquare(position);
     }
-
-    this.blocksAppended++;
-
-    this.locations.push(position as unknown as string);
-    this.count++;
   }
 
   addSquare(position: number[]) {
@@ -85,11 +75,6 @@ class RandomBlocks {
       this.blockSize,
       this.blockSize
     );
-
-    this.blocksAppended++;
-
-    this.locations.push(position as unknown as string);
-    this.count++;
   }
 
   triangle(position: number[]) {
