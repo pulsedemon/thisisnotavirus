@@ -30,6 +30,8 @@
 }
 
 #loading-anim {
+  // shown only while Flash runs, or it covers the stage and takes its clicks
+  display: none;
   width: 100vw;
   height: 100vh;
   position: absolute;
