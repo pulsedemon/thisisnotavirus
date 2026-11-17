@@ -532,7 +532,6 @@ class Void {
     });
 
     document.addEventListener('wheel', event => {
-      event.preventDefault();
       this.timeWarp += event.deltaY * 0.001;
       this.timeWarp = Math.max(0.1, Math.min(5.0, this.timeWarp));
     });
