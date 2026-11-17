@@ -18,6 +18,7 @@ export default class VirusLoader implements VirusLoaderInterface {
   private stage: Stage;
   private loadRandomInterval: ReturnType<typeof setInterval> | undefined;
   private loadingRing: HTMLDivElement;
+  private sourceCodeEl: HTMLElement | null;
   private sourceCodeLink: HTMLAnchorElement | null;
   private shareControl: ReturnType<typeof createShareControl>;
   private virusLab: VirusLab | null = null;
@@ -45,6 +46,7 @@ export default class VirusLoader implements VirusLoaderInterface {
     }
     this.loadingRing = loadingRing;
 
+    this.sourceCodeEl = document.getElementById('source-code');
     this.sourceCodeLink = document.querySelector('#source-code a');
     this.shareControl = createShareControl();
     this.stage = new Stage(stageEl, loadingAnimEl, () => this.onShown());
@@ -75,16 +77,6 @@ export default class VirusLoader implements VirusLoaderInterface {
     return this.stage.activeWindow;
   }
 
-  private setSourceCodeLinkVisible(visible: boolean) {
-    if (visible) {
-      this.sourceCodeLink?.classList.remove('hide');
-    } else {
-      this.sourceCodeLink?.classList.add('hide');
-    }
-    const sourceCodeEl = document.getElementById('source-code');
-    if (sourceCodeEl) sourceCodeEl.style.display = visible ? '' : 'none';
-  }
-
   loadVirus(name: string) {
     this.virusHasKeyboardControl = false;
 
@@ -93,7 +85,9 @@ export default class VirusLoader implements VirusLoaderInterface {
     );
 
     if (import.meta.env.DEV) console.log('Loading virus:', name);
-    this.setSourceCodeLinkVisible(false);
+    this.sourceCodeLink?.classList.add('hide');
+    // the ring lives in #source-code, which stays hidden after a mix
+    if (this.sourceCodeEl) this.sourceCodeEl.style.display = '';
     this.loadingRing.classList.add('loading');
 
     const reloadBtn = document.getElementById('reload');
@@ -149,8 +143,11 @@ export default class VirusLoader implements VirusLoaderInterface {
 
   private onShown() {
     const current = this.playlist.current();
-    if (!this.playlist.isMixedVirus(current)) {
-      this.setSourceCodeLinkVisible(true);
+    if (this.playlist.isMixedVirus(current)) {
+      // a mix has no source to link
+      if (this.sourceCodeEl) this.sourceCodeEl.style.display = 'none';
+    } else {
+      this.sourceCodeLink?.classList.remove('hide');
     }
     if (this.sourceCodeLink)
       this.sourceCodeLink.href = this.sourceCodeUrl(current);

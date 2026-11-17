@@ -419,6 +419,28 @@ describe('VirusLoader', () => {
       onShown();
       expect(ring.classList.contains('loading')).toBe(false);
     });
+
+    it('hides the ring container for a shown mix and shows it for the next load', () => {
+      const playlist = createPlaylist();
+      const vl = createVirusLoader(playlist);
+      vl.pauseRandomization();
+      const sourceCode = document.getElementById('source-code')!;
+      const link = sourceCode.querySelector('a')!;
+
+      playlist.setCurrentVirus('premix:sphere-uzumaki');
+      vl.loadVirus('premix:sphere-uzumaki');
+      expect(sourceCode.style.display).toBe('');
+      onShown();
+      expect(sourceCode.style.display).toBe('none');
+
+      playlist.setCurrentVirus('doors');
+      vl.loadVirus('doors');
+      expect(sourceCode.style.display).toBe('');
+      expect(link.classList.contains('hide')).toBe(true);
+      onShown();
+      expect(sourceCode.style.display).toBe('');
+      expect(link.classList.contains('hide')).toBe(false);
+    });
   });
 
   describe('skipNext / skipPrev', () => {
