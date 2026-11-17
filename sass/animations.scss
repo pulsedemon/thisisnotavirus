@@ -1,32 +1,5 @@
 @use 'sass:math';
 
-@keyframes shrink {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(0);
-  }
-}
-
-@keyframes grow {
-  from {
-    transform: scale(0);
-  }
-  to {
-    transform: scale(1);
-  }
-}
-
-@keyframes flip-horizontal {
-  0% {
-    transform: scale(-1, 1);
-  }
-  50% {
-    transform: scale(1);
-  }
-}
-
 @keyframes wobble {
   0% {
     transform: rotate(15deg);
@@ -36,24 +9,6 @@
   }
   100% {
     transform: rotate(15deg);
-  }
-}
-
-@keyframes space-letters {
-  0% {
-    letter-spacing: 0;
-  }
-
-  50% {
-    letter-spacing: 10px;
-  }
-
-  75% {
-    letter-spacing: 15px;
-  }
-
-  100% {
-    letter-spacing: 100px;
   }
 }
 

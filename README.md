@@ -58,17 +58,18 @@ yarn dev
 
 ## Available Scripts
 
-| Script              | Description                          |
-| ------------------- | ------------------------------------ |
-| `yarn dev`          | Start development server (port 5174) |
-| `yarn build`        | Production build to `dist/`          |
-| `yarn preview`      | Build and preview production         |
-| `yarn lint`         | Run ESLint                           |
-| `yarn lint:fix`     | Run ESLint with auto-fix             |
-| `yarn format`       | Format code with Prettier            |
-| `yarn format:check` | Check formatting                     |
-| `yarn test`         | Run tests with coverage              |
-| `yarn test:ui`      | Run tests with Vitest UI             |
+| Script              | Description                                                        |
+| ------------------- | ------------------------------------------------------------------ |
+| `yarn dev`          | Start development server (port 5174)                               |
+| `yarn build`        | Production build to `dist/`                                        |
+| `yarn preview`      | Build and preview production                                       |
+| `yarn lint`         | Run ESLint                                                         |
+| `yarn lint:fix`     | Run ESLint with auto-fix                                           |
+| `yarn format`       | Format code with Prettier                                          |
+| `yarn format:check` | Check formatting                                                   |
+| `yarn test`         | Run tests with coverage                                            |
+| `yarn test:ui`      | Run tests with Vitest UI                                           |
+| `yarn flash-check`  | Screen a page for WCAG 2.3.1 flashes (Node 22.18+, server on 5190) |
 
 ## Tech Stack
 

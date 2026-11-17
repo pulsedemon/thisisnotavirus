@@ -102,10 +102,6 @@ export default class CraneGame {
       // Start button callback
       () => {
         this.dropClaw();
-      },
-      // Camera controls callback
-      enabled => {
-        this.controls.enabled = enabled;
       }
     );
     this.cabinet = cabinet;
